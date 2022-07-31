@@ -9,48 +9,175 @@
 config_version=4
 
 _global_script_classes=[ {
-"base": "Resource",
-"class": "attack_class",
+"base": "Node",
+"class": "AbstractState",
 "language": "GDScript",
-"path": "res://common/class/item/attack_class.gd"
+"path": "res://src/Common/Abstract/State.gd"
 }, {
-"base": "Resource",
-"class": "item_class",
+"base": "Node",
+"class": "AbstractStateMachine",
 "language": "GDScript",
-"path": "res://common/class/item_class.gd"
+"path": "res://src/Common/Abstract/StateMachine.gd"
 }, {
-"base": "Resource",
-"class": "potion_class",
+"base": "KinematicBody2D",
+"class": "Actor",
 "language": "GDScript",
-"path": "res://common/class/item/potion_class.gd"
+"path": "res://src/Common/Abstract/Actor.gd"
+}, {
+"base": "Actor",
+"class": "Enemy",
+"language": "GDScript",
+"path": "res://src/Common/Abstract/Enemy.gd"
+}, {
+"base": "AbstractState",
+"class": "EnemyAbstractState",
+"language": "GDScript",
+"path": "res://src/Actors/EnemyStateMachine/EnemyAbstactState.gd"
+}, {
+"base": "EnemyAbstractState",
+"class": "EnemyAbstractStateMotion",
+"language": "GDScript",
+"path": "res://src/Actors/EnemyStateMachine/EnemyAbstractStateMotion.gd"
+}, {
+"base": "EnemyAbstractState",
+"class": "EnemyStateAttack01",
+"language": "GDScript",
+"path": "res://src/Actors/EnemyStateMachine/States/EnemyStateAttack01.gd"
+}, {
+"base": "EnemyAbstractState",
+"class": "EnemyStateDamaged",
+"language": "GDScript",
+"path": "res://src/Actors/EnemyStateMachine/States/EnemyStateDamaged.gd"
+}, {
+"base": "EnemyAbstractState",
+"class": "EnemyStateDied",
+"language": "GDScript",
+"path": "res://src/Actors/EnemyStateMachine/States/EnemyStateDied.gd"
+}, {
+"base": "EnemyAbstractStateMotion",
+"class": "EnemyStateIdle",
+"language": "GDScript",
+"path": "res://src/Actors/EnemyStateMachine/States/EnemyStateIdle.gd"
+}, {
+"base": "AbstractStateMachine",
+"class": "EnemyStateMachine",
+"language": "GDScript",
+"path": "res://src/Actors/EnemyStateMachine.gd"
+}, {
+"base": "EnemyAbstractStateMotion",
+"class": "EnemyStateWalk",
+"language": "GDScript",
+"path": "res://src/Actors/EnemyStateMachine/States/EnemyStateWalk.gd"
+}, {
+"base": "Actor",
+"class": "Player",
+"language": "GDScript",
+"path": "res://src/Actors/Players/Player.gd"
+}, {
+"base": "AbstractState",
+"class": "PlayerAbstractState",
+"language": "GDScript",
+"path": "res://src/Actors/Players/Player/States/PlayerAbstactState.gd"
+}, {
+"base": "PlayerAbstractState",
+"class": "PlayerAbstractStateMotion",
+"language": "GDScript",
+"path": "res://src/Actors/Players/Player/States/PlayerAbstractStateMotion.gd"
+}, {
+"base": "PlayerAbstractStateMotion",
+"class": "PlayerStateAttack01",
+"language": "GDScript",
+"path": "res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack01.gd"
+}, {
+"base": "PlayerAbstractStateMotion",
+"class": "PlayerStateAttack02",
+"language": "GDScript",
+"path": "res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack02.gd"
+}, {
+"base": "PlayerAbstractStateMotion",
+"class": "PlayerStateAttack03",
+"language": "GDScript",
+"path": "res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack03.gd"
+}, {
+"base": "PlayerAbstractStateMotion",
+"class": "PlayerStateAttack04",
+"language": "GDScript",
+"path": "res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack04.gd"
+}, {
+"base": "PlayerAbstractStateMotion",
+"class": "PlayerStateDamaged",
+"language": "GDScript",
+"path": "res://src/Actors/Players/Player/States/OnGround/PlayerStateDamaged.gd"
+}, {
+"base": "PlayerAbstractStateMotion",
+"class": "PlayerStateIdle",
+"language": "GDScript",
+"path": "res://src/Actors/Players/Player/States/OnGround/PlayerStateIdle.gd"
+}, {
+"base": "AbstractStateMachine",
+"class": "PlayerStateMachine",
+"language": "GDScript",
+"path": "res://src/Actors/Players/Player/PlayerStateMachine.gd"
+}, {
+"base": "PlayerAbstractStateMotion",
+"class": "PlayerStateMove",
+"language": "GDScript",
+"path": "res://src/Actors/Players/Player/States/OnGround/PlayerStateMove.gd"
+}, {
+"base": "EditorPlugin",
+"class": "StateGraph",
+"language": "GDScript",
+"path": "res://StateGraph.gd"
 } ]
 _global_script_class_icons={
-"attack_class": "",
-"item_class": "",
-"potion_class": ""
+"AbstractState": "",
+"AbstractStateMachine": "",
+"Actor": "",
+"Enemy": "",
+"EnemyAbstractState": "",
+"EnemyAbstractStateMotion": "",
+"EnemyStateAttack01": "",
+"EnemyStateDamaged": "",
+"EnemyStateDied": "",
+"EnemyStateIdle": "",
+"EnemyStateMachine": "",
+"EnemyStateWalk": "",
+"Player": "",
+"PlayerAbstractState": "",
+"PlayerAbstractStateMotion": "",
+"PlayerStateAttack01": "",
+"PlayerStateAttack02": "",
+"PlayerStateAttack03": "",
+"PlayerStateAttack04": "",
+"PlayerStateDamaged": "",
+"PlayerStateIdle": "",
+"PlayerStateMachine": "",
+"PlayerStateMove": "",
+"StateGraph": ""
 }
 
 [application]
 
 config/name="BeatAndMatchToPass"
-run/main_scene="res://screens/game/Level0.tscn"
+run/main_scene="res://src/Levels/LevelTemplate.tscn"
 config/icon="res://icon.png"
 
 [autoload]
 
-GlobalPlayer="*res://common/singletons/globalPlayer.gd"
-GlobalGame="*res://common/singletons/globalGame.gd"
-GlobalItems="*res://common/singletons/globalItems.gd"
-GlobalScenes="*res://common/singletons/globalScenes.gd"
+Events="*res://src/Common/Autoload/Events.gd"
+Game="*res://src/Common/Autoload/Game.gd"
 
 [display]
 
-window/size/width=306
+window/size/width=320
 window/size/height=180
 window/size/test_width=1230
 window/size/test_height=720
 window/stretch/mode="2d"
-window/stretch/aspect="expand"
+
+[global]
+
+font=false
 
 [importer_defaults]
 
@@ -76,6 +203,39 @@ texture={
 "svg/scale": 1.0
 }
 
+[input]
+
+move_left={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":16777231,"physical_scancode":0,"unicode":0,"echo":false,"script":null)
+, Object(InputEventJoypadMotion,"resource_local_to_scene":false,"resource_name":"","device":0,"axis":0,"axis_value":-1.0,"script":null)
+ ]
+}
+move_right={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":16777233,"physical_scancode":0,"unicode":0,"echo":false,"script":null)
+, Object(InputEventJoypadMotion,"resource_local_to_scene":false,"resource_name":"","device":0,"axis":0,"axis_value":1.0,"script":null)
+ ]
+}
+move_down={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":16777234,"physical_scancode":0,"unicode":0,"echo":false,"script":null)
+, Object(InputEventJoypadMotion,"resource_local_to_scene":false,"resource_name":"","device":0,"axis":1,"axis_value":1.0,"script":null)
+ ]
+}
+move_up={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":16777232,"physical_scancode":0,"unicode":0,"echo":false,"script":null)
+, Object(InputEventJoypadMotion,"resource_local_to_scene":false,"resource_name":"","device":0,"axis":1,"axis_value":-1.0,"script":null)
+ ]
+}
+attack={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":16777221,"physical_scancode":0,"unicode":0,"echo":false,"script":null)
+, Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":0,"physical_scancode":32,"unicode":0,"echo":false,"script":null)
+ ]
+}
+
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true
@@ -86,7 +246,10 @@ common/enable_pause_aware_picking=true
 
 [rendering]
 
-quality/driver/driver_name="GLES2"
 vram_compression/import_etc=true
 vram_compression/import_etc2=false
 environment/default_environment="res://default_env.tres"
+
+[world]
+
+2d/cell_size=20

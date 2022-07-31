@@ -1,0 +1,473 @@
+[gd_scene load_steps=50 format=2]
+
+[ext_resource path="res://src/Actors/Players/Player.gd" type="Script" id=1]
+[ext_resource path="res://src/Actors/Players/Player/States/OnGround/PlayerStateDamaged.gd" type="Script" id=2]
+[ext_resource path="res://src/Actors/Players/Player/player-idle.png" type="Texture" id=3]
+[ext_resource path="res://src/Actors/Players/Player/player-walking.png" type="Texture" id=4]
+[ext_resource path="res://src/Actors/Players/Player/player-attacking-01.png" type="Texture" id=5]
+[ext_resource path="res://src/Actors/Players/Player/PlayerStateMachine.gd" type="Script" id=6]
+[ext_resource path="res://src/Actors/Players/Player/States/OnGround/PlayerStateIdle.gd" type="Script" id=7]
+[ext_resource path="res://src/Actors/Players/Player/States/OnGround/PlayerStateMove.gd" type="Script" id=8]
+[ext_resource path="res://src/Actors/Players/stateDisplay.gd" type="Script" id=9]
+[ext_resource path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack01.gd" type="Script" id=10]
+[ext_resource path="res://src/Actors/Players/Player/player-damaged.png" type="Texture" id=11]
+[ext_resource path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack02.gd" type="Script" id=12]
+[ext_resource path="res://src/Actors/Players/Player/player-attacking-02.png" type="Texture" id=13]
+[ext_resource path="res://src/Actors/Players/Player/player-attacking-03.png" type="Texture" id=14]
+[ext_resource path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack03.gd" type="Script" id=15]
+[ext_resource path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack04.gd" type="Script" id=16]
+[ext_resource path="res://src/Actors/Players/Player/player-attacking-04.png" type="Texture" id=17]
+
+[sub_resource type="Animation" id=46]
+resource_name = "attacking_01_right"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.2, 0.4 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ "attacking01" ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("BodyPivot/HitBox/CollisionShape2D:disabled")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0, 0.4, 0.5 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ true, false, true ]
+}
+
+[sub_resource type="Animation" id=51]
+resource_name = "attacking_02_right"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.2, 0.4 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ "attacking02" ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("BodyPivot/HitBox/CollisionShape2D:disabled")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0, 0.4, 0.5 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ true, false, true ]
+}
+
+[sub_resource type="Animation" id=55]
+resource_name = "attacking_03_right"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.2, 0.4 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ "attacking03" ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("BodyPivot/HitBox/CollisionShape2D:disabled")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0, 0.4, 0.5 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ true, false, true ]
+}
+
+[sub_resource type="Animation" id=59]
+resource_name = "attacking_04_right"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.2, 0.4 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ "attacking04" ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("BodyPivot/HitBox/CollisionShape2D:disabled")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0, 0.4, 0.5 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ true, false, true ]
+}
+
+[sub_resource type="Animation" id=47]
+resource_name = "damaged"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.2, 0.4 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ "damaged_right" ]
+}
+
+[sub_resource type="Animation" id=2]
+resource_name = "idle"
+length = 2.0
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0.1, 0.7, 1.5 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0.1 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ "idle" ]
+}
+
+[sub_resource type="Animation" id=19]
+resource_name = "walking_right"
+length = 0.5
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.2, 0.4 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 5 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0.1 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ "walk_right" ]
+}
+
+[sub_resource type="AtlasTexture" id=34]
+atlas = ExtResource( 3 )
+region = Rect2( 0, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=35]
+atlas = ExtResource( 3 )
+region = Rect2( 64, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=36]
+atlas = ExtResource( 3 )
+region = Rect2( 128, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=41]
+atlas = ExtResource( 5 )
+region = Rect2( 0, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=42]
+atlas = ExtResource( 5 )
+region = Rect2( 64, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=43]
+atlas = ExtResource( 5 )
+region = Rect2( 128, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=44]
+atlas = ExtResource( 5 )
+region = Rect2( 192, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=60]
+atlas = ExtResource( 17 )
+region = Rect2( 0, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=61]
+atlas = ExtResource( 17 )
+region = Rect2( 64, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=62]
+atlas = ExtResource( 17 )
+region = Rect2( 128, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=37]
+atlas = ExtResource( 4 )
+region = Rect2( 0, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=38]
+atlas = ExtResource( 4 )
+region = Rect2( 64, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=39]
+atlas = ExtResource( 4 )
+region = Rect2( 128, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=48]
+atlas = ExtResource( 11 )
+region = Rect2( 0, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=49]
+atlas = ExtResource( 11 )
+region = Rect2( 64, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=50]
+atlas = ExtResource( 11 )
+region = Rect2( 128, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=56]
+atlas = ExtResource( 14 )
+region = Rect2( 0, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=57]
+atlas = ExtResource( 14 )
+region = Rect2( 64, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=58]
+atlas = ExtResource( 14 )
+region = Rect2( 128, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=52]
+atlas = ExtResource( 13 )
+region = Rect2( 0, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=53]
+atlas = ExtResource( 13 )
+region = Rect2( 64, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=54]
+atlas = ExtResource( 13 )
+region = Rect2( 128, 0, 64, 64 )
+
+[sub_resource type="SpriteFrames" id=10]
+animations = [ {
+"frames": [ SubResource( 34 ), SubResource( 35 ), SubResource( 36 ) ],
+"loop": true,
+"name": "idle",
+"speed": 5.0
+}, {
+"frames": [ SubResource( 41 ), SubResource( 42 ), SubResource( 43 ), SubResource( 44 ) ],
+"loop": true,
+"name": "attacking01",
+"speed": 5.0
+}, {
+"frames": [ SubResource( 60 ), SubResource( 61 ), SubResource( 62 ) ],
+"loop": true,
+"name": "attacking04",
+"speed": 5.0
+}, {
+"frames": [ SubResource( 37 ), SubResource( 38 ), SubResource( 39 ) ],
+"loop": true,
+"name": "walk_right",
+"speed": 5.0
+}, {
+"frames": [ SubResource( 48 ), SubResource( 49 ), SubResource( 50 ) ],
+"loop": true,
+"name": "damaged_right",
+"speed": 5.0
+}, {
+"frames": [ SubResource( 56 ), SubResource( 57 ), SubResource( 58 ) ],
+"loop": true,
+"name": "attacking03",
+"speed": 5.0
+}, {
+"frames": [ SubResource( 52 ), SubResource( 53 ), SubResource( 54 ) ],
+"loop": true,
+"name": "attacking02",
+"speed": 5.0
+} ]
+
+[sub_resource type="RectangleShape2D" id=40]
+extents = Vector2( 4, 5 )
+
+[sub_resource type="RectangleShape2D" id=1]
+extents = Vector2( 3, 5.25 )
+
+[node name="Player" type="KinematicBody2D"]
+script = ExtResource( 1 )
+
+[node name="BodyPivot" type="Position2D" parent="."]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BodyPivot"]
+root_node = NodePath("../..")
+anims/attacking_01_right = SubResource( 46 )
+anims/attacking_02_right = SubResource( 51 )
+anims/attacking_03_right = SubResource( 55 )
+anims/attacking_04_right = SubResource( 59 )
+anims/damaged = SubResource( 47 )
+anims/idle = SubResource( 2 )
+anims/walking_right = SubResource( 19 )
+
+[node name="AnimatedSprite" type="AnimatedSprite" parent="BodyPivot"]
+position = Vector2( -1, -32 )
+frames = SubResource( 10 )
+animation = "attacking03"
+
+[node name="HitBox" type="Area2D" parent="BodyPivot"]
+position = Vector2( 0, -12 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BodyPivot/HitBox"]
+position = Vector2( 15, -5 )
+shape = SubResource( 40 )
+disabled = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2( 0, -5.75 )
+shape = SubResource( 1 )
+
+[node name="Camera2D" type="Camera2D" parent="."]
+visible = false
+current = true
+smoothing_speed = 10.0
+
+[node name="Tween" type="Tween" parent="."]
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource( 6 )
+START_STATE = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource( 7 )
+
+[node name="Walk" type="Node" parent="StateMachine"]
+script = ExtResource( 8 )
+
+[node name="Attack01" type="Node" parent="StateMachine"]
+script = ExtResource( 10 )
+
+[node name="Attack02" type="Node" parent="StateMachine"]
+script = ExtResource( 12 )
+
+[node name="Attack03" type="Node" parent="StateMachine"]
+script = ExtResource( 15 )
+
+[node name="Attack04" type="Node" parent="StateMachine"]
+script = ExtResource( 16 )
+
+[node name="Damaged" type="Node" parent="StateMachine"]
+script = ExtResource( 2 )
+
+[node name="stateDisplay" type="Label" parent="."]
+margin_left = -20.0
+margin_top = -48.0
+margin_right = 20.0
+margin_bottom = -34.0
+text = "dddaa"
+script = ExtResource( 9 )
+
+[connection signal="animation_finished" from="BodyPivot/AnimationPlayer" to="StateMachine" method="_on_animation_finished"]
+[connection signal="body_entered" from="BodyPivot/HitBox" to="." method="_on_HitBox_body_entered"]
+[connection signal="state_changed" from="StateMachine" to="stateDisplay" method="_on_StateMachine_state_changed"]
