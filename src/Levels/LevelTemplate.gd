@@ -10,10 +10,14 @@ onready var hud=get_node("HUD")
 
 onready var Ant:=preload("res://src/Actors/SimpleEnemies/Ant.tscn")
 
+onready var Energie:=preload("res://src/Common/Levels/Energy.tscn")
+
 onready var _spawnPositionLeft:=get_node("Player/SpawnPosition2DLeft")
 onready var _spawnPositionLeft2:=get_node("Player/SpawnPosition2DLeft2")
 onready var _spawnPositionRight:=get_node("Player/SpawnPosition2DRight")
 onready var _spawnPositionRight2:=get_node("Player/SpawnPosition2DRight2")
+
+onready var _electricalBarrier01 := get_node("ElectricalBarriers/01/ElectricalBarrier")
 
 var score:=0
 
@@ -37,6 +41,11 @@ func _on_actor_healt_changed(actor:KinematicBody2D,previous_value:float,new_valu
 	if new_value <= 0.0:
 		score+=10
 		hud.update_score( score )
+		
+		var new_energy = Energie.instance()
+		new_energy.global_position=actor.global_position 
+		add_child(new_energy)
+		new_energy.set_target( _electricalBarrier01)
 
 func _on_actor_took_damage(actor,damage):
 	#if actor.has_method("get_life"):

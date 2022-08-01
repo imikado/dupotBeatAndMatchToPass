@@ -123,11 +123,6 @@ _global_script_classes=[ {
 "class": "PlayerStateMove",
 "language": "GDScript",
 "path": "res://src/Actors/Players/Player/States/OnGround/PlayerStateMove.gd"
-}, {
-"base": "EditorPlugin",
-"class": "StateGraph",
-"language": "GDScript",
-"path": "res://StateGraph.gd"
 } ]
 _global_script_class_icons={
 "AbstractState": "",
@@ -152,8 +147,7 @@ _global_script_class_icons={
 "PlayerStateDamaged": "",
 "PlayerStateIdle": "",
 "PlayerStateMachine": "",
-"PlayerStateMove": "",
-"StateGraph": ""
+"PlayerStateMove": ""
 }
 
 [application]
