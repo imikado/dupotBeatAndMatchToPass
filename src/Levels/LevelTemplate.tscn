@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=2]
+[gd_scene load_steps=14 format=2]
 
 [ext_resource path="res://src/Levels/LevelTemplate/background.png" type="Texture" id=1]
 [ext_resource path="res://src/Actors/Players/Player.tscn" type="PackedScene" id=2]
@@ -11,6 +11,7 @@
 [ext_resource path="res://src/Levels/Camera2D.gd" type="Script" id=9]
 [ext_resource path="res://src/Common/Levels/limit_walking_horiz.tscn" type="PackedScene" id=10]
 [ext_resource path="res://src/Common/Levels/limit_wakling_vert.tscn" type="PackedScene" id=11]
+[ext_resource path="res://src/Common/UI/Controls.tscn" type="PackedScene" id=12]
 
 [sub_resource type="TileSet" id=1]
 0/name = "background.png 0"
@@ -144,7 +145,7 @@ position = Vector2( 362, 161 )
 position = Vector2( 588, 163 )
 
 [node name="spawn03" type="VisibilityNotifier2D" parent="spawnEnemiesNotifier"]
-position = Vector2( 824, 163 )
+position = Vector2( 1011, 163 )
 
 [node name="Timer" type="Timer" parent="."]
 
@@ -155,6 +156,23 @@ position = Vector2( 824, 163 )
 
 [node name="ElectricalBarrier" parent="ElectricalBarriers/01" instance=ExtResource( 4 )]
 position = Vector2( -418, -45 )
+
+[node name="02" type="Node2D" parent="ElectricalBarriers"]
+
+[node name="ElectricalBarrier" parent="ElectricalBarriers/02" instance=ExtResource( 4 )]
+position = Vector2( -49, -45 )
+
+[node name="03" type="Node2D" parent="ElectricalBarriers"]
+
+[node name="ElectricalBarrier" parent="ElectricalBarriers/03" instance=ExtResource( 4 )]
+position = Vector2( 401, -45 )
+
+[node name="ElectricalBarrier2" parent="ElectricalBarriers/03" instance=ExtResource( 4 )]
+position = Vector2( 431, -45 )
+type = 2
+
+[node name="Controls" parent="." instance=ExtResource( 12 )]
+layer = 128
 
 [connection signal="screen_entered" from="spawnEnemiesNotifier/spawn01" to="." method="_on_spawn01_screen_entered"]
 [connection signal="screen_entered" from="spawnEnemiesNotifier/spawn02" to="." method="_on_spawn02_screen_entered"]

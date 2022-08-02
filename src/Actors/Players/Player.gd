@@ -4,7 +4,7 @@ extends Actor
 const MAX_LIFE=100.0
 var _life:=100.0
 
-var _damage=10
+var _damage=40
 
 #onready var _animationTree := get_node("AnimationTree")
 onready var _camera:=get_node("Camera2D")

@@ -7,6 +7,7 @@ var _near_distance:=10
 var _damage:=10
 const MAX_LIFE=50.0
 var _life:=50.0
+var _type= Game.ENEMY_TYPE_LIST.ANT
 
 onready var _animationPlayer:=get_node("BodyPivot/AnimationPlayer")
 onready var _tween:=get_node("Tween")
@@ -16,6 +17,8 @@ onready var _timer:=get_node("Timer")
 
 var look_direction = Vector2(1, 0) setget set_look_direction
 
+func get_type():
+	return _type
 
 func update_enemy_life(start_value:float, end_value:float)->void:
 

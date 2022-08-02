@@ -20,7 +20,7 @@
 
 [sub_resource type="Animation" id=46]
 resource_name = "attacking_01_right"
-length = 0.5
+length = 0.4
 tracks/0/type = "value"
 tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
 tracks/0/interp = 1
@@ -28,10 +28,10 @@ tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.2, 0.4 ),
-"transitions": PoolRealArray( 1, 1, 1 ),
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3 ),
+"transitions": PoolRealArray( 1, 1, 1, 1 ),
 "update": 1,
-"values": [ 0, 1, 2 ]
+"values": [ 0, 1, 2, 3 ]
 }
 tracks/1/type = "value"
 tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
@@ -52,7 +52,7 @@ tracks/2/loop_wrap = true
 tracks/2/imported = false
 tracks/2/enabled = true
 tracks/2/keys = {
-"times": PoolRealArray( 0, 0.4, 0.5 ),
+"times": PoolRealArray( 0, 0.3, 0.4 ),
 "transitions": PoolRealArray( 1, 1, 1 ),
 "update": 1,
 "values": [ true, false, true ]
@@ -60,7 +60,7 @@ tracks/2/keys = {
 
 [sub_resource type="Animation" id=51]
 resource_name = "attacking_02_right"
-length = 0.5
+length = 0.4
 tracks/0/type = "value"
 tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
 tracks/0/interp = 1
@@ -68,7 +68,7 @@ tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.2, 0.4 ),
+"times": PoolRealArray( 0, 0.1, 0.2 ),
 "transitions": PoolRealArray( 1, 1, 1 ),
 "update": 1,
 "values": [ 0, 1, 2 ]
@@ -92,7 +92,7 @@ tracks/2/loop_wrap = true
 tracks/2/imported = false
 tracks/2/enabled = true
 tracks/2/keys = {
-"times": PoolRealArray( 0, 0.4, 0.5 ),
+"times": PoolRealArray( 0, 0.2, 0.3 ),
 "transitions": PoolRealArray( 1, 1, 1 ),
 "update": 1,
 "values": [ true, false, true ]
@@ -100,7 +100,7 @@ tracks/2/keys = {
 
 [sub_resource type="Animation" id=55]
 resource_name = "attacking_03_right"
-length = 0.5
+length = 0.4
 tracks/0/type = "value"
 tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
 tracks/0/interp = 1
@@ -108,7 +108,7 @@ tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.2, 0.4 ),
+"times": PoolRealArray( 0, 0.1, 0.2 ),
 "transitions": PoolRealArray( 1, 1, 1 ),
 "update": 1,
 "values": [ 0, 1, 2 ]
@@ -132,7 +132,7 @@ tracks/2/loop_wrap = true
 tracks/2/imported = false
 tracks/2/enabled = true
 tracks/2/keys = {
-"times": PoolRealArray( 0, 0.4, 0.5 ),
+"times": PoolRealArray( 0, 0.2, 0.3 ),
 "transitions": PoolRealArray( 1, 1, 1 ),
 "update": 1,
 "values": [ true, false, true ]
@@ -140,7 +140,7 @@ tracks/2/keys = {
 
 [sub_resource type="Animation" id=59]
 resource_name = "attacking_04_right"
-length = 0.5
+length = 0.4
 tracks/0/type = "value"
 tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
 tracks/0/interp = 1
@@ -148,7 +148,7 @@ tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.2, 0.4 ),
+"times": PoolRealArray( 0, 0.1, 0.2 ),
 "transitions": PoolRealArray( 1, 1, 1 ),
 "update": 1,
 "values": [ 0, 1, 2 ]
@@ -172,7 +172,7 @@ tracks/2/loop_wrap = true
 tracks/2/imported = false
 tracks/2/enabled = true
 tracks/2/keys = {
-"times": PoolRealArray( 0, 0.4, 0.5 ),
+"times": PoolRealArray( 0, 0.2, 0.3 ),
 "transitions": PoolRealArray( 1, 1, 1 ),
 "update": 1,
 "values": [ true, false, true ]
@@ -397,6 +397,7 @@ extents = Vector2( 4, 5 )
 extents = Vector2( 3, 5.25 )
 
 [node name="Player" type="KinematicBody2D"]
+collision_mask = 3
 script = ExtResource( 1 )
 
 [node name="BodyPivot" type="Position2D" parent="."]
@@ -414,10 +415,11 @@ anims/walking_right = SubResource( 19 )
 [node name="AnimatedSprite" type="AnimatedSprite" parent="BodyPivot"]
 position = Vector2( -1, -32 )
 frames = SubResource( 10 )
-animation = "attacking03"
+animation = "attacking04"
 
 [node name="HitBox" type="Area2D" parent="BodyPivot"]
 position = Vector2( 0, -12 )
+collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="BodyPivot/HitBox"]
 position = Vector2( 15, -5 )
