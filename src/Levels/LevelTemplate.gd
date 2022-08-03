@@ -9,6 +9,7 @@ onready var cameraLimitRect=get_node("CameraLimitRect")
 onready var hud=get_node("HUD")
 
 onready var Ant:=preload("res://src/Actors/SimpleEnemies/Ant.tscn")
+onready var Beetle:=preload("res://src/Actors/SimpleEnemies/Beetle.tscn")
 
 onready var Energie:=preload("res://src/Common/Levels/Energy.tscn")
 
@@ -24,7 +25,12 @@ var _score:=0
 
 var _active_barrier_list:=[]
 
+func debug():
+	player.global_position.x +=1000
+
+
 func _ready() -> void:
+	debug()
 	player.set_camera_limit_rect(cameraLimitRect)
 
 	Events.connect("player_health_changed",self,"_on_player_healt_changed")
@@ -47,8 +53,8 @@ func _on_player_healt_changed(newLife:float):
 
 
 func _on_actor_healt_changed(actor:KinematicBody2D,previous_value:float,new_value:float):
-	actor.update_enemy_life (previous_value,new_value)
 	
+	actor.update_enemy_life (previous_value,new_value)
 	
 	if new_value <= 0.0:
 		_score+=10
@@ -115,5 +121,5 @@ func _on_spawn03_screen_entered() -> void:
 	spawn_enemy_on_position(Ant,_spawnPositionLeft)
 	spawn_enemy_on_position(Ant,_spawnPositionLeft2,Vector2(-25,0))
 	spawn_enemy_on_position(Ant,_spawnPositionRight)
-	spawn_enemy_on_position(Ant,_spawnPositionRight2,Vector2(25,0))
+	spawn_enemy_on_position(Beetle,_spawnPositionRight2,Vector2(25,0))
 	

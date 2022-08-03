@@ -1,0 +1,23 @@
+[gd_scene format=2]
+
+[node name="barrier" type="Node2D"]
+
+[node name="Line2D" type="Line2D" parent="."]
+modulate = Color( 1.9, 1.9, 1.9, 1 )
+position = Vector2( 1, 5.115 )
+scale = Vector2( 1, 1.01904 )
+points = PoolVector2Array( 0, -4, 0, 78 )
+width = 3.0
+default_color = Color( 0.243137, 0.129412, 0, 1 )
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="."]
+modulate = Color( 1.8, 1.8, 1.8, 1 )
+position = Vector2( 1, 2 )
+amount = 9
+speed_scale = 0.39
+fract_delta = false
+spread = 0.0
+gravity = Vector2( 0, 300 )
+scale_amount = 1.4
+color = Color( 1, 0, 0, 1 )
+hue_variation_random = 0.15

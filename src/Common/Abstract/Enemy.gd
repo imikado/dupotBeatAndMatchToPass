@@ -69,6 +69,9 @@ func update_life(newLife:int):
 	_life=newLife
 	
 func took_damage(damage:int):
+	if _life <=0:
+		return
+		
 	update_life(_life - damage)
 	
 	_stateMachine.set_state_damaged()
