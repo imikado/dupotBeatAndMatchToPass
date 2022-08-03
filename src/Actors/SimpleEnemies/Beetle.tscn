@@ -281,7 +281,7 @@ border_color = Color( 0, 0, 0, 1 )
 
 [sub_resource type="CapsuleShape2D" id=54]
 radius = 8.00001
-height = 7.99997
+height = 0.0
 
 [node name="Beetle" type="KinematicBody2D"]
 collision_layer = 2
@@ -331,7 +331,7 @@ percent_visible = false
 [node name="EnemyStateMachine" parent="." instance=ExtResource( 2 )]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2( -5, -10 )
+position = Vector2( -1, -10 )
 rotation = 1.57079
 shape = SubResource( 54 )
 

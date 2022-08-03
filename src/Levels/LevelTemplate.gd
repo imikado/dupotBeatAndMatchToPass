@@ -30,7 +30,7 @@ func debug():
 
 
 func _ready() -> void:
-	debug()
+	#debug()
 	player.set_camera_limit_rect(cameraLimitRect)
 
 	Events.connect("player_health_changed",self,"_on_player_healt_changed")
