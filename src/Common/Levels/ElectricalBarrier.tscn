@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=2]
+[gd_scene load_steps=21 format=2]
 
 [ext_resource path="res://src/Common/Levels/ElectricalBarrier/ElectricalBarrier.png" type="Texture" id=1]
 [ext_resource path="res://src/Common/Levels/ElectricalBarrier.gd" type="Script" id=2]
@@ -6,6 +6,7 @@
 [ext_resource path="res://src/Common/Levels/ElectricalBarrier/icon-ant.png" type="Texture" id=4]
 [ext_resource path="res://src/Common/Levels/ElectricalBarrier/barrier.tscn" type="PackedScene" id=5]
 [ext_resource path="res://src/Common/Levels/ElectricalBarrier/icon-beetle.png" type="Texture" id=6]
+[ext_resource path="res://src/Actors/SimpleEnemies/Spider/icon-spider.png" type="Texture" id=7]
 
 [sub_resource type="AtlasTexture" id=6]
 atlas = ExtResource( 3 )
@@ -92,12 +93,11 @@ position = Vector2( -1, -11 )
 texture = ExtResource( 4 )
 
 [node name="spider" type="Sprite" parent="icons"]
-visible = false
-modulate = Color( 0.427451, 0.564706, 0.0862745, 1 )
 position = Vector2( -1, -11 )
-texture = ExtResource( 4 )
+texture = ExtResource( 7 )
 
 [node name="beetle" type="Sprite" parent="icons"]
+visible = false
 position = Vector2( -1, -11 )
 texture = ExtResource( 6 )
 

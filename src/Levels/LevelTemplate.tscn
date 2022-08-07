@@ -109,6 +109,7 @@ tile_data = PoolIntArray( 131071, 0, 0, 65536, 0, 0, 65537, 0, 0, 65538, 0, 0, 6
 position = Vector2( 0, 105 )
 
 [node name="limit_walking_horiz" parent="Node2D" instance=ExtResource( 10 )]
+collision_mask = 3
 
 [node name="limit_walking_horiz2" parent="Node2D" instance=ExtResource( 10 )]
 position = Vector2( 0, 107 )
@@ -123,13 +124,13 @@ margin_bottom = 201.0
 [node name="HUD" parent="." instance=ExtResource( 5 )]
 
 [node name="Player" parent="." instance=ExtResource( 2 )]
-position = Vector2( 90, 156 )
+position = Vector2( 113, 127 )
 
 [node name="SpawnPosition2DLeft" type="Position2D" parent="Player"]
-position = Vector2( -170, -20 )
+position = Vector2( -191, -20 )
 
 [node name="SpawnPosition2DLeft2" type="Position2D" parent="Player"]
-position = Vector2( -170, 20 )
+position = Vector2( -192, 20 )
 
 [node name="SpawnPosition2DRight" type="Position2D" parent="Player"]
 position = Vector2( 170, -20 )
@@ -146,26 +147,13 @@ smoothing_enabled = true
 smoothing_speed = 2.0
 script = ExtResource( 9 )
 
-[node name="spawnEnemiesNotifier" type="Node2D" parent="."]
-
-[node name="spawn01" type="VisibilityNotifier2D" parent="spawnEnemiesNotifier"]
-position = Vector2( 362, 161 )
-
-[node name="spawn02" type="VisibilityNotifier2D" parent="spawnEnemiesNotifier"]
-position = Vector2( 588, 163 )
-
-[node name="spawn03" type="VisibilityNotifier2D" parent="spawnEnemiesNotifier"]
-position = Vector2( 1011, 163 )
-
-[node name="Timer" type="Timer" parent="."]
-
 [node name="ElectricalBarriers" type="Node2D" parent="."]
 position = Vector2( 824, 163 )
 
 [node name="01" type="Node2D" parent="ElectricalBarriers"]
 
 [node name="ElectricalBarrier" parent="ElectricalBarriers/01" instance=ExtResource( 4 )]
-position = Vector2( -418, -45 )
+position = Vector2( -461, -45 )
 
 [node name="02" type="Node2D" parent="ElectricalBarriers"]
 
@@ -181,12 +169,34 @@ position = Vector2( 401, -45 )
 position = Vector2( 431, -45 )
 type = 2
 
+[node name="04" type="Node2D" parent="ElectricalBarriers"]
+position = Vector2( 613, 0 )
+
+[node name="ElectricalBarrier" parent="ElectricalBarriers/04" instance=ExtResource( 4 )]
+position = Vector2( 401, -45 )
+
+[node name="ElectricalBarrier2" parent="ElectricalBarriers/04" instance=ExtResource( 4 )]
+position = Vector2( 431, -45 )
+type = 2
+
+[node name="ElectricalBarrier3" parent="ElectricalBarriers/04" instance=ExtResource( 4 )]
+position = Vector2( 463, -46 )
+type = 1
+
 [node name="Controls" parent="." instance=ExtResource( 12 )]
 layer = 128
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource( 2 )
 
-[connection signal="screen_entered" from="spawnEnemiesNotifier/spawn01" to="." method="_on_spawn01_screen_entered"]
-[connection signal="screen_entered" from="spawnEnemiesNotifier/spawn02" to="." method="_on_spawn02_screen_entered"]
-[connection signal="screen_entered" from="spawnEnemiesNotifier/spawn03" to="." method="_on_spawn03_screen_entered"]
+[node name="Timers" type="Node2D" parent="."]
+
+[node name="SpawnTimer" type="Timer" parent="Timers"]
+wait_time = 20.0
+one_shot = true
+
+[node name="ManaTimer" type="Timer" parent="Timers"]
+wait_time = 5.0
+
+[connection signal="timeout" from="Timers/SpawnTimer" to="." method="_on_SpawnTimer_timeout"]
+[connection signal="timeout" from="Timers/ManaTimer" to="." method="_on_ManaTimer_timeout"]

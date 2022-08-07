@@ -160,6 +160,7 @@ config/icon="res://icon.png"
 
 Events="*res://src/Common/Autoload/Events.gd"
 Game="*res://src/Common/Autoload/Game.gd"
+GlobalPlayer="*res://src/Common/Autoload/GlobalPlayer.gd"
 
 [display]
 
@@ -246,7 +247,6 @@ common/enable_pause_aware_picking=true
 [rendering]
 
 vram_compression/import_etc=true
-vram_compression/import_etc2=false
 environment/default_environment="res://default_env.tres"
 
 [world]

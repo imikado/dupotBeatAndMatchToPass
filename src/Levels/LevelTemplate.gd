@@ -1,15 +1,14 @@
 extends Node2D
 
+const MIN_SPAWN_Y=127
 
-
-onready var player=get_node("Player")
-onready var cameraLimitRect=get_node("CameraLimitRect")
-
-
-onready var hud=get_node("HUD")
+onready var _player=get_node("Player")
+onready var _cameraLimitRect=get_node("CameraLimitRect")
+onready var _hud=get_node("HUD")
 
 onready var Ant:=preload("res://src/Actors/SimpleEnemies/Ant.tscn")
 onready var Beetle:=preload("res://src/Actors/SimpleEnemies/Beetle.tscn")
+onready var Spider:=preload("res://src/Actors/SimpleEnemies/Spider.tscn")
 
 onready var Energie:=preload("res://src/Common/Levels/Energy.tscn")
 
@@ -18,6 +17,8 @@ onready var _spawnPositionLeft2:=get_node("Player/SpawnPosition2DLeft2")
 onready var _spawnPositionRight:=get_node("Player/SpawnPosition2DRight")
 onready var _spawnPositionRight2:=get_node("Player/SpawnPosition2DRight2")
 
+onready var _spawnTimer:=get_node("Timers/SpawnTimer")
+onready var _manaTimer:=get_node("Timers/ManaTimer")
 
 onready var _electricalBarriers := get_node("ElectricalBarriers")
 
@@ -25,31 +26,79 @@ var _score:=0
 
 var _active_barrier_list:=[]
 
-func debug():
-	player.global_position.x +=1000
+var _wave_number=0
+var _total_wave_number=0
 
+onready var _wave_array:=[
+	[
+		{"enemy":Ant,"position":_spawnPositionLeft},
+		{"enemy":Ant,"position":_spawnPositionRight}
+	],
+	[
+		{"enemy":Ant,"position":_spawnPositionLeft},
+		{"enemy":Ant,"position":_spawnPositionLeft2,"offset":Vector2(-25,0)},
+		{"enemy":Ant,"position":_spawnPositionRight}
+	],
+	[
+		{"enemy":Ant,"position":_spawnPositionLeft,"offset":Vector2(-25,0)},
+		{"enemy":Ant,"position":_spawnPositionLeft2},
+		{"enemy":Ant,"position":_spawnPositionRight},
+		{"enemy":Beetle,"position":_spawnPositionRight2}
+	],
+	[
+		{"enemy":Spider,"position":_spawnPositionLeft,"offset":Vector2(-25,0)},
+		{"enemy":Ant,"position":_spawnPositionLeft2},
+		{"enemy":Ant,"position":_spawnPositionRight},
+		{"enemy":Beetle,"position":_spawnPositionRight2}
+	],
+	
+]
 
 func _ready() -> void:
-	#debug()
-	player.set_camera_limit_rect(cameraLimitRect)
+	if Game.DEBUG_ENABLED:
+		debug()
+	
+	_hud.update_player_life(GlobalPlayer.life)
+	_hud.update_score(GlobalPlayer.score)
+	_hud.update_player_mana(GlobalPlayer.mana)
+		
+	_player.set_camera_limit_rect(_cameraLimitRect)
 
 	Events.connect("player_health_changed",self,"_on_player_healt_changed")
 	Events.connect("actor_health_changed",self,"_on_actor_healt_changed")
 	
 	Events.connect("actor_took_damage",self,"_on_actor_took_damage")
+	Events.connect("actor_took_damage_by_bullet",self,"_on_actor_took_damage_by_bullet")
+	
+	_manaTimer.start()
 	
 	for GroupLoop in _electricalBarriers.get_children():
 		for BarrierLoop in GroupLoop.get_children():
 			BarrierLoop.connect("is_visible",self,"_on_barrier_is_visible",[BarrierLoop])
 	
-	
+	#_active_barrier_list.append(get_node("ElectricalBarriers/01/ElectricalBarrier"))
+
+
+func debug():
+	_player.global_position.x +=1500
+	_wave_number=2
+
+
 func _on_barrier_is_visible(barrier):
+	var is_first_barrier=false
+	if _active_barrier_list.size()==0:
+		is_first_barrier=true
+		
 	if false==_active_barrier_list.has(barrier):
 		_active_barrier_list.append(barrier)
 	
+	if is_first_barrier:
+		process_spawn()
+		_spawnTimer.start()
 	
 func _on_player_healt_changed(newLife:float):
-	hud.update_player_life(newLife)
+	GlobalPlayer.update_life(newLife)
+	_hud.update_player_life(GlobalPlayer.life)
 
 
 func _on_actor_healt_changed(actor:KinematicBody2D,previous_value:float,new_value:float):
@@ -58,7 +107,7 @@ func _on_actor_healt_changed(actor:KinematicBody2D,previous_value:float,new_valu
 	
 	if new_value <= 0.0:
 		_score+=10
-		hud.update_score( _score )
+		_hud.update_score( _score )
 		
 		var new_energy = Energie.instance()
 		new_energy.global_position=actor.global_position 
@@ -72,21 +121,21 @@ func _on_actor_healt_changed(actor:KinematicBody2D,previous_value:float,new_valu
 
 func find_barrier_for_actor(actor:KinematicBody2D):
 	
-	var near_distance=100
+	var near_x=0
 	var nearer_barrier=null
 	
 	for barrier_loop in _active_barrier_list:
 		if actor.get_type() == barrier_loop.get_type():
-			var distance_to_barrier=actor.global_position.distance_to(barrier_loop.global_position)
+			var barrier_x=barrier_loop.global_position.x
 							
 			if nearer_barrier==null:
 				nearer_barrier=barrier_loop
-				near_distance=distance_to_barrier
+				near_x=barrier_x
 			else:
 
-				if distance_to_barrier < near_distance :
+				if near_x < barrier_x :
 					nearer_barrier=barrier_loop
-					near_distance=distance_to_barrier
+					near_x=barrier_x
 
 	return nearer_barrier
 
@@ -94,32 +143,61 @@ func _on_actor_took_damage(actor,damage):
 	#if actor.has_method("get_life"):
 	#	actor.update_enemy_life (actor.get_life(),actor.get_life())
 	actor.took_damage(damage)
+	
 
+func _on_actor_took_damage_by_bullet(actor,damage,bullet):
+	#if actor.has_method("get_life"):
+	#	actor.update_enemy_life (actor.get_life(),actor.get_life())
+	_on_actor_took_damage(actor,damage)
+	
+	bullet.explode()
+	
 
 func spawn_enemy_on_position(enemy_to_spawn,spawn_position,offset=Vector2.ZERO):
 	var enemy_spawn = enemy_to_spawn.instance()
+	
+	var active_barrier=find_barrier_for_actor(enemy_spawn)
+	if active_barrier==null:
+		enemy_spawn.queue_free()
+		return
+	
 	enemy_spawn.add_to_group(Game.GROUP_ENEMY)
-	enemy_spawn.setPlayer(player)
+	enemy_spawn.setPlayer(_player)
 	add_child(enemy_spawn)
+	
+	if spawn_position.global_position.y < MIN_SPAWN_Y:
+		spawn_position.global_position.y=MIN_SPAWN_Y
 	
 	enemy_spawn.set_global_position(spawn_position.global_position+offset)
 	
 
-func _on_spawn01_screen_entered() -> void:
-	spawn_enemy_on_position(Ant,_spawnPositionLeft)
-	spawn_enemy_on_position(Ant,_spawnPositionRight2)
+func process_spawn():
+	if _wave_number >= _wave_array.size():
+		return
 	
-
-func _on_spawn02_screen_entered() -> void:
-	spawn_enemy_on_position(Ant,_spawnPositionLeft)
-	spawn_enemy_on_position(Ant,_spawnPositionLeft2,Vector2(-25,0))
-	spawn_enemy_on_position(Ant,_spawnPositionRight)
+	for wave_loop in _wave_array[_wave_number]:
+		var offset=Vector2.ZERO
+		if wave_loop.has("offset"):
+			offset=wave_loop["offset"]
+		spawn_enemy_on_position( wave_loop["enemy"],wave_loop["position"],offset)
 	
+	_wave_number+=1
+	_total_wave_number+=1
+	if _wave_number >= _wave_array.size():
+		_wave_number=0
 
 
-func _on_spawn03_screen_entered() -> void:
-	spawn_enemy_on_position(Ant,_spawnPositionLeft)
-	spawn_enemy_on_position(Ant,_spawnPositionLeft2,Vector2(-25,0))
-	spawn_enemy_on_position(Ant,_spawnPositionRight)
-	spawn_enemy_on_position(Beetle,_spawnPositionRight2,Vector2(25,0))
+
+func _on_SpawnTimer_timeout() -> void:
+	process_spawn()
 	
+	if _total_wave_number > 4:
+		_spawnTimer.wait_time=10
+	
+	_spawnTimer.start()
+
+
+func _on_ManaTimer_timeout() -> void:
+	GlobalPlayer.increment_mana(1)
+	_hud.update_player_mana(GlobalPlayer.mana)
+

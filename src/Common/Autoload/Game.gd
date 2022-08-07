@@ -1,5 +1,7 @@
 extends Node
 
+const DEBUG_ENABLED=false
+
 const GROUP_ENEMY:="enemy"
 
 enum ENEMY_TYPE_LIST { ANT, SPIDER, BEETLE}
