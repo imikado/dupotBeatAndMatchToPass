@@ -13,14 +13,25 @@ onready var _stateDisplay:=get_node("stateDisplay")
 
 onready var _stateMachine:=get_node("StateMachine")
 
+onready var _manaAttackParticules:=get_node("ManaAttackParticules")
+onready var _manaFalling:=get_node("ManaFalling")
+
+onready var _manaTween:=get_node("ManaTween")
+
 var look_direction = Vector2(1, 0) setget set_look_direction
 
 var _cameraLimitRect: ReferenceRect
+
+var _mana_count=0
 
 func _ready() -> void:
 	updateLife(_life)
 	
 	_stateDisplay.visible=Game.is_debug()
+	_manaAttackParticules.emitting=false
+	_manaFalling.visible=false
+	
+	mana_attack_end()
 	
 func set_look_direction(value):
 	look_direction = value
@@ -64,4 +75,33 @@ func _on_HitBox_body_entered(body: Node) -> void:
 	pass # Replace with function body.
 
 
+func mana_attack_start()->void:
+	 fall()
 
+
+func mana_attack_end()->void:
+	_manaFalling.visible=false
+	for fallLoop in _manaFalling.get_children():
+		fallLoop.end_fall()
+	
+	_manaAttackParticules.emitting=false
+	 
+	
+func fall()->void:
+	_manaFalling.visible=true
+	for fallLoop in _manaFalling.get_children():
+		fallLoop.start_fall()
+	
+
+
+func _on_ManaFall_fall_ended() -> void:
+	_manaFalling.visible=false
+	
+	if _mana_count < 3:
+		fall()
+		_mana_count+=1
+	
+	else:
+		_mana_count=0
+		mana_attack_end()
+	pass # Replace with function body.

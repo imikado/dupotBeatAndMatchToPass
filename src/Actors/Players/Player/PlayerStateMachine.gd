@@ -9,8 +9,11 @@ const STATE_ATTACK02="Attack02"
 const STATE_ATTACK03="Attack03"
 const STATE_ATTACK04="Attack04"
 const STATE_DAMAGED="Damaged"
+const STATE_ATTACK_MANA01="AttackMana01"
 
 const INPUT_ATTACK="attack"
+const INPUT_ATTACK_MANA="attack_mana"
+
 
 
 func set_damaged():
@@ -27,6 +30,8 @@ func _ready():
 		STATE_ATTACK03:get_node(STATE_ATTACK03),
 		STATE_ATTACK04:get_node(STATE_ATTACK04),
 		
+		STATE_ATTACK_MANA01:get_node(STATE_ATTACK_MANA01),
+				
 		STATE_DAMAGED:get_node(STATE_DAMAGED)
 	}
 
@@ -51,9 +56,20 @@ func _input(event):
 				get_node(STATE_ATTACK01),
 				get_node(STATE_ATTACK02),
 				get_node(STATE_ATTACK03),
-				get_node(STATE_ATTACK04)
+				get_node(STATE_ATTACK04),
+				
 			].has(current_state)  :
 			return
 		_change_state(STATE_ATTACK01)
+		return
+		
+	if event.is_action_pressed(INPUT_ATTACK_MANA) and GlobalPlayer.can_use_amount_mana(GlobalPlayer.attack_amount_mana):
+		if [
+				get_node(STATE_ATTACK_MANA01)
+				
+			].has(current_state)  :
+			return
+		_change_state(STATE_ATTACK_MANA01)
+		Events.emit_signal("player_launch_mana_attack")
 		return
 	current_state.handle_input(event)

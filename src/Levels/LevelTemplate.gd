@@ -70,6 +70,8 @@ func _ready() -> void:
 	Events.connect("actor_took_damage",self,"_on_actor_took_damage")
 	Events.connect("actor_took_damage_by_bullet",self,"_on_actor_took_damage_by_bullet")
 	
+	Events.connect("player_launch_mana_attack",self,"_on_player_launch_mana_attack")
+	
 	_manaTimer.start()
 	
 	for GroupLoop in _electricalBarriers.get_children():
@@ -201,3 +203,7 @@ func _on_ManaTimer_timeout() -> void:
 	GlobalPlayer.increment_mana(1)
 	_hud.update_player_mana(GlobalPlayer.mana)
 
+
+func _on_player_launch_mana_attack()->void:
+	GlobalPlayer.use_amount_mana(GlobalPlayer.attack_amount_mana)
+	_hud.update_player_mana(GlobalPlayer.mana)

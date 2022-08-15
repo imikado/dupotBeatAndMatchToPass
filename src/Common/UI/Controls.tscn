@@ -37,4 +37,4 @@ action = "attack"
 [node name="attack2" type="TouchScreenButton" parent="."]
 position = Vector2( 296, 160 )
 normal = ExtResource( 3 )
-action = "attack2"
+action = "attack_mana"

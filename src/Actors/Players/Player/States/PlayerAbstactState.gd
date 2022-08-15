@@ -25,5 +25,7 @@ const ANIM_ATTACK_02_RIGHT="attacking_02_right"
 const ANIM_ATTACK_03_RIGHT="attacking_03_right"
 const ANIM_ATTACK_04_RIGHT="attacking_04_right"
 
+const ANIM_ATTACK_MANA_01_RIGHT="attacking_mana_01_right"
+
 func play_animation(animation):
 	return owner.get_node("BodyPivot/AnimationPlayer").play(animation)

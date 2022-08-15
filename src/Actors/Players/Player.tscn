@@ -1,4 +1,4 @@
-[gd_scene load_steps=53 format=2]
+[gd_scene load_steps=61 format=2]
 
 [ext_resource path="res://src/Actors/Players/Player.gd" type="Script" id=1]
 [ext_resource path="res://src/Actors/Players/Player/States/OnGround/PlayerStateDamaged.gd" type="Script" id=2]
@@ -17,6 +17,10 @@
 [ext_resource path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack03.gd" type="Script" id=15]
 [ext_resource path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack04.gd" type="Script" id=16]
 [ext_resource path="res://src/Actors/Players/Player/player-attacking-04.png" type="Texture" id=17]
+[ext_resource path="res://src/Actors/Players/Player/player-attacking-mana-01.png" type="Texture" id=18]
+[ext_resource path="res://src/Actors/Players/Player/mana-particule.png" type="Texture" id=19]
+[ext_resource path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttackMana01.gd" type="Script" id=20]
+[ext_resource path="res://src/Actors/Players/Player/ManaAttack/ManaFall.tscn" type="PackedScene" id=21]
 
 [sub_resource type="Animation" id=46]
 resource_name = "attacking_01_right"
@@ -178,6 +182,83 @@ tracks/2/keys = {
 "values": [ true, false, true ]
 }
 
+[sub_resource type="Animation" id=75]
+resource_name = "attacking_mana_01_right"
+tracks/0/type = "value"
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3 ),
+"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2, 3 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ "attacking_mana01" ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("BodyPivot/HitBox/CollisionShape2D:disabled")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ true ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("ManaAttackParticules:emitting")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0, 0.2, 0.8 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ false, true, false ]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("ManaAttackParticules:visible")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/keys = {
+"times": PoolRealArray( 0, 0.2, 0.8 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ false, true, false ]
+}
+tracks/5/type = "method"
+tracks/5/path = NodePath(".")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/keys = {
+"times": PoolRealArray( 0.2 ),
+"transitions": PoolRealArray( 1 ),
+"values": [ {
+"args": [  ],
+"method": "mana_attack_start"
+} ]
+}
+
 [sub_resource type="Animation" id=47]
 resource_name = "damaged"
 length = 0.5
@@ -328,6 +409,18 @@ region = Rect2( 128, 0, 64, 64 )
 atlas = ExtResource( 17 )
 region = Rect2( 192, 0, 64, 64 )
 
+[sub_resource type="AtlasTexture" id=76]
+atlas = ExtResource( 18 )
+region = Rect2( 0, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=77]
+atlas = ExtResource( 18 )
+region = Rect2( 64, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=78]
+atlas = ExtResource( 18 )
+region = Rect2( 128, 0, 64, 64 )
+
 [sub_resource type="AtlasTexture" id=48]
 atlas = ExtResource( 11 )
 region = Rect2( 0, 0, 64, 64 )
@@ -386,6 +479,11 @@ animations = [ {
 "name": "attacking04",
 "speed": 5.0
 }, {
+"frames": [ SubResource( 76 ), SubResource( 77 ), SubResource( 78 ) ],
+"loop": true,
+"name": "attacking_mana01",
+"speed": 5.0
+}, {
 "frames": [ SubResource( 48 ), SubResource( 49 ), SubResource( 50 ) ],
 "loop": true,
 "name": "damaged_right",
@@ -411,6 +509,9 @@ extents = Vector2( 3, 5.25 )
 [node name="Player" type="KinematicBody2D"]
 collision_mask = 3
 script = ExtResource( 1 )
+__meta__ = {
+"_edit_horizontal_guides_": [ -8.0 ]
+}
 
 [node name="BodyPivot" type="Position2D" parent="."]
 
@@ -420,6 +521,7 @@ anims/attacking_01_right = SubResource( 46 )
 anims/attacking_02_right = SubResource( 51 )
 anims/attacking_03_right = SubResource( 55 )
 anims/attacking_04_right = SubResource( 59 )
+anims/attacking_mana_01_right = SubResource( 75 )
 anims/damaged = SubResource( 47 )
 anims/idle = SubResource( 2 )
 anims/walking_right = SubResource( 19 )
@@ -427,7 +529,8 @@ anims/walking_right = SubResource( 19 )
 [node name="AnimatedSprite" type="AnimatedSprite" parent="BodyPivot"]
 position = Vector2( -1, -32 )
 frames = SubResource( 10 )
-animation = "attacking04"
+animation = "attacking01"
+frame = 2
 
 [node name="HitBox" type="Area2D" parent="BodyPivot"]
 position = Vector2( 0, -12 )
@@ -436,7 +539,6 @@ collision_mask = 2
 [node name="CollisionShape2D" type="CollisionShape2D" parent="BodyPivot/HitBox"]
 position = Vector2( 15, -1 )
 shape = SubResource( 40 )
-disabled = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2( 0, -5.75 )
@@ -477,6 +579,9 @@ script = ExtResource( 16 )
 [node name="Damaged" type="Node" parent="StateMachine"]
 script = ExtResource( 2 )
 
+[node name="AttackMana01" type="Node" parent="StateMachine"]
+script = ExtResource( 20 )
+
 [node name="stateDisplay" type="Label" parent="."]
 margin_left = -20.0
 margin_top = -48.0
@@ -485,6 +590,59 @@ margin_bottom = -34.0
 text = "dddaa"
 script = ExtResource( 9 )
 
+[node name="ManaAttackParticules" type="CPUParticles2D" parent="."]
+modulate = Color( 1.5, 1.5, 1.5, 1 )
+position = Vector2( 2.98023e-08, -32 )
+rotation = -3.14159
+emitting = false
+amount = 50
+lifetime = 1.8
+preprocess = 1.0
+randomness = 0.24
+texture = ExtResource( 19 )
+spread = 15.0
+gravity = Vector2( 0, 100 )
+scale_amount = 0.8
+scale_amount_random = 0.47
+anim_speed = 28.34
+anim_speed_random = 0.45
+anim_offset = 0.11
+
+[node name="ManaFalling" type="Node2D" parent="."]
+
+[node name="ManaFall" parent="ManaFalling" instance=ExtResource( 21 )]
+position = Vector2( -94, -95 )
+
+[node name="ManaFall2" parent="ManaFalling" instance=ExtResource( 21 )]
+position = Vector2( -65, -71 )
+
+[node name="ManaFall3" parent="ManaFalling" instance=ExtResource( 21 )]
+position = Vector2( -25, -60 )
+
+[node name="ManaFall4" parent="ManaFalling" instance=ExtResource( 21 )]
+position = Vector2( 25, -61 )
+
+[node name="ManaFall5" parent="ManaFalling" instance=ExtResource( 21 )]
+position = Vector2( 69, -74 )
+
+[node name="ManaFall6" parent="ManaFalling" instance=ExtResource( 21 )]
+position = Vector2( 108, -96 )
+
+[node name="ManaFall7" parent="ManaFalling" instance=ExtResource( 21 )]
+position = Vector2( -54, -108 )
+
+[node name="ManaFall8" parent="ManaFalling" instance=ExtResource( 21 )]
+position = Vector2( -15, -108 )
+
+[node name="ManaFall9" parent="ManaFalling" instance=ExtResource( 21 )]
+position = Vector2( 42, -107 )
+
+[node name="ManaFall10" parent="ManaFalling" instance=ExtResource( 21 )]
+position = Vector2( 83, -108 )
+
+[node name="ManaTween" type="Tween" parent="."]
+
 [connection signal="animation_finished" from="BodyPivot/AnimationPlayer" to="StateMachine" method="_on_animation_finished"]
 [connection signal="body_entered" from="BodyPivot/HitBox" to="." method="_on_HitBox_body_entered"]
 [connection signal="state_changed" from="StateMachine" to="stateDisplay" method="_on_StateMachine_state_changed"]
+[connection signal="fall_ended" from="ManaFalling/ManaFall10" to="." method="_on_ManaFall_fall_ended"]
