@@ -41,7 +41,7 @@ func _change_state(state_name):
 	"""
 	if not _active:
 		return
-	if state_name in [STATE_ATTACK01,STATE_DAMAGED]:
+	if state_name in [STATE_ATTACK01,STATE_ATTACK_MANA01,STATE_DAMAGED]:
 		states_stack.push_front(states_map[state_name])
 	
 	._change_state(state_name)

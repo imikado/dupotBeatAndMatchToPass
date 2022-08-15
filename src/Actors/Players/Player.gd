@@ -11,6 +11,8 @@ onready var _camera:=get_node("Camera2D")
 onready var _tween:=get_node("Tween")
 onready var _stateDisplay:=get_node("stateDisplay")
 
+onready var _hitBox:=get_node("BodyPivot/HitBox/CollisionShape2D")
+
 onready var _stateMachine:=get_node("StateMachine")
 
 onready var _manaAttackParticules:=get_node("ManaAttackParticules")
@@ -30,6 +32,8 @@ func _ready() -> void:
 	_stateDisplay.visible=Game.is_debug()
 	_manaAttackParticules.emitting=false
 	_manaFalling.visible=false
+	
+	_hitBox.disabled=true
 	
 	mana_attack_end()
 	

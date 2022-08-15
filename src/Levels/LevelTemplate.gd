@@ -5,6 +5,7 @@ const MIN_SPAWN_Y=127
 onready var _player=get_node("Player")
 onready var _cameraLimitRect=get_node("CameraLimitRect")
 onready var _hud=get_node("HUD")
+onready var _controls=get_node("Controls")
 
 onready var Ant:=preload("res://src/Actors/SimpleEnemies/Ant.tscn")
 onready var Beetle:=preload("res://src/Actors/SimpleEnemies/Beetle.tscn")
@@ -21,6 +22,9 @@ onready var _spawnTimer:=get_node("Timers/SpawnTimer")
 onready var _manaTimer:=get_node("Timers/ManaTimer")
 
 onready var _electricalBarriers := get_node("ElectricalBarriers")
+
+
+
 
 var _score:=0
 
@@ -61,6 +65,8 @@ func _ready() -> void:
 	_hud.update_player_life(GlobalPlayer.life)
 	_hud.update_score(GlobalPlayer.score)
 	_hud.update_player_mana(GlobalPlayer.mana)
+	
+	update_mana_button()
 		
 	_player.set_camera_limit_rect(_cameraLimitRect)
 
@@ -79,6 +85,7 @@ func _ready() -> void:
 			BarrierLoop.connect("is_visible",self,"_on_barrier_is_visible",[BarrierLoop])
 	
 	#_active_barrier_list.append(get_node("ElectricalBarriers/01/ElectricalBarrier"))
+
 
 
 func debug():
@@ -202,8 +209,20 @@ func _on_SpawnTimer_timeout() -> void:
 func _on_ManaTimer_timeout() -> void:
 	GlobalPlayer.increment_mana(1)
 	_hud.update_player_mana(GlobalPlayer.mana)
+	
+	update_mana_button()
 
 
 func _on_player_launch_mana_attack()->void:
 	GlobalPlayer.use_amount_mana(GlobalPlayer.attack_amount_mana)
 	_hud.update_player_mana(GlobalPlayer.mana)
+	
+	update_mana_button()
+	
+
+func update_mana_button():
+	if GlobalPlayer.can_use_amount_mana(GlobalPlayer.attack_amount_mana):
+		_controls.enable_mana_button()
+	else:
+		_controls.disable_mana_button()
+
