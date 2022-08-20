@@ -552,8 +552,6 @@ smoothing_speed = 2.0
 drag_margin_left = 0.5
 drag_margin_right = 0.5
 
-[node name="Tween" type="Tween" parent="."]
-
 [node name="StateMachine" type="Node" parent="."]
 script = ExtResource( 6 )
 START_STATE = NodePath("Idle")
@@ -609,6 +607,7 @@ anim_speed_random = 0.45
 anim_offset = 0.11
 
 [node name="ManaFalling" type="Node2D" parent="."]
+visible = false
 
 [node name="ManaFall" parent="ManaFalling" instance=ExtResource( 21 )]
 position = Vector2( -94, -95 )
@@ -639,8 +638,6 @@ position = Vector2( 42, -107 )
 
 [node name="ManaFall10" parent="ManaFalling" instance=ExtResource( 21 )]
 position = Vector2( 83, -108 )
-
-[node name="ManaTween" type="Tween" parent="."]
 
 [connection signal="animation_finished" from="BodyPivot/AnimationPlayer" to="StateMachine" method="_on_animation_finished"]
 [connection signal="body_entered" from="BodyPivot/HitBox" to="." method="_on_HitBox_body_entered"]

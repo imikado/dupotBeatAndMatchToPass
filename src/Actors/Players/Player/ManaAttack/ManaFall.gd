@@ -2,7 +2,7 @@ extends Line2D
 
 signal fall_ended
 
-onready var _tween:=get_node("Tween")
+
 onready var _sprite:=get_node("Sprite")
 onready var _hitBox:=get_node("HitBox/CollisionShape2D")
 
@@ -16,11 +16,15 @@ func _ready() -> void:
 	
 func start_fall():
 	
-	_tween.interpolate_property(self,"position",Vector2(position.x,-310),self.position,0.2)
-	_tween.start()
+	var tween:=create_tween()
 	
+	var end_position=position
+	position=Vector2(position.x,-310)
 	
-	yield(_tween,"tween_completed")
+	tween.tween_property(self,"position",end_position,0.2)
+	
+	yield(tween,"finished")
+	
 	_sprite.visible=true
 	_hitBox.disabled=false
 	

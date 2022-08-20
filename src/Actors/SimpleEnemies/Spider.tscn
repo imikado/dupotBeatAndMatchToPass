@@ -8,18 +8,6 @@
 [ext_resource path="res://src/Actors/SimpleEnemies/Spider/spider-idle.png" type="Texture" id=6]
 [ext_resource path="res://src/Actors/SimpleEnemies/Spider.gd" type="Script" id=7]
 
-[sub_resource type="AtlasTexture" id=55]
-atlas = ExtResource( 6 )
-region = Rect2( 0, 0, 64, 64 )
-
-[sub_resource type="AtlasTexture" id=56]
-atlas = ExtResource( 6 )
-region = Rect2( 64, 0, 64, 64 )
-
-[sub_resource type="AtlasTexture" id=57]
-atlas = ExtResource( 6 )
-region = Rect2( 128, 0, 64, 64 )
-
 [sub_resource type="AtlasTexture" id=58]
 atlas = ExtResource( 1 )
 region = Rect2( 0, 0, 64, 64 )
@@ -35,26 +23,6 @@ region = Rect2( 128, 0, 64, 64 )
 [sub_resource type="AtlasTexture" id=61]
 atlas = ExtResource( 1 )
 region = Rect2( 192, 0, 64, 64 )
-
-[sub_resource type="AtlasTexture" id=62]
-atlas = ExtResource( 3 )
-region = Rect2( 0, 0, 64, 64 )
-
-[sub_resource type="AtlasTexture" id=63]
-atlas = ExtResource( 3 )
-region = Rect2( 64, 0, 64, 64 )
-
-[sub_resource type="AtlasTexture" id=64]
-atlas = ExtResource( 3 )
-region = Rect2( 128, 0, 64, 64 )
-
-[sub_resource type="AtlasTexture" id=65]
-atlas = ExtResource( 3 )
-region = Rect2( 192, 0, 64, 64 )
-
-[sub_resource type="AtlasTexture" id=66]
-atlas = ExtResource( 3 )
-region = Rect2( 256, 0, 64, 64 )
 
 [sub_resource type="AtlasTexture" id=67]
 atlas = ExtResource( 5 )
@@ -84,21 +52,43 @@ region = Rect2( 128, 0, 64, 64 )
 atlas = ExtResource( 4 )
 region = Rect2( 192, 0, 64, 64 )
 
+[sub_resource type="AtlasTexture" id=55]
+atlas = ExtResource( 6 )
+region = Rect2( 0, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=56]
+atlas = ExtResource( 6 )
+region = Rect2( 64, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=57]
+atlas = ExtResource( 6 )
+region = Rect2( 128, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=62]
+atlas = ExtResource( 3 )
+region = Rect2( 0, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=63]
+atlas = ExtResource( 3 )
+region = Rect2( 64, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=64]
+atlas = ExtResource( 3 )
+region = Rect2( 128, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=65]
+atlas = ExtResource( 3 )
+region = Rect2( 192, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=66]
+atlas = ExtResource( 3 )
+region = Rect2( 256, 0, 64, 64 )
+
 [sub_resource type="SpriteFrames" id=45]
 animations = [ {
-"frames": [ SubResource( 55 ), SubResource( 56 ), SubResource( 57 ) ],
-"loop": true,
-"name": "idle",
-"speed": 5.0
-}, {
 "frames": [ SubResource( 58 ), SubResource( 59 ), SubResource( 60 ), SubResource( 61 ) ],
 "loop": true,
 "name": "attacking01",
-"speed": 5.0
-}, {
-"frames": [ SubResource( 62 ), SubResource( 63 ), SubResource( 64 ), SubResource( 65 ), SubResource( 66 ) ],
-"loop": true,
-"name": "walking",
 "speed": 5.0
 }, {
 "frames": [ SubResource( 67 ), SubResource( 68 ), SubResource( 69 ) ],
@@ -109,6 +99,16 @@ animations = [ {
 "frames": [ SubResource( 70 ), SubResource( 71 ), SubResource( 72 ), SubResource( 73 ) ],
 "loop": true,
 "name": "died",
+"speed": 5.0
+}, {
+"frames": [ SubResource( 55 ), SubResource( 56 ), SubResource( 57 ) ],
+"loop": true,
+"name": "idle",
+"speed": 5.0
+}, {
+"frames": [ SubResource( 62 ), SubResource( 63 ), SubResource( 64 ), SubResource( 65 ), SubResource( 66 ) ],
+"loop": true,
+"name": "walking",
 "speed": 5.0
 } ]
 
@@ -347,8 +347,6 @@ percent_visible = false
 
 [node name="BulletSpawnPosition" type="Position2D" parent="BodyPivot"]
 position = Vector2( 4, -25 )
-
-[node name="Tween" type="Tween" parent="."]
 
 [node name="EnemyStateMachine" parent="." instance=ExtResource( 2 )]
 

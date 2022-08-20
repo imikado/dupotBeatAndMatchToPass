@@ -8,7 +8,6 @@ var _damage=40
 
 #onready var _animationTree := get_node("AnimationTree")
 onready var _camera:=get_node("Camera2D")
-onready var _tween:=get_node("Tween")
 onready var _stateDisplay:=get_node("stateDisplay")
 
 onready var _hitBox:=get_node("BodyPivot/HitBox/CollisionShape2D")
@@ -17,8 +16,6 @@ onready var _stateMachine:=get_node("StateMachine")
 
 onready var _manaAttackParticules:=get_node("ManaAttackParticules")
 onready var _manaFalling:=get_node("ManaFalling")
-
-onready var _manaTween:=get_node("ManaTween")
 
 var look_direction = Vector2(1, 0) setget set_look_direction
 
@@ -50,14 +47,11 @@ func took_damage(damage:int):
 	updateLife(_life - damage)
 	_stateMachine.set_damaged()
 	
-	_tween.interpolate_property(
-		self, "modulate", Color.white, Color.red, 0.1
-	)
-	_tween.interpolate_property(
-		self, "modulate", Color.red, Color.white, 0.1
-	)
-
-	_tween.start()
+	var tween = create_tween()
+	tween.tween_property(self,"modulate",Color.red,0.2)
+	tween.tween_property(self,"modulate",Color.white,0.2)
+	
+	
 
 
 func set_camera_limit_rect(referenceRect : ReferenceRect):

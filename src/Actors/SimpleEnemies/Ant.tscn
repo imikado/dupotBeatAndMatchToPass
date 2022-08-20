@@ -322,8 +322,6 @@ custom_styles/bg = SubResource( 40 )
 value = 50.0
 percent_visible = false
 
-[node name="Tween" type="Tween" parent="."]
-
 [node name="EnemyStateMachine" parent="." instance=ExtResource( 4 )]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

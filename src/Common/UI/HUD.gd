@@ -1,7 +1,6 @@
 extends CanvasLayer
 
 onready var _player_life_progress_bar=get_node("Container/Player/VBoxContainer/LifeProgressBar" )
-onready var _player_tween=get_node("Tween")
 
 onready var _player_mana_progress_bar=get_node("Container/Player/VBoxContainer/ManaProgressBar")
 onready var _player_mana_progress_bar_color=get_node("Container/Player/VBoxContainer/ManaProgressBar").get("custom_styles/fg")
@@ -21,10 +20,12 @@ func update_score(value:int):
 	
 
 func update_player_mana(value:float)->void:
-	var clamped_value = int(clamp(value, _player_mana_progress_bar.min_value, _player_mana_progress_bar.max_value))
+	var end_clamped_value = float(clamp(value, _player_mana_progress_bar.min_value, _player_mana_progress_bar.max_value))
 
-	_player_tween.interpolate_method(self, "_update_player_mana_bar", _player_mana_progress_bar.value, clamped_value, 0.33)
-	_player_tween.start()
+	var start_value=_player_mana_progress_bar.value
+
+	var tween := create_tween().set_trans(Tween.TRANS_LINEAR).set_ease(Tween.EASE_OUT)
+	tween.tween_method(self,"_update_player_mana_bar", start_value, end_clamped_value, 0.5)
 	
 	
 func _update_player_mana_bar(value:float)->void:
@@ -46,10 +47,13 @@ func set_mana_progress_bar_notenough():
 
 func update_player_life(value:float)->void:
 
-	var health = int(clamp(value, _player_life_progress_bar.min_value, _player_life_progress_bar.max_value))
+	var end_clamped_value = float(clamp(value, _player_life_progress_bar.min_value, _player_life_progress_bar.max_value))
 
-	_player_tween.interpolate_method(self, "_update_player_health_bar", _player_life_progress_bar.value, health, 0.33)
-	_player_tween.start()
+	var start_value=_player_life_progress_bar.value
+
+	var tween := create_tween().set_trans(Tween.TRANS_LINEAR).set_ease(Tween.EASE_IN)
+	tween.tween_method(self,"_update_player_health_bar",start_value, end_clamped_value, 0.3)
+	
 	
 	
 func _update_player_health_bar(health_target: float) -> void:

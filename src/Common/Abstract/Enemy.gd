@@ -10,7 +10,6 @@ var _life:=50.0
 var _type= Game.ENEMY_TYPE_LIST.ANT
 
 onready var _animationPlayer:=get_node("BodyPivot/AnimationPlayer")
-onready var _tween:=get_node("Tween")
 onready var _stateMachine := get_node("EnemyStateMachine")
 onready var _enemy_progress_bar := get_node("BodyPivot/Control/ProgressBar")
 onready var _timer:=get_node("Timer")
@@ -24,11 +23,13 @@ func update_enemy_life(start_value:float, end_value:float)->void:
 
 	_enemy_progress_bar.visible=true
 
-	var health = int(clamp(end_value, _enemy_progress_bar.min_value, _enemy_progress_bar.max_value))
+	var health = float(clamp(end_value, _enemy_progress_bar.min_value, _enemy_progress_bar.max_value))
 	# Here, notice we call `interpolate_method()`. We have the `Tween` node
 	# repeatedly call the `_update_health_bar()` method on this node.
-	_tween.interpolate_method(self, "_update_enemy_health_bar", start_value, health, 0.33)
-	_tween.start()
+	
+	var tween := create_tween()
+	tween.tween_method(self,"_update_enemy_health_bar", start_value, health, 0.33)
+	
 	
 	#yield(get_tree().create_timer(1.0), "timeout")
 	
@@ -76,15 +77,11 @@ func took_damage(damage:int):
 	
 	_stateMachine.set_state_damaged()
 	
-	_tween.interpolate_property(
-		self, "modulate", Color.white, Color.red, 0.1
-	)
-	_tween.interpolate_property(
-		self, "modulate", Color.red, Color.white, 0.1
-	)
-
-	_tween.start()
+	var tween := create_tween()
+	tween.tween_property(self,"modulate",Color.red,0.3)
+	tween.tween_property(self,"modulate",Color.white,0.2)
 	
+		
 	if get_life() <= 0.0:
 		_stateMachine.set_state_died()
 	

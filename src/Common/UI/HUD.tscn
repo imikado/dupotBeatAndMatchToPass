@@ -105,7 +105,3 @@ size_flags_horizontal = 0
 size_flags_vertical = 1
 custom_fonts/font = SubResource( 3 )
 text = "0000"
-
-[node name="Tween" type="Tween" parent="."]
-
-[node name="Tween2" type="Tween" parent="."]
