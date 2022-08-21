@@ -261,7 +261,7 @@ tracks/1/keys = {
 }
 
 [sub_resource type="RectangleShape2D" id=51]
-extents = Vector2( 4, 7 )
+extents = Vector2( 6, 7 )
 
 [sub_resource type="StyleBoxFlat" id=52]
 bg_color = Color( 0, 0.513726, 0.188235, 1 )
@@ -281,7 +281,7 @@ border_color = Color( 0, 0, 0, 1 )
 
 [sub_resource type="CapsuleShape2D" id=54]
 radius = 8.00001
-height = 0.0
+height = 1.99998
 
 [node name="Beetle" type="KinematicBody2D"]
 collision_layer = 2
@@ -306,7 +306,7 @@ anims/walking_right = SubResource( 50 )
 [node name="HitBox" type="Area2D" parent="BodyPivot"]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="BodyPivot/HitBox"]
-position = Vector2( 13, -7 )
+position = Vector2( 12, -7 )
 shape = SubResource( 51 )
 disabled = true
 
@@ -329,7 +329,7 @@ percent_visible = false
 [node name="EnemyStateMachine" parent="." instance=ExtResource( 2 )]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2( -1, -10 )
+position = Vector2( -1, -8 )
 rotation = 1.57079
 shape = SubResource( 54 )
 

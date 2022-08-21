@@ -105,3 +105,6 @@ size_flags_horizontal = 0
 size_flags_vertical = 1
 custom_fonts/font = SubResource( 3 )
 text = "0000"
+
+[node name="Position2D" type="Position2D" parent="Container/Score"]
+position = Vector2( 36, 11 )

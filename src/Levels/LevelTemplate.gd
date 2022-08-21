@@ -2,10 +2,13 @@ extends Node2D
 
 const MIN_SPAWN_Y=127
 
-onready var _player=get_node("Player")
+onready var _ysort=get_node("YSort")
+onready var _player=get_node("YSort/Player")
 onready var _cameraLimitRect=get_node("CameraLimitRect")
 onready var _hud=get_node("HUD")
 onready var _controls=get_node("Controls")
+
+onready var _hudScore:=get_node("HUD/Container/Score/Position2D")
 
 onready var Ant:=preload("res://src/Actors/SimpleEnemies/Ant.tscn")
 onready var Beetle:=preload("res://src/Actors/SimpleEnemies/Beetle.tscn")
@@ -13,25 +16,29 @@ onready var Spider:=preload("res://src/Actors/SimpleEnemies/Spider.tscn")
 
 onready var Energie:=preload("res://src/Common/Levels/Energy.tscn")
 
-onready var _spawnPositionLeft:=get_node("Player/SpawnPosition2DLeft")
-onready var _spawnPositionLeft2:=get_node("Player/SpawnPosition2DLeft2")
-onready var _spawnPositionRight:=get_node("Player/SpawnPosition2DRight")
-onready var _spawnPositionRight2:=get_node("Player/SpawnPosition2DRight2")
+onready var ComboPlusOne:=preload("res://src/Actors/Players/ComboPlusOne.tscn")
+onready var ComboBonus:=preload("res://src/Actors/Players/Player/ComboBonus.tscn")
+
+onready var _spawnPositionLeft:=get_node("YSort/Player/SpawnPosition2DLeft")
+onready var _spawnPositionLeft2:=get_node("YSort/Player/SpawnPosition2DLeft2")
+onready var _spawnPositionRight:=get_node("YSort/Player/SpawnPosition2DRight")
+onready var _spawnPositionRight2:=get_node("YSort/Player/SpawnPosition2DRight2")
 
 onready var _spawnTimer:=get_node("Timers/SpawnTimer")
 onready var _manaTimer:=get_node("Timers/ManaTimer")
 
 onready var _electricalBarriers := get_node("ElectricalBarriers")
 
-
+onready var _specialEffects := get_node("SpecialEffects")
 
 
 var _score:=0
 
 var _active_barrier_list:=[]
 
-var _wave_number=0
+var _wave_number=2
 var _total_wave_number=0
+var _random_combo_count=0
 
 onready var _wave_array:=[
 	[
@@ -58,9 +65,17 @@ onready var _wave_array:=[
 	
 ]
 
+
+func debug():
+	_player.global_position.x +=1500
+	_wave_number=2
+
+
 func _ready() -> void:
 	if Game.DEBUG_ENABLED:
 		debug()
+	else:
+		_player.global_position.x +=450
 	
 	_hud.update_player_life(GlobalPlayer.life)
 	_hud.update_score(GlobalPlayer.score)
@@ -85,12 +100,11 @@ func _ready() -> void:
 			BarrierLoop.connect("is_visible",self,"_on_barrier_is_visible",[BarrierLoop])
 	
 	#_active_barrier_list.append(get_node("ElectricalBarriers/01/ElectricalBarrier"))
+	process_spawn()
+	process_spawn()
 
 
 
-func debug():
-	_player.global_position.x +=1500
-	_wave_number=2
 
 
 func _on_barrier_is_visible(barrier):
@@ -110,9 +124,54 @@ func _on_player_healt_changed(newLife:float):
 	_hud.update_player_life(GlobalPlayer.life)
 
 
+func manage_combo_for_actor(actor):
+	var new_combo_plus_one = ComboPlusOne.instance()
+	new_combo_plus_one.global_position = actor.global_position + Vector2(0,-20)
+	
+	var combo_count=actor.get_combo_count()
+		
+	var delta_position=Vector2.ZERO
+	if combo_count==0:
+		delta_position.x=-5
+		delta_position.y=5
+	elif combo_count==1:
+		new_combo_plus_one.scale=Vector2(1.2,1.2)
+		#delta_position.x=5
+		delta_position.y=-5
+	
+	elif combo_count==2:
+		new_combo_plus_one.scale=Vector2(2.6,2.6)
+		#delta_position.x=25
+		delta_position.y=-25
+		
+		var new_combo_bonus = ComboBonus.instance()
+		new_combo_bonus.global_position = actor.global_position + Vector2(0,-50)
+		new_combo_bonus.connect("combo_arrived",self,"_on_combo_bonus_finished")
+		new_combo_bonus.set_target(_hudScore)
+		new_combo_bonus.set_as_toplevel(true)
+		
+		_specialEffects.add_child(new_combo_bonus)
+		
+	new_combo_plus_one.global_position+=delta_position
+	
+	new_combo_plus_one.set_as_toplevel(true)
+	_specialEffects.add_child(new_combo_plus_one)
+	
+	actor.increment_combo_count()
+
+
 func _on_actor_healt_changed(actor:KinematicBody2D,previous_value:float,new_value:float):
 	
 	actor.update_enemy_life (previous_value,new_value)
+
+	
+	if _player.is_combo():
+	
+		manage_combo_for_actor(actor)
+	
+	else:
+		actor.reset_combo_count()
+	
 	
 	if new_value <= 0.0:
 		_score+=10
@@ -126,6 +185,11 @@ func _on_actor_healt_changed(actor:KinematicBody2D,previous_value:float,new_valu
 			new_energy.set_target( barrier_target)
 		else:
 			print_debug("Error to find active barrier")
+
+
+func _on_combo_bonus_finished():
+	_score+=10
+	_hud.update_score( _score )
 
 
 func find_barrier_for_actor(actor:KinematicBody2D):
@@ -172,13 +236,14 @@ func spawn_enemy_on_position(enemy_to_spawn,spawn_position,offset=Vector2.ZERO):
 	
 	enemy_spawn.add_to_group(Game.GROUP_ENEMY)
 	enemy_spawn.setPlayer(_player)
-	add_child(enemy_spawn)
+
 	
 	if spawn_position.global_position.y < MIN_SPAWN_Y:
 		spawn_position.global_position.y=MIN_SPAWN_Y
 	
 	enemy_spawn.set_global_position(spawn_position.global_position+offset)
 	
+	_ysort.add_child(enemy_spawn)
 
 func process_spawn():
 	if _wave_number >= _wave_array.size():
@@ -200,8 +265,11 @@ func process_spawn():
 func _on_SpawnTimer_timeout() -> void:
 	process_spawn()
 	
-	if _total_wave_number > 4:
+	if _total_wave_number > 8:
+		_spawnTimer.wait_time=5
+	elif _total_wave_number > 4:
 		_spawnTimer.wait_time=10
+	
 	
 	_spawnTimer.start()
 

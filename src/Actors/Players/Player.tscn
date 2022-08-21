@@ -504,7 +504,7 @@ animations = [ {
 extents = Vector2( 4, 5 )
 
 [sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 3, 5.25 )
+extents = Vector2( 6, 5.25 )
 
 [node name="Player" type="KinematicBody2D"]
 collision_mask = 3
@@ -530,7 +530,7 @@ anims/walking_right = SubResource( 19 )
 position = Vector2( -1, -32 )
 frames = SubResource( 10 )
 animation = "attacking01"
-frame = 2
+frame = 3
 
 [node name="HitBox" type="Area2D" parent="BodyPivot"]
 position = Vector2( 0, -12 )
@@ -539,9 +539,10 @@ collision_mask = 2
 [node name="CollisionShape2D" type="CollisionShape2D" parent="BodyPivot/HitBox"]
 position = Vector2( 15, -1 )
 shape = SubResource( 40 )
+disabled = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2( 0, -5.75 )
+position = Vector2( -1, -5.75 )
 shape = SubResource( 1 )
 
 [node name="Camera2D" type="Camera2D" parent="."]
@@ -641,5 +642,6 @@ position = Vector2( 83, -108 )
 
 [connection signal="animation_finished" from="BodyPivot/AnimationPlayer" to="StateMachine" method="_on_animation_finished"]
 [connection signal="body_entered" from="BodyPivot/HitBox" to="." method="_on_HitBox_body_entered"]
+[connection signal="state_changed" from="StateMachine" to="." method="_on_StateMachine_state_changed"]
 [connection signal="state_changed" from="StateMachine" to="stateDisplay" method="_on_StateMachine_state_changed"]
 [connection signal="fall_ended" from="ManaFalling/ManaFall10" to="." method="_on_ManaFall_fall_ended"]

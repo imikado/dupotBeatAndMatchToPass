@@ -117,35 +117,12 @@ position = Vector2( 0, 107 )
 [node name="limit_wakling_vert" parent="Node2D" instance=ExtResource( 11 )]
 
 [node name="CameraLimitRect" type="ReferenceRect" parent="."]
+margin_left = -85.0
 margin_top = 8.0
 margin_right = 3415.0
 margin_bottom = 201.0
 
 [node name="HUD" parent="." instance=ExtResource( 5 )]
-
-[node name="Player" parent="." instance=ExtResource( 2 )]
-position = Vector2( 113, 127 )
-
-[node name="SpawnPosition2DLeft" type="Position2D" parent="Player"]
-position = Vector2( -191, -20 )
-
-[node name="SpawnPosition2DLeft2" type="Position2D" parent="Player"]
-position = Vector2( -192, 20 )
-
-[node name="SpawnPosition2DRight" type="Position2D" parent="Player"]
-position = Vector2( 170, -20 )
-
-[node name="SpawnPosition2DRight2" type="Position2D" parent="Player"]
-position = Vector2( 170, 20 )
-
-[node name="TileMap" type="TileMap" parent="."]
-format = 1
-
-[node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2( 90, 156 )
-smoothing_enabled = true
-smoothing_speed = 2.0
-script = ExtResource( 9 )
 
 [node name="ElectricalBarriers" type="Node2D" parent="."]
 position = Vector2( 824, 163 )
@@ -183,6 +160,32 @@ type = 2
 position = Vector2( 463, -46 )
 type = 1
 
+[node name="YSort" type="YSort" parent="."]
+
+[node name="Player" parent="YSort" instance=ExtResource( 2 )]
+position = Vector2( -204, 127 )
+
+[node name="SpawnPosition2DLeft" type="Position2D" parent="YSort/Player"]
+position = Vector2( -191, -20 )
+
+[node name="SpawnPosition2DLeft2" type="Position2D" parent="YSort/Player"]
+position = Vector2( -192, 20 )
+
+[node name="SpawnPosition2DRight" type="Position2D" parent="YSort/Player"]
+position = Vector2( 170, -20 )
+
+[node name="SpawnPosition2DRight2" type="Position2D" parent="YSort/Player"]
+position = Vector2( 170, 20 )
+
+[node name="TileMap" type="TileMap" parent="."]
+format = 1
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2( 90, 156 )
+smoothing_enabled = true
+smoothing_speed = 2.0
+script = ExtResource( 9 )
+
 [node name="Controls" parent="." instance=ExtResource( 12 )]
 layer = 128
 
@@ -192,11 +195,14 @@ environment = SubResource( 2 )
 [node name="Timers" type="Node2D" parent="."]
 
 [node name="SpawnTimer" type="Timer" parent="Timers"]
-wait_time = 20.0
+wait_time = 15.0
 one_shot = true
 
 [node name="ManaTimer" type="Timer" parent="Timers"]
 wait_time = 5.0
+
+[node name="SpecialEffects" type="Node2D" parent="."]
+z_index = 1000
 
 [connection signal="timeout" from="Timers/SpawnTimer" to="." method="_on_SpawnTimer_timeout"]
 [connection signal="timeout" from="Timers/ManaTimer" to="." method="_on_ManaTimer_timeout"]

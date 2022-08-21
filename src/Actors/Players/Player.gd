@@ -4,7 +4,11 @@ extends Actor
 const MAX_LIFE=100.0
 var _life:=100.0
 
-var _damage=40
+const STATE_ATTACK02='Attack02'
+const STATE_ATTACK03='Attack03'
+const STATE_ATTACK04='Attack04'
+
+var _damage=10
 
 #onready var _animationTree := get_node("AnimationTree")
 onready var _camera:=get_node("Camera2D")
@@ -22,6 +26,8 @@ var look_direction = Vector2(1, 0) setget set_look_direction
 var _cameraLimitRect: ReferenceRect
 
 var _mana_count=0
+
+var _state:String="idle"
 
 func _ready() -> void:
 	updateLife(_life)
@@ -102,4 +108,19 @@ func _on_ManaFall_fall_ended() -> void:
 	else:
 		_mana_count=0
 		mana_attack_end()
+	pass # Replace with function body.
+
+
+func is_combo():
+	if _state in [STATE_ATTACK02,STATE_ATTACK03,STATE_ATTACK04]:
+		return true
+	return false
+
+
+func get_state():
+	return _state
+
+
+func _on_StateMachine_state_changed(current_state) -> void:
+	_state=current_state.name
 	pass # Replace with function body.

@@ -277,7 +277,7 @@ border_color = Color( 0, 0, 0, 1 )
 
 [sub_resource type="CapsuleShape2D" id=6]
 radius = 6.00001
-height = 3.99999
+height = 5.99998
 
 [node name="Ant" type="KinematicBody2D"]
 collision_layer = 2
@@ -330,5 +330,3 @@ rotation = 1.57079
 shape = SubResource( 6 )
 
 [node name="Timer" type="Timer" parent="."]
-
-[connection signal="body_entered" from="BodyPivot/HitBox" to="." method="_on_HitBox_body_entered"]

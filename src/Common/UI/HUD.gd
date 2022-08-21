@@ -8,6 +8,8 @@ onready var _player_mana_progress_bar_color=get_node("Container/Player/VBoxConta
 
 onready var _score=get_node("Container/Score/Label")
 
+onready var _score_value:=0
+
 const MANA_COLOR_ENOUGH=Color("0516a0")
 const MANA_COLOR_NOTENOUGH=Color("900000")
 
@@ -16,7 +18,18 @@ func _ready() -> void:
 	
 
 func update_score(value:int):
+	
+	var start_score=_score_value
+	var end_score:=value
+	
+	var tween := create_tween()
+	tween.tween_method(self,"update_score_value",start_score,end_score,1)
+	
+
+func update_score_value(value:int):
 	_score.text=str(value)
+	_score_value=value
+	
 	
 
 func update_player_mana(value:float)->void:

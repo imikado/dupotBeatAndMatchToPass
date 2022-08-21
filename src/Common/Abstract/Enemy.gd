@@ -9,12 +9,26 @@ const MAX_LIFE=50.0
 var _life:=50.0
 var _type= Game.ENEMY_TYPE_LIST.ANT
 
+var _combo_count=0
+
 onready var _animationPlayer:=get_node("BodyPivot/AnimationPlayer")
 onready var _stateMachine := get_node("EnemyStateMachine")
 onready var _enemy_progress_bar := get_node("BodyPivot/Control/ProgressBar")
 onready var _timer:=get_node("Timer")
 
+onready var _hitBox:=get_node("BodyPivot/HitBox")
+
 var look_direction = Vector2(1, 0) setget set_look_direction
+
+func increment_combo_count():
+	_combo_count+=1
+	
+func get_combo_count():
+	return _combo_count
+
+func reset_combo_count():
+	_combo_count=0
+
 
 func get_type():
 	return _type
@@ -35,6 +49,9 @@ func update_enemy_life(start_value:float, end_value:float)->void:
 	
 	_timer.connect("timeout",self,"hide_progressbar")
 	_timer.start()
+	
+	
+
 
 func hide_progressbar():
 	_enemy_progress_bar.visible=false	
@@ -58,6 +75,7 @@ func _ready() -> void:
 	_stateMachine.set_state_walk()
 	
 	_enemy_progress_bar.set_max(MAX_LIFE)
+	_hitBox.connect("body_entered",self,"_on_HitBox_body_entered")
 	
 func get_life():
 	return _life
