@@ -25,6 +25,21 @@ _global_script_classes=[ {
 "path": "res://src/Common/Abstract/Actor.gd"
 }, {
 "base": "Actor",
+"class": "BonusActor",
+"language": "GDScript",
+"path": "res://src/Common/Abstract/BonusActor.gd"
+}, {
+"base": "AbstractStateMachine",
+"class": "BonusActorStateMachine",
+"language": "GDScript",
+"path": "res://src/Actors/BonusActorStateMachine.gd"
+}, {
+"base": "EnemyAbstractStateMotion",
+"class": "BonusActorStateWalk",
+"language": "GDScript",
+"path": "res://src/Actors/BonusActorStateMachine/States/BonusActorStateWalk.gd"
+}, {
+"base": "Actor",
 "class": "Enemy",
 "language": "GDScript",
 "path": "res://src/Common/Abstract/Enemy.gd"
@@ -133,6 +148,9 @@ _global_script_class_icons={
 "AbstractState": "",
 "AbstractStateMachine": "",
 "Actor": "",
+"BonusActor": "",
+"BonusActorStateMachine": "",
+"BonusActorStateWalk": "",
 "Enemy": "",
 "EnemyAbstractState": "",
 "EnemyAbstractStateMotion": "",
@@ -159,7 +177,7 @@ _global_script_class_icons={
 [application]
 
 config/name="BeatAndMatchToPass"
-run/main_scene="res://src/Levels/LevelTemplate.tscn"
+run/main_scene="res://src/UI/boot.tscn"
 config/icon="res://icon.png"
 
 [autoload]
@@ -258,6 +276,7 @@ common/enable_pause_aware_picking=true
 [rendering]
 
 vram_compression/import_etc=true
+quality/depth/hdr.mobile=true
 environment/default_environment="res://default_env.tres"
 
 [world]

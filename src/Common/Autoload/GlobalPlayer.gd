@@ -1,14 +1,27 @@
 extends Node
 
+const START_SCORE=0
 const START_LIFE=100
 const START_MANA=10
 const MAX_MANA=80
 
-var score=0
+var _score=0
 var life=START_LIFE
 var mana=START_MANA
 
 var attack_amount_mana=10
+
+func reset_game():
+	_score=START_SCORE
+	life=START_LIFE
+	mana=START_MANA
+
+
+func get_score():
+	return _score
+
+func save_score(score):
+	_score=score
 
 func increment_mana(value):
 	mana+=value

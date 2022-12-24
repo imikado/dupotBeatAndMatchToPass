@@ -529,8 +529,7 @@ anims/walking_right = SubResource( 19 )
 [node name="AnimatedSprite" type="AnimatedSprite" parent="BodyPivot"]
 position = Vector2( -1, -32 )
 frames = SubResource( 10 )
-animation = "attacking01"
-frame = 3
+animation = "idle"
 
 [node name="HitBox" type="Area2D" parent="BodyPivot"]
 position = Vector2( 0, -12 )

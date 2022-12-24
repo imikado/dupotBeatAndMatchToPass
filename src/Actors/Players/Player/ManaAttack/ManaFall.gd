@@ -7,7 +7,7 @@ onready var _sprite:=get_node("Sprite")
 onready var _hitBox:=get_node("HitBox/CollisionShape2D")
 
 
-var _damage:=5
+var _damage:=20
 
 func _ready() -> void:
 	_sprite.visible=false

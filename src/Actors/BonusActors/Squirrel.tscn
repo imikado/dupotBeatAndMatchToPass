@@ -1,0 +1,314 @@
+[gd_scene load_steps=34 format=2]
+
+[ext_resource path="res://src/Actors/BonusActors/Squirrel/squirrel-idle.png" type="Texture" id=1]
+[ext_resource path="res://src/Actors/BonusActors/Squirrel.gd" type="Script" id=2]
+[ext_resource path="res://src/Actors/BonusActors/Squirrel/squirrel-walking.png" type="Texture" id=3]
+[ext_resource path="res://src/Actors/BonusActorStateMachine.tscn" type="PackedScene" id=4]
+[ext_resource path="res://src/Actors/SimpleEnemies/Ant/ant-attacking01.png" type="Texture" id=5]
+[ext_resource path="res://src/Actors/SimpleEnemies/Ant/ant-damaged.png" type="Texture" id=6]
+[ext_resource path="res://src/Actors/SimpleEnemies/Ant/ant-died.png" type="Texture" id=7]
+
+[sub_resource type="AtlasTexture" id=41]
+atlas = ExtResource( 5 )
+region = Rect2( 0, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=42]
+atlas = ExtResource( 5 )
+region = Rect2( 64, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=43]
+atlas = ExtResource( 5 )
+region = Rect2( 128, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=44]
+atlas = ExtResource( 5 )
+region = Rect2( 192, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=30]
+atlas = ExtResource( 6 )
+region = Rect2( 0, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=31]
+atlas = ExtResource( 6 )
+region = Rect2( 64, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=32]
+atlas = ExtResource( 6 )
+region = Rect2( 128, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=34]
+atlas = ExtResource( 7 )
+region = Rect2( 0, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=35]
+atlas = ExtResource( 7 )
+region = Rect2( 64, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=36]
+atlas = ExtResource( 7 )
+region = Rect2( 128, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=37]
+atlas = ExtResource( 7 )
+region = Rect2( 192, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=45]
+atlas = ExtResource( 1 )
+region = Rect2( 0, 0, 32, 32 )
+
+[sub_resource type="AtlasTexture" id=46]
+atlas = ExtResource( 1 )
+region = Rect2( 32, 0, 32, 32 )
+
+[sub_resource type="AtlasTexture" id=47]
+atlas = ExtResource( 1 )
+region = Rect2( 64, 0, 32, 32 )
+
+[sub_resource type="AtlasTexture" id=48]
+atlas = ExtResource( 3 )
+region = Rect2( 0, 0, 32, 32 )
+
+[sub_resource type="AtlasTexture" id=49]
+atlas = ExtResource( 3 )
+region = Rect2( 32, 0, 32, 32 )
+
+[sub_resource type="AtlasTexture" id=50]
+atlas = ExtResource( 3 )
+region = Rect2( 64, 0, 32, 32 )
+
+[sub_resource type="SpriteFrames" id=4]
+animations = [ {
+"frames": [ SubResource( 41 ), SubResource( 42 ), SubResource( 43 ), SubResource( 44 ) ],
+"loop": true,
+"name": "attacking01",
+"speed": 5.0
+}, {
+"frames": [ SubResource( 30 ), SubResource( 31 ), SubResource( 32 ) ],
+"loop": true,
+"name": "damaged",
+"speed": 5.0
+}, {
+"frames": [ SubResource( 34 ), SubResource( 35 ), SubResource( 36 ), SubResource( 37 ) ],
+"loop": true,
+"name": "died",
+"speed": 5.0
+}, {
+"frames": [ SubResource( 45 ), SubResource( 46 ), SubResource( 47 ) ],
+"loop": true,
+"name": "idle",
+"speed": 5.0
+}, {
+"frames": [ SubResource( 48 ), SubResource( 49 ), SubResource( 50 ) ],
+"loop": true,
+"name": "walking",
+"speed": 5.0
+} ]
+
+[sub_resource type="Animation" id=24]
+resource_name = "attacking_01_right"
+length = 0.6
+tracks/0/type = "value"
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite:animation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ "attacking01" ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite:frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3 ),
+"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2, 3 ]
+}
+
+[sub_resource type="Animation" id=33]
+resource_name = "damaged"
+length = 0.4
+tracks/0/type = "value"
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite:animation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ "damaged" ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite:frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2 ]
+}
+
+[sub_resource type="Animation" id=38]
+resource_name = "died"
+length = 0.4
+tracks/0/type = "value"
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite:animation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ "died" ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite:frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3 ),
+"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2, 3 ]
+}
+
+[sub_resource type="Animation" id=5]
+resource_name = "idle"
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite:animation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ "idle" ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite:frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.5, 1 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2 ]
+}
+
+[sub_resource type="Animation" id=11]
+resource_name = "walking_right"
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite:animation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ "walking" ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite:frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.5, 1 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2 ]
+}
+
+[sub_resource type="StyleBoxFlat" id=39]
+bg_color = Color( 0, 0.513726, 0.188235, 1 )
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="StyleBoxFlat" id=40]
+bg_color = Color( 0, 0, 0, 1 )
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color( 0, 0, 0, 1 )
+
+[sub_resource type="CapsuleShape2D" id=6]
+radius = 6.00001
+height = 0.0
+
+[node name="Squirrel" type="KinematicBody2D"]
+collision_layer = 2
+collision_mask = 2
+script = ExtResource( 2 )
+
+[node name="BodyPivot" type="Position2D" parent="."]
+
+[node name="AnimatedSprite" type="AnimatedSprite" parent="BodyPivot"]
+modulate = Color( 0.988235, 0.121569, 0.121569, 1 )
+position = Vector2( 0, -16 )
+frames = SubResource( 4 )
+animation = "walking"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BodyPivot"]
+root_node = NodePath("../..")
+anims/attacking_01_right = SubResource( 24 )
+anims/damaged = SubResource( 33 )
+anims/died = SubResource( 38 )
+anims/idle = SubResource( 5 )
+anims/walking_right = SubResource( 11 )
+
+[node name="Control" type="Control" parent="BodyPivot"]
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="ProgressBar" type="ProgressBar" parent="BodyPivot/Control"]
+visible = false
+margin_left = -22.0
+margin_top = 8.0
+margin_right = 8.0
+margin_bottom = 12.0
+rect_min_size = Vector2( 30, 4 )
+custom_styles/fg = SubResource( 39 )
+custom_styles/bg = SubResource( 40 )
+value = 50.0
+percent_visible = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2( 0, -6 )
+rotation = 1.57079
+shape = SubResource( 6 )
+
+[node name="Timer" type="Timer" parent="."]
+
+[node name="BonusActorStateMachine" parent="." instance=ExtResource( 4 )]
+START_STATE = NodePath("Idle")
+
+[editable path="BonusActorStateMachine"]

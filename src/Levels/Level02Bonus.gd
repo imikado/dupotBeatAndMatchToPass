@@ -14,7 +14,11 @@ onready var Ant:=preload("res://src/Actors/SimpleEnemies/Ant.tscn")
 onready var Beetle:=preload("res://src/Actors/SimpleEnemies/Beetle.tscn")
 onready var Spider:=preload("res://src/Actors/SimpleEnemies/Spider.tscn")
 
+onready var Squirrel:=preload("res://src/Actors/BonusActors/Squirrel.tscn")
+
 onready var Energie:=preload("res://src/Common/Levels/Energy.tscn")
+
+onready var LifeBottle:=preload("res://src/Common/Items/LifeBottle.tscn")
 
 onready var ComboPlusOne:=preload("res://src/Actors/Players/ComboPlusOne.tscn")
 onready var ComboBonus:=preload("res://src/Actors/Players/Player/ComboBonus.tscn")
@@ -24,6 +28,11 @@ onready var _spawnPositionLeft2:=get_node("YSort/Player/SpawnPosition2DLeft2")
 onready var _spawnPositionRight:=get_node("YSort/Player/SpawnPosition2DRight")
 onready var _spawnPositionRight2:=get_node("YSort/Player/SpawnPosition2DRight2")
 
+onready var _positionRightTop:=get_node("Bonus/rightTop")
+onready var _positionRightBottom:=get_node("Bonus/rightBottom");
+onready var _positionLeftTop:=get_node("Bonus/leftTop");
+onready var _positionLeftBottom:=get_node("Bonus/leftBottom");
+
 onready var _spawnTimer:=get_node("Timers/SpawnTimer")
 onready var _manaTimer:=get_node("Timers/ManaTimer")
 
@@ -31,7 +40,8 @@ onready var _electricalBarriers := get_node("ElectricalBarriers")
 
 onready var _specialEffects := get_node("SpecialEffects")
 
-
+onready var _bonus:=get_node("Bonus")
+onready var _timeLeftLabel:=get_node("HUD/timeLeft")
 
 var _active_barrier_list:=[]
 
@@ -39,29 +49,12 @@ var _wave_number=2
 var _total_wave_number=0
 var _random_combo_count=0
 
+var _timeLeft:=10
+
+
+
 onready var _wave_array:=[
-	[
-		{"enemy":Ant,"position":_spawnPositionLeft},
-		{"enemy":Ant,"position":_spawnPositionRight}
-	],
-	[
-		{"enemy":Ant,"position":_spawnPositionLeft},
-		{"enemy":Ant,"position":_spawnPositionLeft2,"offset":Vector2(-25,0)},
-		{"enemy":Ant,"position":_spawnPositionRight}
-	],
-	[
-		{"enemy":Ant,"position":_spawnPositionLeft,"offset":Vector2(-25,0)},
-		{"enemy":Ant,"position":_spawnPositionLeft2},
-		{"enemy":Ant,"position":_spawnPositionRight},
-		{"enemy":Beetle,"position":_spawnPositionRight2}
-	],
-	[
-		{"enemy":Spider,"position":_spawnPositionLeft,"offset":Vector2(-25,0)},
-		{"enemy":Ant,"position":_spawnPositionLeft2},
-		{"enemy":Ant,"position":_spawnPositionRight},
-		{"enemy":Beetle,"position":_spawnPositionRight2}
-	],
-	
+	 
 ]
 
 
@@ -74,7 +67,7 @@ func _ready() -> void:
 	if Game.DEBUG_ENABLED:
 		debug()
 	else:
-		_player.global_position.x +=450
+		_player.global_position.x +=300
 	
 	_hud.update_player_life(GlobalPlayer.life)
 	_hud.update_score(GlobalPlayer.get_score())
@@ -92,16 +85,28 @@ func _ready() -> void:
 	
 	Events.connect("player_launch_mana_attack",self,"_on_player_launch_mana_attack")
 	
-	_manaTimer.start()
+	Events.connect("actor_let_item",self,"_on_actor_let_item")
+	Events.connect("player_took_lifebottle",self,"_on_player_took_lifebottle")
 	
-	for GroupLoop in _electricalBarriers.get_children():
-		for BarrierLoop in GroupLoop.get_children():
-			BarrierLoop.connect("is_visible",self,"_on_barrier_is_visible",[BarrierLoop])
-	
-	#_active_barrier_list.append(get_node("ElectricalBarriers/01/ElectricalBarrier"))
-	process_spawn()
-	process_spawn()
+	var startEndMoveList:=[
+		{
+			"start":_positionLeftTop,
+			"end":_positionRightBottom
+		},
+		{
+			"start":_positionRightTop,
+			"end":_positionLeftBottom
+		}
 
+	]
+
+	for startEndMoveLoop in startEndMoveList:
+		var newSquirrel=Squirrel.instance()
+		newSquirrel.add_to_group(Game.GROUP_BONUSACTOR)
+		_ysort.add_child(newSquirrel)
+		print(startEndMoveLoop)
+		newSquirrel.set_global_position(startEndMoveLoop["start"].global_position)
+		newSquirrel.setTarget(startEndMoveLoop["end"])
 
 
 
@@ -223,6 +228,12 @@ func _on_actor_took_damage(actor,damage):
 	#if actor.has_method("get_life"):
 	#	actor.update_enemy_life (actor.get_life(),actor.get_life())
 	actor.took_damage(damage)
+
+func _on_actor_let_item(actor):
+	var newLifeBottle=LifeBottle.instance()
+	_bonus.add_child(newLifeBottle)
+	
+	newLifeBottle.set_global_position( actor.global_position)
 	
 
 func _on_actor_took_damage_by_bullet(actor,damage,bullet):
@@ -301,3 +312,27 @@ func update_mana_button():
 	else:
 		_controls.disable_mana_button()
 
+
+
+func _on_Gate_player_entered_gate() -> void:
+	print('next level')
+	get_tree().change_scene("res://src/Levels/Level02.tscn")
+	pass # Replace with function body.
+
+func _on_player_took_lifebottle(bottle)->void:
+	#print("_on_player_took_lifebottle")
+	bottle.queue_free()
+	
+	GlobalPlayer.update_life(GlobalPlayer.life+10)
+	_hud.update_player_life(GlobalPlayer.life)
+	
+
+
+func _on_timeLeft_timeout() -> void:
+	_timeLeft-=1
+	if(_timeLeft<0):
+		get_tree().change_scene("res://src/Levels/Level03.tscn")
+
+	_timeLeftLabel.text=str(_timeLeft)
+
+	pass # Replace with function body.

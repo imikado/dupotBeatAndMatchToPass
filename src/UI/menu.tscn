@@ -1,0 +1,118 @@
+[gd_scene load_steps=18 format=2]
+
+[ext_resource path="res://src/Common/UI/theme.tres" type="Theme" id=1]
+[ext_resource path="res://src/UI/menu/button.png" type="Texture" id=2]
+[ext_resource path="res://src/UI/menu.gd" type="Script" id=3]
+[ext_resource path="res://src/Levels/LevelTemplate/background.png" type="Texture" id=4]
+[ext_resource path="res://src/UI/title/title-sans-persos.png" type="Texture" id=5]
+[ext_resource path="res://src/Actors/SimpleEnemies/Ant/ant-idle.png" type="Texture" id=6]
+[ext_resource path="res://src/Actors/Players/Player/player-idle.png" type="Texture" id=7]
+[ext_resource path="res://src/Common/Levels/ElectricalBarrier.tscn" type="PackedScene" id=8]
+
+[sub_resource type="TileSet" id=1]
+0/name = "background.png 0"
+0/texture = ExtResource( 4 )
+0/tex_offset = Vector2( 0, 0 )
+0/modulate = Color( 1, 1, 1, 1 )
+0/region = Rect2( 0, 0, 91, 72 )
+0/tile_mode = 0
+0/occluder_offset = Vector2( 0, 0 )
+0/navigation_offset = Vector2( 0, 0 )
+0/shape_offset = Vector2( 0, 0 )
+0/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+0/shape_one_way = false
+0/shape_one_way_margin = 0.0
+0/shapes = [  ]
+0/z_index = 0
+
+[sub_resource type="AtlasTexture" id=7]
+atlas = ExtResource( 7 )
+region = Rect2( 0, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=8]
+atlas = ExtResource( 7 )
+region = Rect2( 64, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=9]
+atlas = ExtResource( 7 )
+region = Rect2( 128, 0, 64, 64 )
+
+[sub_resource type="SpriteFrames" id=10]
+animations = [ {
+"frames": [ SubResource( 7 ), SubResource( 8 ), SubResource( 9 ) ],
+"loop": true,
+"name": "default",
+"speed": 5.0
+} ]
+
+[sub_resource type="AtlasTexture" id=3]
+atlas = ExtResource( 6 )
+region = Rect2( 0, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=4]
+atlas = ExtResource( 6 )
+region = Rect2( 64, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=5]
+atlas = ExtResource( 6 )
+region = Rect2( 128, 0, 64, 64 )
+
+[sub_resource type="SpriteFrames" id=6]
+animations = [ {
+"frames": [ SubResource( 3 ), SubResource( 4 ), SubResource( 5 ) ],
+"loop": true,
+"name": "default",
+"speed": 5.0
+} ]
+
+[node name="menu" type="Node2D"]
+script = ExtResource( 3 )
+
+[node name="TileMap" type="TileMap" parent="."]
+modulate = Color( 0.717647, 0.717647, 0.717647, 1 )
+tile_set = SubResource( 1 )
+format = 1
+tile_data = PoolIntArray( 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 65536, 0, 0, 65537, 0, 0, 65538, 0, 0, 65539, 0, 0, 65540, 0, 0, 131072, 0, 0, 131073, 0, 0, 131074, 0, 0, 131075, 0, 0, 131076, 0, 0 )
+
+[node name="Title" type="Sprite" parent="."]
+modulate = Color( 1.2, 1.2, 1.2, 1 )
+position = Vector2( 111, 65 )
+texture = ExtResource( 5 )
+
+[node name="Control" type="Control" parent="."]
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="PlayButton" type="TouchScreenButton" parent="Control"]
+modulate = Color( 1.5, 1.5, 1.5, 1 )
+position = Vector2( 236, 26 )
+scale = Vector2( 1.23438, 1 )
+normal = ExtResource( 2 )
+
+[node name="Label" type="Label" parent="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 246.0
+margin_top = 26.0
+margin_right = 304.0
+margin_bottom = 43.0
+theme = ExtResource( 1 )
+text = "Play"
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2( 160, 90 )
+
+[node name="ElectricalBarrier" parent="." instance=ExtResource( 8 )]
+position = Vector2( 45, 106 )
+
+[node name="player" type="AnimatedSprite" parent="."]
+position = Vector2( 28, 13 )
+frames = SubResource( 10 )
+frame = 1
+playing = true
+
+[node name="ant" type="AnimatedSprite" parent="."]
+position = Vector2( 174, 16 )
+frames = SubResource( 6 )
+frame = 2
+playing = true

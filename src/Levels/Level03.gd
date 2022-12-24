@@ -1,6 +1,7 @@
 extends Node2D
 
 const MIN_SPAWN_Y=127
+const MAX_ENEMY=4
 
 onready var _ysort=get_node("YSort")
 onready var _player=get_node("YSort/Player")
@@ -26,6 +27,7 @@ onready var _spawnPositionRight2:=get_node("YSort/Player/SpawnPosition2DRight2")
 
 onready var _spawnTimer:=get_node("Timers/SpawnTimer")
 onready var _manaTimer:=get_node("Timers/ManaTimer")
+onready var _introTimer:=get_node("Timers/IntroTimer")
 
 onready var _electricalBarriers := get_node("ElectricalBarriers")
 
@@ -41,26 +43,21 @@ var _random_combo_count=0
 
 onready var _wave_array:=[
 	[
-		{"enemy":Ant,"position":_spawnPositionLeft},
-		{"enemy":Ant,"position":_spawnPositionRight}
+		{"type":Game.ENEMY_TYPE_LIST.ANT,"position":_spawnPositionLeft},
+		{"type":Game.ENEMY_TYPE_LIST.BEETLE,"position":_spawnPositionRight},
+		{"type":Game.ENEMY_TYPE_LIST.SPIDER,"position":_spawnPositionLeft2,"offset":Vector2(-25,0)},
 	],
 	[
-		{"enemy":Ant,"position":_spawnPositionLeft},
-		{"enemy":Ant,"position":_spawnPositionLeft2,"offset":Vector2(-25,0)},
-		{"enemy":Ant,"position":_spawnPositionRight}
+		{"type":Game.ENEMY_TYPE_LIST.SPIDER,"position":_spawnPositionLeft},
+		{"type":Game.ENEMY_TYPE_LIST.BEETLE,"position":_spawnPositionLeft2,"offset":Vector2(-25,0)},
+		{"type":Game.ENEMY_TYPE_LIST.ANT,"position":_spawnPositionRight}
 	],
 	[
-		{"enemy":Ant,"position":_spawnPositionLeft,"offset":Vector2(-25,0)},
-		{"enemy":Ant,"position":_spawnPositionLeft2},
-		{"enemy":Ant,"position":_spawnPositionRight},
-		{"enemy":Beetle,"position":_spawnPositionRight2}
-	],
-	[
-		{"enemy":Spider,"position":_spawnPositionLeft,"offset":Vector2(-25,0)},
-		{"enemy":Ant,"position":_spawnPositionLeft2},
-		{"enemy":Ant,"position":_spawnPositionRight},
-		{"enemy":Beetle,"position":_spawnPositionRight2}
-	],
+		{"type":Game.ENEMY_TYPE_LIST.BEETLE,"position":_spawnPositionLeft2},
+		{"type":Game.ENEMY_TYPE_LIST.ANT,"position":_spawnPositionRight},
+		{"type":Game.ENEMY_TYPE_LIST.SPIDER,"position":_spawnPositionRight2}
+	]
+	
 	
 ]
 
@@ -74,13 +71,18 @@ func _ready() -> void:
 	if Game.DEBUG_ENABLED:
 		debug()
 	else:
-		_player.global_position.x +=450
+		_player.global_position.x +=570
+		_player.global_position.y+=30
+		
 	
 	_hud.update_player_life(GlobalPlayer.life)
 	_hud.update_score(GlobalPlayer.get_score())
 	_hud.update_player_mana(GlobalPlayer.mana)
 	
 	update_mana_button()
+	
+	_introTimer.start()
+	
 		
 	_player.set_camera_limit_rect(_cameraLimitRect)
 
@@ -252,6 +254,30 @@ func spawn_enemy_on_position(enemy_to_spawn,spawn_position,offset=Vector2.ZERO):
 	
 	_ysort.add_child(enemy_spawn)
 
+func has_too_much_enemy(enemy_to_spawn_type):
+	var current_number=0
+	print("check has too much:")
+	for enemy_still_there_loop in get_tree().get_nodes_in_group(Game.GROUP_ENEMY):
+		if(enemy_to_spawn_type==enemy_still_there_loop.get_type()):
+			current_number+=1
+			if(current_number>=MAX_ENEMY):
+				return true
+	return false
+
+func get_enemy_by_type(type):
+	var enemy;
+	if type==Game.ENEMY_TYPE_LIST.ANT:
+		enemy=Ant
+	elif(type==Game.ENEMY_TYPE_LIST.BEETLE):
+		enemy=Beetle
+	elif(type==Game.ENEMY_TYPE_LIST.SPIDER):
+		enemy=Spider
+	else:
+		print('Error type unknown')
+			
+	return enemy
+
+
 func process_spawn():
 	if _wave_number >= _wave_array.size():
 		return
@@ -260,7 +286,8 @@ func process_spawn():
 		var offset=Vector2.ZERO
 		if wave_loop.has("offset"):
 			offset=wave_loop["offset"]
-		spawn_enemy_on_position( wave_loop["enemy"],wave_loop["position"],offset)
+		if(!has_too_much_enemy(wave_loop["type"])):
+			spawn_enemy_on_position(get_enemy_by_type(wave_loop["type"]),wave_loop["position"],offset)
 	
 	_wave_number+=1
 	_total_wave_number+=1
@@ -301,3 +328,20 @@ func update_mana_button():
 	else:
 		_controls.disable_mana_button()
 
+
+
+func _on_Gate_player_entered_gate() -> void:
+	print('next level')
+	get_tree().change_scene("res://src/Levels/LevelTemplate.tscn")
+	pass # Replace with function body.
+
+
+func _on_IntroTimer_timeout() -> void:
+	GlobalPlayer.increment_mana(10)
+	_hud.update_player_mana(GlobalPlayer.mana)
+	
+	GlobalPlayer.update_life(GlobalPlayer.life+10)
+	_hud.update_player_life(GlobalPlayer.life)
+	
+	update_mana_button()
+	pass # Replace with function body.

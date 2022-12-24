@@ -42,7 +42,7 @@ func _ready() -> void:
 	
 func set_look_direction(value):
 	look_direction = value
-	emit_signal("direction_changed", value)
+
 
 func updateLife(newLife:int):
 	_life=newLife
@@ -76,6 +76,9 @@ func set_camera_limit_rect(referenceRect : ReferenceRect):
 func _on_HitBox_body_entered(body: Node) -> void:
 	if body.is_in_group(Game.GROUP_ENEMY):
 		Events.emit_signal("actor_took_damage",body,_damage)
+	elif body.is_in_group(Game.GROUP_BONUSACTOR):
+		Events.emit_signal("actor_let_item",body)
+		print("hit bonusactor")
 	pass # Replace with function body.
 
 
