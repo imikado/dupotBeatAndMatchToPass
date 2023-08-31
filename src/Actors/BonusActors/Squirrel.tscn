@@ -307,6 +307,7 @@ rotation = 1.57079
 shape = SubResource( 6 )
 
 [node name="Timer" type="Timer" parent="."]
+wait_time = 2.0
 
 [node name="BonusActorStateMachine" parent="." instance=ExtResource( 4 )]
 START_STATE = NodePath("Idle")

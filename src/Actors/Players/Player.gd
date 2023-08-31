@@ -77,8 +77,10 @@ func _on_HitBox_body_entered(body: Node) -> void:
 	if body.is_in_group(Game.GROUP_ENEMY):
 		Events.emit_signal("actor_took_damage",body,_damage)
 	elif body.is_in_group(Game.GROUP_BONUSACTOR):
-		Events.emit_signal("actor_let_item",body)
-		print("hit bonusactor")
+		if body.can_let_item():
+			body.let_item()
+			Events.emit_signal("actor_let_item",body)
+			print("hit bonusactor")
 	pass # Replace with function body.
 
 

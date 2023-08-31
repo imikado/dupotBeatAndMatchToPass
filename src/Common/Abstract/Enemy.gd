@@ -47,7 +47,6 @@ func update_enemy_life(start_value:float, end_value:float)->void:
 	
 	#yield(get_tree().create_timer(1.0), "timeout")
 	
-	_timer.connect("timeout",self,"hide_progressbar")
 	_timer.start()
 	
 	
@@ -76,6 +75,8 @@ func _ready() -> void:
 	
 	_enemy_progress_bar.set_max(MAX_LIFE)
 	_hitBox.connect("body_entered",self,"_on_HitBox_body_entered")
+	_timer.connect("timeout",self,"hide_progressbar")
+	
 	
 func get_life():
 	return _life

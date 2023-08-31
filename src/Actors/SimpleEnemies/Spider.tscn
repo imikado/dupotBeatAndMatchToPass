@@ -312,7 +312,6 @@ script = ExtResource( 7 )
 position = Vector2( 0, -32 )
 frames = SubResource( 45 )
 animation = "attacking01"
-frame = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="BodyPivot"]
 root_node = NodePath("../..")

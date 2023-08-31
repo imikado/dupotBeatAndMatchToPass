@@ -16,6 +16,7 @@ onready var _stateMachine := get_node("BonusActorStateMachine")
 onready var _enemy_progress_bar := get_node("BodyPivot/Control/ProgressBar")
 onready var _timer:=get_node("Timer")
 
+var _can_let_item=true
 
 
 var look_direction = Vector2(1, 0) setget set_look_direction
@@ -46,11 +47,17 @@ func update_enemy_life(start_value:float, end_value:float)->void:
 	
 	
 	#yield(get_tree().create_timer(1.0), "timeout")
-	
-	_timer.connect("timeout",self,"hide_progressbar")
+
+func can_let_item():
+	return _can_let_item
+
+func let_item():
+	_can_let_item=false
+	_timer.connect("timeout",self,"allow_let_item")
 	_timer.start()
-	
-	
+
+func allow_let_item():
+	_can_let_item=true
 
 
 func hide_progressbar():

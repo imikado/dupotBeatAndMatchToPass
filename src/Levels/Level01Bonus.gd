@@ -49,7 +49,7 @@ var _wave_number=2
 var _total_wave_number=0
 var _random_combo_count=0
 
-var _timeLeft:=10
+var _timeLeft:=15
 
 
 
@@ -233,7 +233,8 @@ func _on_actor_let_item(actor):
 	var newLifeBottle=LifeBottle.instance()
 	_bonus.add_child(newLifeBottle)
 	
-	newLifeBottle.set_global_position( actor.global_position)
+	newLifeBottle.set_global_position( actor.global_position+Vector2(0,20))
+	
 	
 
 func _on_actor_took_damage_by_bullet(actor,damage,bullet):

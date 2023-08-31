@@ -13,13 +13,14 @@ func is_near_player()->bool:
 	
 	
 func update_look_direction(direction):
+
 	if direction and owner.get_parent().look_direction != direction:
 		owner.get_parent().look_direction = direction
 	
-	var enemy_side=Vector2(0,1)
-	if direction.x < 0:
-		enemy_side.x=-1
-	else:
-		enemy_side.x=1
-	
-	owner.get_parent().get_node("BodyPivot").set_scale(enemy_side)
+		var enemy_side=Vector2(0,1)
+		if direction.x < 0:
+			enemy_side.x=-1
+		else:
+			enemy_side.x=1
+		
+		owner.get_parent().get_node("BodyPivot").set_scale(enemy_side)

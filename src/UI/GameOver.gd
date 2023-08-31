@@ -2,7 +2,7 @@ extends Control
 
 onready var _score:=get_node("score")
 
-onready var _menuButton:=get_node("menu")
+onready var _menuButton:=get_node("Control/menu")
 
 func _ready() -> void:
 	_score.text=str(GlobalPlayer.get_score())

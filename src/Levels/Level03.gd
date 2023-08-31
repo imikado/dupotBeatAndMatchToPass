@@ -45,11 +45,11 @@ onready var _wave_array:=[
 	[
 		{"type":Game.ENEMY_TYPE_LIST.ANT,"position":_spawnPositionLeft},
 		{"type":Game.ENEMY_TYPE_LIST.BEETLE,"position":_spawnPositionRight},
-		{"type":Game.ENEMY_TYPE_LIST.SPIDER,"position":_spawnPositionLeft2,"offset":Vector2(-25,0)},
+		{"type":Game.ENEMY_TYPE_LIST.SPIDER,"position":_spawnPositionLeft2,"offset":Vector2(-5,0)},
 	],
 	[
 		{"type":Game.ENEMY_TYPE_LIST.SPIDER,"position":_spawnPositionLeft},
-		{"type":Game.ENEMY_TYPE_LIST.BEETLE,"position":_spawnPositionLeft2,"offset":Vector2(-25,0)},
+		{"type":Game.ENEMY_TYPE_LIST.BEETLE,"position":_spawnPositionLeft2,"offset":Vector2(-5,0)},
 		{"type":Game.ENEMY_TYPE_LIST.ANT,"position":_spawnPositionRight}
 	],
 	[
