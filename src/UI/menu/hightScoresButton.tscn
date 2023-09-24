@@ -1,0 +1,21 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://src/Common/UI/theme.tres" type="Theme" id=1]
+[ext_resource path="res://src/Common/UI/fonts/font.tres" type="DynamicFont" id=2]
+[ext_resource path="res://src/UI/menu/button.png" type="Texture" id=3]
+[ext_resource path="res://src/UI/menu/buttonPressed.png" type="Texture" id=4]
+
+[node name="hightScoresButton" type="TouchScreenButton"]
+position = Vector2( 220, 93 )
+normal = ExtResource( 3 )
+pressed = ExtResource( 4 )
+
+[node name="Label" type="Label" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = -5.0
+margin_bottom = 5.0
+theme = ExtResource( 1 )
+custom_fonts/font = ExtResource( 2 )
+text = "SCORES"
+align = 1

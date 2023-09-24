@@ -123,6 +123,7 @@ func _on_player_healt_changed(newLife:float):
 	_hud.update_player_life(GlobalPlayer.life)
 	
 	if newLife <=0:
+		Game.saveHighScore(GlobalPlayer.get_score())
 		get_tree().change_scene("res://src/UI/GameOver.tscn")
 
 

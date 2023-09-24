@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=2]
+[gd_scene load_steps=17 format=2]
 
 [ext_resource path="res://src/Levels/LevelTemplate/background.png" type="Texture" id=1]
 [ext_resource path="res://src/Actors/Players/Player.tscn" type="PackedScene" id=2]
@@ -13,6 +13,7 @@
 [ext_resource path="res://src/Common/Levels/limit_wakling_vert.tscn" type="PackedScene" id=11]
 [ext_resource path="res://src/Common/UI/Controls.tscn" type="PackedScene" id=12]
 [ext_resource path="res://src/Common/Levels/Gate.tscn" type="PackedScene" id=13]
+[ext_resource path="res://src/Common/Items/LifeBottle.tscn" type="PackedScene" id=14]
 
 [sub_resource type="TileSet" id=1]
 0/name = "background.png 0"
@@ -151,6 +152,14 @@ position = Vector2( 613, 0 )
 
 [node name="ElectricalBarrier" parent="ElectricalBarriers/04" instance=ExtResource( 4 )]
 position = Vector2( 442, -45 )
+
+[node name="life bottles" type="Node2D" parent="."]
+
+[node name="LifeBottle" parent="life bottles" instance=ExtResource( 14 )]
+position = Vector2( 1180, 167 )
+
+[node name="LifeBottle2" parent="life bottles" instance=ExtResource( 14 )]
+position = Vector2( 3148, 166 )
 
 [node name="YSort" type="YSort" parent="."]
 

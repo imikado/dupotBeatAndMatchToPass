@@ -1,0 +1,20 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://src/Common/UI/theme.tres" type="Theme" id=1]
+[ext_resource path="res://src/UI/menu/button.png" type="Texture" id=2]
+[ext_resource path="res://src/UI/menu/buttonPressed.png" type="Texture" id=3]
+[ext_resource path="res://src/UI/menu/menuButton.gd" type="Script" id=4]
+
+[node name="menuButton" type="TouchScreenButton"]
+position = Vector2( 6, 4 )
+normal = ExtResource( 2 )
+pressed = ExtResource( 3 )
+script = ExtResource( 4 )
+
+[node name="Label" type="Label" parent="."]
+margin_top = -5.0
+margin_right = 64.0
+margin_bottom = 18.0
+theme = ExtResource( 1 )
+text = "MENU"
+align = 1

@@ -1,4 +1,4 @@
-[gd_scene load_steps=61 format=2]
+[gd_scene load_steps=69 format=2]
 
 [ext_resource path="res://src/Actors/Players/Player.gd" type="Script" id=1]
 [ext_resource path="res://src/Actors/Players/Player/States/OnGround/PlayerStateDamaged.gd" type="Script" id=2]
@@ -21,6 +21,8 @@
 [ext_resource path="res://src/Actors/Players/Player/mana-particule.png" type="Texture" id=19]
 [ext_resource path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttackMana01.gd" type="Script" id=20]
 [ext_resource path="res://src/Actors/Players/Player/ManaAttack/ManaFall.tscn" type="PackedScene" id=21]
+[ext_resource path="res://src/Actors/Players/Player/player-get-lifeBottle.png" type="Texture" id=22]
+[ext_resource path="res://src/Actors/Players/Player/States/OnGround/GetLifeBottle.gd" type="Script" id=23]
 
 [sub_resource type="Animation" id=46]
 resource_name = "attacking_01_right"
@@ -287,6 +289,50 @@ tracks/1/keys = {
 "values": [ "damaged_right" ]
 }
 
+[sub_resource type="Animation" id=79]
+resource_name = "get_life_bottle"
+tracks/0/type = "value"
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 0, 1, 2, 3, 4, 3, 4, 3 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ "getLifeBootle" ]
+}
+tracks/2/type = "method"
+tracks/2/path = NodePath(".")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0.5, 0.7 ),
+"transitions": PoolRealArray( 1, 1 ),
+"values": [ {
+"args": [  ],
+"method": "blink_green"
+}, {
+"args": [  ],
+"method": "emit_player_tookadvantage_of_lifebottle"
+} ]
+}
+
 [sub_resource type="Animation" id=2]
 resource_name = "idle"
 length = 2.0
@@ -433,6 +479,26 @@ region = Rect2( 64, 0, 64, 64 )
 atlas = ExtResource( 11 )
 region = Rect2( 128, 0, 64, 64 )
 
+[sub_resource type="AtlasTexture" id=80]
+atlas = ExtResource( 22 )
+region = Rect2( 0, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=81]
+atlas = ExtResource( 22 )
+region = Rect2( 64, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=82]
+atlas = ExtResource( 22 )
+region = Rect2( 128, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=83]
+atlas = ExtResource( 22 )
+region = Rect2( 192, 0, 64, 64 )
+
+[sub_resource type="AtlasTexture" id=84]
+atlas = ExtResource( 22 )
+region = Rect2( 256, 0, 64, 64 )
+
 [sub_resource type="AtlasTexture" id=34]
 atlas = ExtResource( 3 )
 region = Rect2( 0, 0, 64, 64 )
@@ -489,6 +555,11 @@ animations = [ {
 "name": "damaged_right",
 "speed": 5.0
 }, {
+"frames": [ SubResource( 80 ), SubResource( 81 ), SubResource( 82 ), SubResource( 83 ), SubResource( 84 ) ],
+"loop": true,
+"name": "getLifeBootle",
+"speed": 5.0
+}, {
 "frames": [ SubResource( 34 ), SubResource( 35 ), SubResource( 36 ) ],
 "loop": true,
 "name": "idle",
@@ -523,13 +594,14 @@ anims/attacking_03_right = SubResource( 55 )
 anims/attacking_04_right = SubResource( 59 )
 anims/attacking_mana_01_right = SubResource( 75 )
 anims/damaged = SubResource( 47 )
+anims/get_life_bottle = SubResource( 79 )
 anims/idle = SubResource( 2 )
 anims/walking_right = SubResource( 19 )
 
 [node name="AnimatedSprite" type="AnimatedSprite" parent="BodyPivot"]
 position = Vector2( -1, -32 )
 frames = SubResource( 10 )
-animation = "idle"
+animation = "getLifeBootle"
 
 [node name="HitBox" type="Area2D" parent="BodyPivot"]
 position = Vector2( 0, -12 )
@@ -579,6 +651,9 @@ script = ExtResource( 2 )
 
 [node name="AttackMana01" type="Node" parent="StateMachine"]
 script = ExtResource( 20 )
+
+[node name="GetLifeBottle" type="Node" parent="StateMachine"]
+script = ExtResource( 23 )
 
 [node name="stateDisplay" type="Label" parent="."]
 margin_left = -20.0

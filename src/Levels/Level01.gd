@@ -59,8 +59,10 @@ onready var _wave_array:=[
 
 
 func debug():
-	_player.global_position.x +=1500
+	_player.global_position.x +=3500
 	_wave_number=2
+	
+	GlobalPlayer.update_life(GlobalPlayer.life - 50)
 
 
 func _ready() -> void:
@@ -68,6 +70,9 @@ func _ready() -> void:
 		debug()
 	else:
 		_player.global_position.x +=450
+	
+	GlobalPlayer.set_level(1)
+	GlobalPlayer.update_life(GlobalPlayer.START_LIFE)
 	
 	_hud.update_player_life(GlobalPlayer.life)
 	_hud.update_score(GlobalPlayer.get_score())
@@ -85,6 +90,13 @@ func _ready() -> void:
 	
 	Events.connect("player_launch_mana_attack",self,"_on_player_launch_mana_attack")
 	
+	#life bottles
+	Events.connect("player_took_lifebottle", self, "_on_player_took_lifebottle")
+
+	Events.connect(
+		"player_tookadvantage_of_lifebottle", self, "_on_player_tookadvantage_of_lifebottle"
+	)
+	
 	_manaTimer.start()
 	
 	for GroupLoop in _electricalBarriers.get_children():
@@ -95,8 +107,14 @@ func _ready() -> void:
 	process_spawn()
 	process_spawn()
 
+#life bottles
+func _on_player_took_lifebottle(bottle) -> void:
+	_player.get_life_bottle()
+	bottle.queue_free()
 
-
+func _on_player_tookadvantage_of_lifebottle() -> void:
+	GlobalPlayer.update_life(GlobalPlayer.life + 10)
+	_hud.update_player_life(GlobalPlayer.life)
 
 
 func _on_barrier_is_visible(barrier):
@@ -116,6 +134,7 @@ func _on_player_healt_changed(newLife:float):
 	_hud.update_player_life(GlobalPlayer.life)
 	
 	if newLife <=0:
+		Game.saveHighScore(GlobalPlayer.get_score())
 		get_tree().change_scene("res://src/UI/GameOver.tscn")
 
 
@@ -186,6 +205,8 @@ func increment_score(points:int):
 	new_score=GlobalPlayer.get_score() + points
 	GlobalPlayer.save_score(new_score)
 	_hud.update_score( new_score )
+	
+	increment_mana()
 
 
 func _on_combo_bonus_finished():
@@ -304,6 +325,11 @@ func _on_ManaTimer_timeout() -> void:
 	
 	update_mana_button()
 
+func increment_mana()->void:
+	GlobalPlayer.increment_mana(5)
+	_hud.update_player_mana(GlobalPlayer.mana)
+	
+	update_mana_button()
 
 func _on_player_launch_mana_attack()->void:
 	GlobalPlayer.use_amount_mana(GlobalPlayer.attack_amount_mana)
@@ -321,5 +347,5 @@ func update_mana_button():
 
 
 func _on_Gate_player_entered_gate() -> void:
-	get_tree().change_scene("res://src/Levels/Level01Bonus.tscn")
+	get_tree().change_scene("res://src/UI/LevelCompleted.tscn")
 	pass # Replace with function body.

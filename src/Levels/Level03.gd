@@ -74,7 +74,7 @@ func _ready() -> void:
 		_player.global_position.x +=570
 		_player.global_position.y+=30
 		
-	
+	GlobalPlayer.set_level(3)
 	_hud.update_player_life(GlobalPlayer.life)
 	_hud.update_score(GlobalPlayer.get_score())
 	_hud.update_player_mana(GlobalPlayer.mana)
@@ -94,6 +94,13 @@ func _ready() -> void:
 	
 	Events.connect("player_launch_mana_attack",self,"_on_player_launch_mana_attack")
 	
+	#life bottles
+	Events.connect("player_took_lifebottle", self, "_on_player_took_lifebottle")
+
+	Events.connect(
+		"player_tookadvantage_of_lifebottle", self, "_on_player_tookadvantage_of_lifebottle"
+	)
+	
 	_manaTimer.start()
 	
 	for GroupLoop in _electricalBarriers.get_children():
@@ -104,7 +111,14 @@ func _ready() -> void:
 	process_spawn()
 	process_spawn()
 
+#life bottles
+func _on_player_took_lifebottle(bottle) -> void:
+	_player.get_life_bottle()
+	bottle.queue_free()
 
+func _on_player_tookadvantage_of_lifebottle() -> void:
+	GlobalPlayer.update_life(GlobalPlayer.life + 10)
+	_hud.update_player_life(GlobalPlayer.life)
 
 
 
@@ -125,6 +139,7 @@ func _on_player_healt_changed(newLife:float):
 	_hud.update_player_life(GlobalPlayer.life)
 	
 	if newLife <=0:
+		Game.saveHighScore(GlobalPlayer.get_score())
 		get_tree().change_scene("res://src/UI/GameOver.tscn")
 
 
@@ -196,6 +211,7 @@ func increment_score(points:int):
 	GlobalPlayer.save_score(new_score)
 	_hud.update_score( new_score )
 
+	increment_mana()
 
 func _on_combo_bonus_finished():
 	increment_score(10)
@@ -314,6 +330,11 @@ func _on_ManaTimer_timeout() -> void:
 	
 	update_mana_button()
 
+func increment_mana()->void:
+	GlobalPlayer.increment_mana(5)
+	_hud.update_player_mana(GlobalPlayer.mana)
+	
+	update_mana_button()
 
 func _on_player_launch_mana_attack()->void:
 	GlobalPlayer.use_amount_mana(GlobalPlayer.attack_amount_mana)
@@ -332,7 +353,7 @@ func update_mana_button():
 
 func _on_Gate_player_entered_gate() -> void:
 	print('next level')
-	get_tree().change_scene("res://src/Levels/LevelTemplate.tscn")
+	get_tree().change_scene("res://src/UI/GameOver.tscn")
 	pass # Replace with function body.
 
 
