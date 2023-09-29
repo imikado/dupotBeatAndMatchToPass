@@ -1,7 +1,21 @@
-[gd_resource type="Theme" load_steps=9 format=2]
+[gd_resource type="Theme" load_steps=14 format=2]
 
 [ext_resource path="res://src/Common/UI/fonts/alphacentury.ttf" type="DynamicFontData" id=1]
 [ext_resource path="res://src/Common/UI/fonts/font.tres" type="DynamicFont" id=2]
+[ext_resource path="res://src/UI/menu/checkbox_off.png" type="Texture" id=3]
+[ext_resource path="res://src/UI/menu/checkbox_on.png" type="Texture" id=4]
+
+[sub_resource type="StyleBoxTexture" id=8]
+texture = ExtResource( 3 )
+normal_map = ExtResource( 3 )
+region_rect = Rect2( 0, 0, 18, 16 )
+
+[sub_resource type="StyleBoxTexture" id=9]
+texture = ExtResource( 4 )
+normal_map = ExtResource( 4 )
+region_rect = Rect2( 0, 0, 18, 16 )
+
+[sub_resource type="StyleBoxFlat" id=7]
 
 [sub_resource type="DynamicFont" id=1]
 font_data = ExtResource( 1 )
@@ -21,7 +35,7 @@ bg_color = Color( 0.164706, 0.172549, 0.4, 1 )
 
 [resource]
 default_font = ExtResource( 2 )
-Button/colors/font_color = Color( 0.360784, 0.380392, 0.835294, 1 )
+Button/colors/font_color = Color( 1, 1, 1, 1 )
 Button/colors/font_color_disabled = Color( 0, 0, 0, 1 )
 Button/colors/font_color_focus = Color( 0, 0, 0, 1 )
 Button/colors/font_color_hover = Color( 0, 0, 0, 1 )
@@ -29,10 +43,10 @@ Button/colors/font_color_pressed = Color( 0, 0, 0, 1 )
 Button/constants/hseparation = 0
 Button/fonts/font = ExtResource( 2 )
 Button/styles/disabled = null
-Button/styles/focus = null
-Button/styles/hover = null
-Button/styles/normal = null
-Button/styles/pressed = null
+Button/styles/focus = SubResource( 8 )
+Button/styles/hover = SubResource( 8 )
+Button/styles/normal = SubResource( 8 )
+Button/styles/pressed = SubResource( 9 )
 CheckBox/colors/font_color = Color( 0, 0, 0, 1 )
 CheckBox/colors/font_color_disabled = Color( 0, 0, 0, 1 )
 CheckBox/colors/font_color_focus = Color( 0, 0, 0, 1 )
@@ -73,7 +87,7 @@ CheckButton/styles/disabled = null
 CheckButton/styles/focus = null
 CheckButton/styles/hover = null
 CheckButton/styles/hover_pressed = null
-CheckButton/styles/normal = null
+CheckButton/styles/normal = SubResource( 7 )
 CheckButton/styles/pressed = null
 ColorPicker/constants/h_width = 0
 ColorPicker/constants/label_width = 0

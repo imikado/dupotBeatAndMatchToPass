@@ -2,6 +2,11 @@ extends CanvasLayer
 
 onready var _attackManaButton:=get_node("manaAttack")
 
+func _ready() -> void:
+	if(!Game.isControlsEnabled()):
+		visible=false
+
+
 func enable_mana_button():
 	_attackManaButton.set_modulate(Color(1,1,1,1))
 

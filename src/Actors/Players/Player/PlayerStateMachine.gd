@@ -10,7 +10,7 @@ const STATE_ATTACK04 = "Attack04"
 const STATE_DAMAGED = "Damaged"
 const STATE_ATTACK_MANA01 = "AttackMana01"
 const STATE_GET_LIFE_BOTTLE = "GetLifeBottle"
-
+const STATE_GAMEOVER = "Gameover"
 
 const INPUT_ATTACK = "attack"
 const INPUT_ATTACK_MANA = "attack_mana"
@@ -22,6 +22,8 @@ func set_damaged():
 func get_life_bottle():
 	_change_state(STATE_GET_LIFE_BOTTLE)
 
+func gameover():
+	_change_state(STATE_GAMEOVER)
 
 func _ready():
 	states_map = {
@@ -33,7 +35,8 @@ func _ready():
 		STATE_ATTACK04: get_node(STATE_ATTACK04),
 		STATE_ATTACK_MANA01: get_node(STATE_ATTACK_MANA01),
 		STATE_DAMAGED: get_node(STATE_DAMAGED),
-		STATE_GET_LIFE_BOTTLE: get_node(STATE_GET_LIFE_BOTTLE)
+		STATE_GET_LIFE_BOTTLE: get_node(STATE_GET_LIFE_BOTTLE),
+		STATE_GAMEOVER: get_node(STATE_GAMEOVER)
 	}
 
 
@@ -46,8 +49,11 @@ func _change_state(state_name):
 
 	if get_current_state_name() == STATE_ATTACK_MANA01:
 		return
+		
+	if get_current_state_name() == STATE_GAMEOVER:
+		return
 
-	if state_name in [STATE_ATTACK01, STATE_ATTACK_MANA01, STATE_DAMAGED]:
+	if state_name in [STATE_ATTACK01, STATE_ATTACK_MANA01, STATE_DAMAGED,STATE_GAMEOVER]:
 		states_stack.push_front(states_map[state_name])
 
 	._change_state(state_name)

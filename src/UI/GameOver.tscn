@@ -1,7 +1,8 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://src/Common/UI/theme.tres" type="Theme" id=1]
 [ext_resource path="res://src/UI/GameOver.gd" type="Script" id=2]
+[ext_resource path="res://src/Actors/Players/PlayerGameOver.tscn" type="PackedScene" id=3]
 [ext_resource path="res://src/Levels/LevelTemplate/background.png" type="Texture" id=4]
 [ext_resource path="res://src/UI/menu/menuButton.tscn" type="PackedScene" id=5]
 [ext_resource path="res://src/Common/UI/fonts/font.tres" type="DynamicFont" id=6]
@@ -102,3 +103,5 @@ title = "MENU"
 [node name="hightScoresButton" parent="Control" instance=ExtResource( 5 )]
 position = Vector2( 45, 6 )
 title = "SCORES"
+
+[node name="playerGameOver" parent="." instance=ExtResource( 3 )]

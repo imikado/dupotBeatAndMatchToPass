@@ -10,6 +10,8 @@ func _ready() -> void:
 
 	_menuButton.connect("released",self,"goto_menu")
 	_ScoreButton.connect("released",self,"goto_scores")
+	
+	$playerGameOver.play("default")
 
 func goto_menu():
 	GlobalPlayer.reset_game()

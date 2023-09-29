@@ -11,6 +11,16 @@ enum ENEMY_TYPE_LIST { ANT, SPIDER, BEETLE }
 
 var _is_debug := false
 
+var _is_controls_enabled := true
+
+
+func isControlsEnabled():
+	return _is_controls_enabled
+
+
+func setControlsEnabled(enabled):
+	_is_controls_enabled = enabled
+
 
 func is_debug():
 	return _is_debug

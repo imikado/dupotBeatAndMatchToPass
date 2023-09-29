@@ -14,6 +14,7 @@ const INPUT_LEFT = "move_left"
 const INPUT_RIGHT = "move_right"
 const INPUT_UP = "move_up"
 const INPUT_DOWN = "move_down"
+const INPUT_ATTACK_MANA = "attack_mana"
 
 const ANIM_IDLE = "idle"
 const ANIM_WALK_RIGHT = "walking_right"
@@ -27,6 +28,7 @@ const ANIM_ATTACK_04_RIGHT = "attacking_04_right"
 const ANIM_ATTACK_MANA_01_RIGHT = "attacking_mana_01_right"
 
 const ANIM_GET_LIFE_BOTTLE = "get_life_bottle"
+const ANIM_GAMEOVER = "gameover"
 
 
 func play_animation(animation):

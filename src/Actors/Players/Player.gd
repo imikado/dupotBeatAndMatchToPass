@@ -63,6 +63,8 @@ func took_damage(damage: int):
 func get_life_bottle():
 	_stateMachine.get_life_bottle()
 
+func gameover():
+	_stateMachine.gameover()
 
 func blink_green():
 	var tween = create_tween()

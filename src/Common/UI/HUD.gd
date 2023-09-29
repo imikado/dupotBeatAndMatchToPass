@@ -1,12 +1,12 @@
 extends CanvasLayer
 
-onready var _player_life_progress_bar=get_node("Container/Player/VBoxContainer/LifeProgressBar" )
+onready var _player_life_progress_bar=get_node("Control/LifeProgressBar" )
 
-onready var _player_mana_progress_bar=get_node("Container/Player/VBoxContainer/ManaProgressBar")
-onready var _player_mana_progress_bar_color=get_node("Container/Player/VBoxContainer/ManaProgressBar").get("custom_styles/fg")
+onready var _player_mana_progress_bar=get_node("Control/ManaProgressBar")
+onready var _player_mana_progress_bar_color=get_node("Control/ManaProgressBar").get("custom_styles/fg")
 
 
-onready var _score=get_node("Container/Score/Label")
+onready var _score=get_node("score")
 
 onready var _score_value:=0
 
