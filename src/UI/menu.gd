@@ -11,7 +11,7 @@ func _ready() -> void:
 	_settingsButton.connect("released",self,"goto_settings")
 	
 func goto_game():
-	get_tree().change_scene("res://src/Levels/Level01.tscn")
+	get_tree().change_scene("res://src/Levels/LevelTemplate.tscn")
 	
 func goto_scores():
 	get_tree().change_scene("res://src/UI/scores.tscn")

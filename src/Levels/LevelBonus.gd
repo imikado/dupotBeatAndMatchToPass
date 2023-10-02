@@ -59,7 +59,7 @@ var levelCompleted = 0
 func debug():
 	_player.global_position.x += 300
 
-	GlobalPlayer.update_life(GlobalPlayer.life - 50)
+	#GlobalPlayer.update_life(GlobalPlayer.life - 50)
 
 
 func _ready() -> void:
@@ -73,6 +73,8 @@ func _ready() -> void:
 	_hud.update_player_life(GlobalPlayer.life)
 	_hud.update_score(GlobalPlayer.get_score())
 	_hud.update_player_mana(GlobalPlayer.mana)
+	
+	_hud.set_bonus_level()
 
 	update_mana_button()
 
@@ -318,10 +320,7 @@ func _on_player_tookadvantage_of_lifebottle() -> void:
 func _on_timeLeft_timeout() -> void:
 	_timeLeft -= 1
 	if _timeLeft < 0:
-		if levelCompleted == 1:
-			get_tree().change_scene("res://src/Levels/Level02.tscn")
-		elif levelCompleted == 2:
-			get_tree().change_scene("res://src/Levels/Level03.tscn")
+		get_tree().change_scene("res://src/Levels/LevelTemplate.tscn")
 
 	_timeLeftLabel.text = str(_timeLeft)
 

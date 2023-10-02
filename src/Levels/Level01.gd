@@ -33,6 +33,8 @@ onready var _electricalBarriers := get_node("ElectricalBarriers")
 
 onready var _specialEffects := get_node("SpecialEffects")
 
+onready var _gate := get_node("Gate")
+
 var _active_barrier_list := []
 
 var _wave_number = 0
@@ -55,7 +57,9 @@ onready var _wave_array := [
 func debug():
 	#_player.global_position.x +=3500
 	_player.global_position.x += 450
-	_wave_number = 2
+	#_wave_number = 2
+
+	_gate.global_position.x = 100
 
 	GlobalPlayer.update_life(GlobalPlayer.life - 50)
 

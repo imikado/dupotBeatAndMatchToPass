@@ -1,4 +1,4 @@
-extends Line2D
+extends Node2D
 
 signal fall_ended
 
@@ -10,31 +10,46 @@ onready var _hitBox:=get_node("HitBox/CollisionShape2D")
 var _damage:=20
 
 func _ready() -> void:
-	_sprite.visible=false
-	_hitBox.disabled=true
+	hide_impact()
 	
 	
 func start_fall():
 	
-	var tween:=create_tween()
+	hide_impact()
 	
-	var end_position=position
-	position=Vector2(position.x,-310)
+	$AnimationPlayer.stop(true)
+	$AnimationPlayer.play("storm")
 	
-	tween.tween_property(self,"position",end_position,0.2)
+	#var tween:=create_tween()
 	
-	yield(tween,"finished")
+	#var end_position=position
+	#position=Vector2(position.x,-310)
 	
-	_sprite.visible=true
-	_hitBox.disabled=false
+	#tween.tween_property(self,"position",end_position,0.2)
 	
-	emit_signal("fall_ended")
+	#yield(tween,"finished")
+	
+	
+	
+	#emit_signal("fall_ended")
+	
+	#_sprite.visible=false
+	#_hitBox.disabled=true
 
 
 func end_fall():
-	_hitBox.disabled=true
+	emit_signal("fall_ended")
 	
 
+func display_impact():
+	_hitBox.disabled=false
+	_sprite.visible=true
+	
+func hide_impact():
+	_sprite.visible=false
+	_hitBox.disabled=true
+	
+	#emit_signal("fall_ended")
 
 
 func _on_HitBox_body_entered(body: Node) -> void:

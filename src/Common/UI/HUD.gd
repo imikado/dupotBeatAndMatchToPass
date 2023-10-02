@@ -7,6 +7,7 @@ onready var _player_mana_progress_bar_color=get_node("Control/ManaProgressBar").
 
 
 onready var _score=get_node("score")
+onready var _level=get_node("level")
 
 onready var _score_value:=0
 
@@ -14,8 +15,17 @@ const MANA_COLOR_ENOUGH=Color("0516a0")
 const MANA_COLOR_NOTENOUGH=Color("900000")
 
 func _ready() -> void:
+	set_title("LEVEL "+("%02d" % GlobalPlayer.get_level()))
 	pass
+
+func set_bonus_level():
+	set_title("BONUS LEVEL")
 	
+func set_title(text_):
+	var debug:=""
+	if Game.DEBUG_ENABLED:
+		debug=" (debug)"
+	_level.text=text_+debug
 
 func update_score(value:int):
 	

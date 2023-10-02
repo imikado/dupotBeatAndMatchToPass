@@ -34,12 +34,13 @@ func _ready() -> void:
 	updateLife(_life)
 
 	_stateDisplay.visible = Game.is_debug()
-	_manaAttackParticules.emitting = false
+	#manaAttackParticules.emitting = false
 	_manaFalling.visible = false
 
 	_hitBox.disabled = true
 
 	mana_attack_end()
+	#mana_attack_start()
 
 
 func set_look_direction(value):
@@ -104,9 +105,9 @@ func mana_attack_start() -> void:
 func mana_attack_end() -> void:
 	_manaFalling.visible = false
 	for fallLoop in _manaFalling.get_children():
-		fallLoop.end_fall()
+		fallLoop.hide_impact()
 
-	_manaAttackParticules.emitting = false
+	#_manaAttackParticules.emitting = false
 
 
 func fall() -> void:
@@ -117,8 +118,9 @@ func fall() -> void:
 
 func _on_ManaFall_fall_ended() -> void:
 	_manaFalling.visible = false
+	
 
-	if _mana_count < 3:
+	if _mana_count < 2:
 		fall()
 		_mana_count += 1
 

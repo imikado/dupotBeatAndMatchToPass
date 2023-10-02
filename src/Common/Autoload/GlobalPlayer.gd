@@ -8,7 +8,7 @@ const MAX_MANA = 80
 var _score = 0
 var life = START_LIFE
 var mana = START_MANA
-var _level = 10
+var _level = 1
 
 var attack_amount_mana = 10
 
@@ -22,6 +22,7 @@ func get_level():
 
 
 func reset_game():
+	_level = 1
 	_score = START_SCORE
 	life = START_LIFE
 	mana = START_MANA

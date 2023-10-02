@@ -1,8 +1,9 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://src/Common/UI/HUD.gd" type="Script" id=1]
 [ext_resource path="res://src/Common/UI/fonts/Pixeled.ttf" type="DynamicFontData" id=2]
 [ext_resource path="res://src/Common/UI/hud/icon-player.png" type="Texture" id=3]
+[ext_resource path="res://src/Common/UI/theme.tres" type="Theme" id=4]
 
 [sub_resource type="StyleBoxFlat" id=39]
 bg_color = Color( 0.164706, 0.498039, 0, 1 )
@@ -51,6 +52,9 @@ font_data = ExtResource( 2 )
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource( 1 )
+__meta__ = {
+"_edit_horizontal_guides_": [ 25.0 ]
+}
 
 [node name="Icon" type="TextureRect" parent="."]
 margin_right = 20.0
@@ -105,6 +109,16 @@ size_flags_vertical = 1
 custom_fonts/font = SubResource( 3 )
 text = "0000"
 valign = 1
+
+[node name="level" type="Label" parent="."]
+margin_left = 217.0
+margin_right = 317.0
+margin_bottom = 23.0
+grow_horizontal = 0
+theme = ExtResource( 4 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+text = "Level 02"
+align = 2
 
 [node name="Position2D" type="Position2D" parent="."]
 position = Vector2( 152, 14 )

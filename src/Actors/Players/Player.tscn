@@ -1,4 +1,4 @@
-[gd_scene load_steps=78 format=2]
+[gd_scene load_steps=77 format=2]
 
 [ext_resource path="res://src/Actors/Players/Player.gd" type="Script" id=1]
 [ext_resource path="res://src/Actors/Players/Player/States/OnGround/PlayerStateDamaged.gd" type="Script" id=2]
@@ -18,7 +18,6 @@
 [ext_resource path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack04.gd" type="Script" id=16]
 [ext_resource path="res://src/Actors/Players/Player/player-attacking-04.png" type="Texture" id=17]
 [ext_resource path="res://src/Actors/Players/Player/player-attacking-mana-01.png" type="Texture" id=18]
-[ext_resource path="res://src/Actors/Players/Player/mana-particule.png" type="Texture" id=19]
 [ext_resource path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttackMana01.gd" type="Script" id=20]
 [ext_resource path="res://src/Actors/Players/Player/ManaAttack/ManaFall.tscn" type="PackedScene" id=21]
 [ext_resource path="res://src/Actors/Players/Player/player-get-lifeBottle.png" type="Texture" id=22]
@@ -224,37 +223,13 @@ tracks/2/keys = {
 "update": 1,
 "values": [ true ]
 }
-tracks/3/type = "value"
-tracks/3/path = NodePath("ManaAttackParticules:emitting")
+tracks/3/type = "method"
+tracks/3/path = NodePath(".")
 tracks/3/interp = 1
 tracks/3/loop_wrap = true
 tracks/3/imported = false
 tracks/3/enabled = true
 tracks/3/keys = {
-"times": PoolRealArray( 0, 0.2, 0.8 ),
-"transitions": PoolRealArray( 1, 1, 1 ),
-"update": 1,
-"values": [ false, true, false ]
-}
-tracks/4/type = "value"
-tracks/4/path = NodePath("ManaAttackParticules:visible")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/keys = {
-"times": PoolRealArray( 0, 0.2, 0.8 ),
-"transitions": PoolRealArray( 1, 1, 1 ),
-"update": 1,
-"values": [ false, true, false ]
-}
-tracks/5/type = "method"
-tracks/5/path = NodePath(".")
-tracks/5/interp = 1
-tracks/5/loop_wrap = true
-tracks/5/imported = false
-tracks/5/enabled = true
-tracks/5/keys = {
 "times": PoolRealArray( 0.2 ),
 "transitions": PoolRealArray( 1 ),
 "values": [ {
@@ -661,8 +636,8 @@ anims/walking_right = SubResource( 19 )
 [node name="AnimatedSprite" type="AnimatedSprite" parent="BodyPivot"]
 position = Vector2( -1, -32 )
 frames = SubResource( 10 )
-animation = "gameover"
-frame = 5
+animation = "attacking01"
+frame = 3
 
 [node name="HitBox" type="Area2D" parent="BodyPivot"]
 position = Vector2( 0, -12 )
@@ -727,38 +702,20 @@ margin_bottom = -34.0
 text = "dddaa"
 script = ExtResource( 9 )
 
-[node name="ManaAttackParticules" type="CPUParticles2D" parent="."]
-modulate = Color( 1.5, 1.5, 1.5, 1 )
-position = Vector2( 2.98023e-08, -32 )
-rotation = -3.14159
-emitting = false
-amount = 50
-lifetime = 1.8
-preprocess = 1.0
-randomness = 0.24
-texture = ExtResource( 19 )
-spread = 15.0
-gravity = Vector2( 0, 100 )
-scale_amount = 0.8
-scale_amount_random = 0.47
-anim_speed = 28.34
-anim_speed_random = 0.45
-anim_offset = 0.11
-
 [node name="ManaFalling" type="Node2D" parent="."]
 visible = false
 
 [node name="ManaFall" parent="ManaFalling" instance=ExtResource( 21 )]
-position = Vector2( -94, -95 )
+position = Vector2( -101, -93 )
 
 [node name="ManaFall2" parent="ManaFalling" instance=ExtResource( 21 )]
-position = Vector2( -65, -71 )
+position = Vector2( -72, -64 )
 
 [node name="ManaFall3" parent="ManaFalling" instance=ExtResource( 21 )]
-position = Vector2( -25, -60 )
+position = Vector2( -22, -38 )
 
 [node name="ManaFall4" parent="ManaFalling" instance=ExtResource( 21 )]
-position = Vector2( 25, -61 )
+position = Vector2( 40, -53 )
 
 [node name="ManaFall5" parent="ManaFalling" instance=ExtResource( 21 )]
 position = Vector2( 69, -74 )
@@ -770,13 +727,13 @@ position = Vector2( 108, -96 )
 position = Vector2( -54, -108 )
 
 [node name="ManaFall8" parent="ManaFalling" instance=ExtResource( 21 )]
-position = Vector2( -15, -108 )
+position = Vector2( -14, -120 )
 
 [node name="ManaFall9" parent="ManaFalling" instance=ExtResource( 21 )]
 position = Vector2( 42, -107 )
 
 [node name="ManaFall10" parent="ManaFalling" instance=ExtResource( 21 )]
-position = Vector2( 83, -108 )
+position = Vector2( 88, -118 )
 
 [connection signal="animation_finished" from="BodyPivot/AnimationPlayer" to="StateMachine" method="_on_animation_finished"]
 [connection signal="body_entered" from="BodyPivot/HitBox" to="." method="_on_HitBox_body_entered"]
