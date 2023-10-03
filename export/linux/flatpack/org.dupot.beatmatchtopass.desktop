@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Beat And Match To Pass
-Exec=bin/beatmatchtopass
+Exec=beatmatchtopass
 Type=Application
 Icon=org.dupot.beatmatchtopass
 Categories=Game
