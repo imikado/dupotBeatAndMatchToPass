@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Beat And Match To Pass
-Exec=$FLATPAK_DEST/bin/beatmatchtopass.x86_64
+Exec=bin/beatmatchtopass.x86_64
 Type=Application
 Icon=org.dupot.beatmatchtopass
 Categories=Game
