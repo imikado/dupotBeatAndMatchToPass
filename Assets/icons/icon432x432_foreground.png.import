@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/512x512.png-58793b0df752538507f4644ceac6e937.stex"
+path="res://.import/icon432x432_foreground.png-8ef28b06e106f9dba19c43b6263b8e2b.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://export/linux/flatpack/512x512.png"
-dest_files=[ "res://.import/512x512.png-58793b0df752538507f4644ceac6e937.stex" ]
+source_file="res://Assets/icons/icon432x432_foreground.png"
+dest_files=[ "res://.import/icon432x432_foreground.png-8ef28b06e106f9dba19c43b6263b8e2b.stex" ]
 
 [params]
 

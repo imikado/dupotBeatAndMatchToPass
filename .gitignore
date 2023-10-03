@@ -10,3 +10,9 @@ data_*/
 
 #pictures sources
 .ase
+
+.godot
+android
+export/html5
+
+export_presets.cfg.backup*
