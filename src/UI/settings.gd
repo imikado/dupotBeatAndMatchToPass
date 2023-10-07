@@ -16,9 +16,13 @@ var recordingAction
 func _ready() -> void:
 	close_modal()
 	_menuButton.connect("released",self,"goto_menu")
+	_menuButton.select()
+	
 	update_controlsEnabled_toggle(Game.isControlsEnabled())
 	
-
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("attack"):
+		_menuButton.emit_signal("released")
 
 func open_modal():
 	_modal.visible=true

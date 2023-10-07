@@ -15,7 +15,11 @@ func _ready() -> void:
 	_title.text="LEVEL "+("%02d" % levelCompleted)+": COMPLETED"
 
 	_menuButton.connect("released",self,"goto_nextLevel")
+	_menuButton.select()
 
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("attack"):
+		_menuButton.emit_signal("released")
 
 
 func goto_nextLevel():

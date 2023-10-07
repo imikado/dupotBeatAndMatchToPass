@@ -57,6 +57,7 @@ func _ready() -> void:
 	build(scoreList)
 	
 	_menuButton.connect("released",self,"goto_menu")
+	_menuButton.select()
 
 func build(scoreList):
 	
@@ -72,6 +73,10 @@ func build(scoreList):
 		print(scoreLoop)
 	
 	pass
+	
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("attack"):
+		_menuButton.emit_signal("released")
 
 
 func goto_menu():
