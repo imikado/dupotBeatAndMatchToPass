@@ -1,5 +1,6 @@
-[gd_scene load_steps=17 format=2]
+[gd_scene load_steps=18 format=2]
 
+[ext_resource path="res://src/Common/UI/theme.tres" type="Theme" id=1]
 [ext_resource path="res://src/UI/menu.gd" type="Script" id=3]
 [ext_resource path="res://src/Levels/LevelTemplate/background.png" type="Texture" id=4]
 [ext_resource path="res://src/UI/title/title-sans-persos.png" type="Texture" id=5]
@@ -103,11 +104,19 @@ position = Vector2( 45, 106 )
 [node name="player" type="AnimatedSprite" parent="."]
 position = Vector2( 28, 13 )
 frames = SubResource( 10 )
-frame = 1
 playing = true
 
 [node name="ant" type="AnimatedSprite" parent="."]
 position = Vector2( 174, 16 )
 frames = SubResource( 6 )
-frame = 2
+frame = 1
 playing = true
+
+[node name="version" type="Label" parent="."]
+margin_left = 1.0
+margin_top = 149.0
+margin_right = 319.0
+margin_bottom = 172.0
+theme = ExtResource( 1 )
+custom_colors/font_color = Color( 0.360784, 0.380392, 0.835294, 1 )
+align = 1

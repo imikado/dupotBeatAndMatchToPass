@@ -4,6 +4,8 @@ onready var _playButton:=get_node("Control/playButton")
 onready var _highScoresButton:=get_node("Control/hightScoresButton")
 onready var _settingsButton:=get_node("Control/settingsButton")
 
+onready var _version:=get_node("version")
+
 var _selected=0
 
 onready var _buttonList=[
@@ -19,7 +21,16 @@ func _ready() -> void:
 	_settingsButton.connect("released",self,"goto_settings")
 	
 	refresh_buttons()
+	
+	_version.text="VERSION "+str(GlobalVersion.version)
 
+	var keyboardOsList=["HTML5","Web","X11","Linux", "FreeBSD", "NetBSD", "OpenBSD", "BSD","Windows"]
+
+	var osName= OS.get_name()
+	#print(osName)
+	if(keyboardOsList.find(osName)!=-1):
+		Game.setControlsEnabled(false)
+		pass
 	
 
 	
