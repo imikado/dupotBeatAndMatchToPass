@@ -18,7 +18,6 @@ onready var _hitBox := get_node("BodyPivot/HitBox/CollisionShape2D")
 
 onready var _stateMachine := get_node("StateMachine")
 
-onready var _manaAttackParticules := get_node("ManaAttackParticules")
 onready var _manaFalling := get_node("ManaFalling")
 
 var look_direction = Vector2(1, 0) setget set_look_direction
@@ -64,8 +63,10 @@ func took_damage(damage: int):
 func get_life_bottle():
 	_stateMachine.get_life_bottle()
 
+
 func gameover():
 	_stateMachine.gameover()
+
 
 func blink_green():
 	var tween = create_tween()
@@ -118,16 +119,8 @@ func fall() -> void:
 
 func _on_ManaFall_fall_ended() -> void:
 	_manaFalling.visible = false
-	
 
-	if _mana_count < 2:
-		fall()
-		_mana_count += 1
-
-	else:
-		_mana_count = 0
-		mana_attack_end()
-	pass  # Replace with function body.
+	mana_attack_end()
 
 
 func is_combo():

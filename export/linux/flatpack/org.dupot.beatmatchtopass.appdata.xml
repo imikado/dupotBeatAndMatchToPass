@@ -6,7 +6,7 @@
   <name>Beat And Match To Pass</name>
   <summary>Beat them all</summary>
   <description>
-  <p>
+    <p>
   This Game was made with Godot 3.5
   </p>
     <p>
@@ -37,13 +37,11 @@
     </screenshot>
   </screenshots>
   <url type="homepage">https://www.dupot.org/games.html</url>
-    <url type="vcs-browser">https://github.com/imikado/dupotBeatAndMatchToPass/</url>
-
+  <url type="vcs-browser">https://github.com/imikado/dupotBeatAndMatchToPass/</url>
   <update_contact>imikado@gmail.com</update_contact>
   <content_rating type="oars-1.1"/>
   <releases>
-    <release date="2023-10-03" version="1.0">
-      <description>Initial version</description>
-    </release>
+    <release date="2023-10-15" version="1.1"/>
+    <release date="2023-10-03" version="1.0"/>
   </releases>
 </component>
