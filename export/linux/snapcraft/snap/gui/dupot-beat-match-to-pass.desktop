@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Beat And Match To Pass
+Exec=dupot-beat-match-to-pass
+Type=Application
+Icon=${SNAP}/meta/gui/dupot-beat-match-to-pass.png
+Categories=Game
