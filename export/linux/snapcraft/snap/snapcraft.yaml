@@ -1,0 +1,50 @@
+title: Beat and Match to Pass
+name: dupot-beat-match-to-pass # you probably want to 'snapcraft register <name>'
+base: core18
+version: "0.2" # just for humans, typically '1.2+git' or '1.3.2'
+summary: Beat match to pass
+description: |
+  This Game was made with Godot 3.5
+  Gordon must kill enemies to open gates and finish levels
+  Use your sword to kill number of enemies needed to open each gates.
+
+grade: stable
+confinement: strict
+
+apps:
+  dupot-beat-match-to-pass:
+    command: desktop-launch $SNAP/beatmatchtopass.x86_64
+    environment:
+      LD_LIBRARY_PATH: "$LD_LIBRARY_PATH:/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pulseaudio"
+    plugs:
+      - opengl
+      - network
+      - network-bind
+      - pulseaudio
+      - x11
+      - desktop
+      - joystick
+
+parts:
+  game:
+    plugin: dump
+    source: gamefiles/
+    after: [desktop-glib-only]
+    stage-packages:
+      - libgl1-mesa-dri
+      - libglu1-mesa
+      - libgl1-mesa-glx
+      - libpulse0
+      - libxcursor1
+      - libxinerama1
+      - libxrandr2
+      - libxi6
+      - libasound2
+  desktop-glib-only:
+    build-packages:
+      - libglib2.0-dev
+    plugin: make
+    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
+    source-subdir: glib-only
+    stage-packages:
+      - libglib2.0-bin
