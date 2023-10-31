@@ -24,13 +24,7 @@ func _ready() -> void:
 	
 	_version.text="VERSION "+str(GlobalVersion.version)
 
-	var keyboardOsList=["HTML5","Web","X11","Linux", "FreeBSD", "NetBSD", "OpenBSD", "BSD","Windows"]
-
-	var osName= OS.get_name()
-	#print(osName)
-	if(keyboardOsList.find(osName)!=-1):
-		Game.setControlsEnabled(false)
-		pass
+	
 	
 
 	
@@ -45,9 +39,9 @@ func goto_settings():
 	
 #control buttons
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("attack_mana"):
+	if Game.isInputNextButton(event):
 		next_button()
-	if event.is_action_pressed("attack"):
+	elif Game.isInputValidateButton(event):
 		get_selected_buton().emit_signal("released")
 		
 func get_selected_buton():

@@ -31,9 +31,9 @@ func goto_scores():
 
 #control buttons
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("attack_mana"):
+	if Game.isInputNextButton(event):
 		next_button()
-	if event.is_action_pressed("attack"):
+	elif Game.isInputValidateButton(event):
 		get_selected_buton().emit_signal("released")
 		
 func get_selected_buton():

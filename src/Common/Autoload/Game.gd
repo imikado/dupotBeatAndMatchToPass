@@ -101,3 +101,13 @@ func loadFile(filepath):
 	var content = file.get_as_text()
 	file.close()
 	return content
+
+func isInputNextButton(event: InputEvent)->bool:
+	if event.is_action_pressed("attack_mana") or event.is_action_pressed(PlayerAbstractState.INPUT_DOWN)  or event.is_action_pressed(PlayerAbstractState.INPUT_UP) or event.is_action_pressed("ui_focus_next"):
+		return true
+	return false
+	
+func isInputValidateButton(event: InputEvent)->bool:
+	if event.is_action_pressed("attack"):
+		return true
+	return false
