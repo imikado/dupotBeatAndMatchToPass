@@ -184,6 +184,8 @@ _global_script_class_icons={
 
 config/name="BeatAndMatchToPass"
 run/main_scene="res://src/UI/boot.tscn"
+boot_splash/image="res://src/UI/boot/logodupot.png"
+boot_splash/bg_color=Color( 0.933333, 0.372549, 0, 1 )
 config/icon="res://icon.png"
 
 [autoload]
