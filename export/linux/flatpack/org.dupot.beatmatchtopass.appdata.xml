@@ -5,6 +5,7 @@
   <project_license>LGPL-2.1-only</project_license>
   <name>Beat And Match To Pass</name>
   <summary>Beat them all</summary>
+  <developer_name>Michael Bertocchi</developer_name>
   <description>
     <p>
   This Game was made with Godot 3.5
