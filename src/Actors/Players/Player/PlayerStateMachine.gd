@@ -41,16 +41,14 @@ func _ready():
 
 
 func _change_state(state_name):
-	"""
-	The base state_machine interface this node extends does most of the work
-	"""
+	
 	if not _active:
-		return
-
-	if get_current_state_name() == STATE_ATTACK_MANA01:
 		return
 		
 	if get_current_state_name() == STATE_GAMEOVER:
+		return
+
+	if get_current_state_name() == STATE_ATTACK_MANA01 and state_name!=STATE_GAMEOVER:
 		return
 
 	if state_name in [STATE_ATTACK01, STATE_ATTACK_MANA01, STATE_DAMAGED,STATE_GAMEOVER]:

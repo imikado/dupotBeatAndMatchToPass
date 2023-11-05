@@ -103,11 +103,16 @@ func loadFile(filepath):
 	return content
 
 func isInputNextButton(event: InputEvent)->bool:
-	if event.is_action_pressed("attack_mana") or event.is_action_pressed(PlayerAbstractState.INPUT_DOWN)  or event.is_action_pressed(PlayerAbstractState.INPUT_UP) or event.is_action_pressed("ui_focus_next"):
+	if event.is_action_pressed("attack_mana") or event.is_action_pressed(PlayerAbstractState.INPUT_DOWN)  or event.is_action_pressed(PlayerAbstractState.INPUT_UP) or event.is_action_pressed("ui_focus_next") or event.is_action_pressed("ui_cancel"):
 		return true
 	return false
 	
 func isInputValidateButton(event: InputEvent)->bool:
-	if event.is_action_pressed("attack"):
+	if event.is_action_pressed("attack") or event.is_action_pressed("ui_accept"):
+		return true
+	return false
+
+func isInputEscapeButton(event: InputEvent)->bool:
+	if event.is_action_pressed("ui_home") or event.is_action_pressed("ui_cancel"):
 		return true
 	return false

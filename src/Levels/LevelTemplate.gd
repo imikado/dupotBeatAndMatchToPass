@@ -176,6 +176,11 @@ func _ready() -> void:
 	process_spawn()
 	process_spawn()
 
+func _input(event: InputEvent) -> void:
+	if Game.isInputEscapeButton(event):
+		get_tree().change_scene("res://android/build/assets/src/UI/menu.tscn")
+
+
 func build_level():
 	#_electricalBarriers
 	var maxLoop=2
@@ -253,9 +258,10 @@ func _on_player_healt_changed(newLife: float):
 
 	if newLife <= 0:
 		Game.saveHighScore(GlobalPlayer.get_score())
-		_player.gameover()
+		
 		get_tree().paused = true
-		_player.pause_mode = Node.PAUSE_MODE_PROCESS
+		_player.pause_mode=Node.PAUSE_MODE_PROCESS
+		_player.gameover()
 
 
 func gameover():
@@ -449,7 +455,7 @@ func _on_ManaTimer_timeout() -> void:
 
 
 func increment_mana() -> void:
-	GlobalPlayer.increment_mana(2)
+	GlobalPlayer.increment_mana(1)
 	_hud.update_player_mana(GlobalPlayer.mana)
 
 	update_mana_button()
