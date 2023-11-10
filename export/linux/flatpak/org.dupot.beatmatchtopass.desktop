@@ -3,4 +3,5 @@ Name=Beat And Match To Pass
 Exec=beatmatchtopass
 Type=Application
 Icon=org.dupot.beatmatchtopass
-Categories=Game
+Categories=Game;ArcadeGame
+Keywords=game;arcade;action;
