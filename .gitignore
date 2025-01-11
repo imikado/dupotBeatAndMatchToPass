@@ -13,6 +13,12 @@ data_*/
 
 .godot
 android
+androidSmartphone
+androidTv
 export/html5
 
 export_presets.cfg.backup*
+*.import
+export/linux/bundle/beatmatchtopass.pck
+export/linux/bundle/beatmatchtopass.x86_64
+export/linux/bundle.tar.gz

@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component type="desktop">
+<component type="desktop-application">
   <id>org.dupot.beatmatchtopass</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>LGPL-2.1-only</project_license>
   <name>Beat And Match To Pass</name>
+  <launchable type="desktop-id">org.dupot.beatmatchtopass.desktop</launchable>
+
+  <developer id="michael.bertocchi">
+
+
+    <name>Michael Bertocchi</name>
+  </developer>
   <summary>Beat them all</summary>
-  <developer_name>Michael Bertocchi</developer_name>
   <description>
     <p>
   This Game was made with Godot 3.5
