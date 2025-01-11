@@ -5,10 +5,7 @@
   <project_license>LGPL-2.1-only</project_license>
   <name>Beat And Match To Pass</name>
   <launchable type="desktop-id">org.dupot.beatmatchtopass.desktop</launchable>
-
   <developer id="michael.bertocchi">
-
-
     <name>Michael Bertocchi</name>
   </developer>
   <summary>Beat them all</summary>
