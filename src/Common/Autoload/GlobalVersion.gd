@@ -1,6 +1,6 @@
 extends Node
 
-var version = "1.6"
+var version = "1.7"
 
 
 func getVersion():
