@@ -22,3 +22,10 @@ export_presets.cfg.backup*
 export/linux/bundle/beatmatchtopass.pck
 export/linux/bundle/beatmatchtopass.x86_64
 export/linux/bundle.tar.gz
+expot/linux/flatpak/*.import
+export/linux/snap/*.pck
+export/linux/snap/*.x86_64
+export/linux/snap/*.snap
+
+switchAndroidMobile.sh
+switchAndroidTv.sh
