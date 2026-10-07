@@ -38,6 +38,7 @@ func _ready():
 		STATE_GET_LIFE_BOTTLE: get_node(STATE_GET_LIFE_BOTTLE),
 		STATE_GAMEOVER: get_node(STATE_GAMEOVER)
 	}
+	super._ready()
 
 
 func _change_state(state_name):
@@ -54,10 +55,16 @@ func _change_state(state_name):
 	if state_name in [STATE_ATTACK01, STATE_ATTACK_MANA01, STATE_DAMAGED,STATE_GAMEOVER]:
 		states_stack.push_front(states_map[state_name])
 
-	._change_state(state_name)
+	super._change_state(state_name)
 
 
 func _input(event):
+	_handle_interrupt_input(event)
+	# Godot 3 also called the parent _input automatically after this one
+	super._input(event)
+
+
+func _handle_interrupt_input(event):
 	"""
 	Here we only handle input that can interrupt states, attacking in this case
 	otherwise we let the state node handle it
@@ -79,4 +86,3 @@ func _input(event):
 		_change_state(STATE_ATTACK_MANA01)
 		Events.emit_signal("player_launch_mana_attack")
 		return
-	current_state.handle_input(event)

@@ -36,10 +36,10 @@ var scoreLista=[
 	}
 ]
 
-onready var _menuButton:=get_node("menuButton")
+@onready var _menuButton:=get_node("menuButton")
 
-onready var _line:=get_node("line")
-onready var _table:=get_node("scroll/table")
+@onready var _line:=get_node("line")
+@onready var _table:=get_node("scroll/table")
 
 class scoreSorter:
 	static func sort_descending(a, b):
@@ -51,12 +51,12 @@ func _ready() -> void:
 	
 	var scoreList=Game.getHighScoreList()
 	
-	scoreList.sort_custom(scoreSorter, "sort_descending")
+	scoreList.sort_custom(Callable(scoreSorter, "sort_descending"))
 
 	
 	build(scoreList)
 	
-	_menuButton.connect("released",self,"goto_menu")
+	_menuButton.connect("released", Callable(self, "goto_menu"))
 	_menuButton.select()
 
 func build(scoreList):
@@ -65,7 +65,7 @@ func build(scoreList):
 		
 		var newLine=_line.duplicate()
 		newLine.get_child(0).text=scoreLoop.date;
-		newLine.get_child(1).text=str(scoreLoop.score);
+		newLine.get_child(1).text=str(int(scoreLoop.score));
 		newLine.visible=true
 		
 		_table.add_child(newLine)
@@ -81,4 +81,4 @@ func _input(event: InputEvent) -> void:
 
 func goto_menu():
 	GlobalPlayer.reset_game()
-	get_tree().change_scene("res://src/UI/menu.tscn")
+	get_tree().change_scene_to_file("res://src/UI/menu.tscn")

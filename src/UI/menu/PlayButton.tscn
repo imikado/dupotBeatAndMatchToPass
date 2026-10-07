@@ -1,21 +1,23 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene format=3]
 
-[ext_resource path="res://src/Common/UI/theme.tres" type="Theme" id=1]
-[ext_resource path="res://src/Common/UI/fonts/font.tres" type="DynamicFont" id=2]
-[ext_resource path="res://src/UI/menu/button.png" type="Texture" id=3]
-[ext_resource path="res://src/UI/menu/buttonPressed.png" type="Texture" id=4]
+[ext_resource type="Theme" path="res://src/Common/UI/theme.tres" id="1"]
+[ext_resource type="FontVariation" path="res://src/Common/UI/fonts/font.tres" id="2"]
+[ext_resource type="Texture2D" path="res://src/UI/menu/button.png" id="3"]
+[ext_resource type="Texture2D" path="res://src/UI/menu/buttonPressed.png" id="4"]
 
-[node name="PlayButton" type="TouchScreenButton"]
-position = Vector2( 220, 67 )
-normal = ExtResource( 3 )
-pressed = ExtResource( 4 )
+[node name="PlayButton" type="TouchScreenButton" unique_id=569040387]
+position = Vector2(220, 67)
+texture_normal = ExtResource("3")
+texture_pressed = ExtResource("4")
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="." unique_id=481047186]
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_top = -5.0
-margin_bottom = 5.0
-theme = ExtResource( 1 )
-custom_fonts/font = ExtResource( 2 )
+offset_top = -5.0
+offset_bottom = 5.0
+theme = ExtResource("1")
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 8
 text = "PLAY"
-align = 1
+horizontal_alignment = 1

@@ -16,7 +16,7 @@ func enter():
 
 
 func handle_input(event):
-	return .handle_input(event)
+	return super.handle_input(event)
 
 
 func update(delta):
@@ -32,8 +32,12 @@ func update(delta):
 
 
 func move(speed, direction):
+	var body: CharacterBody2D = owner
 	velocity = direction.normalized() * speed
-	owner.move_and_slide(velocity, Vector2(), 5, 2)
-	if owner.get_slide_count() == 0:
+	body.motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
+	body.max_slides = 2
+	body.velocity = velocity
+	body.move_and_slide()
+	if body.get_slide_collision_count() == 0:
 		return
-	return owner.get_slide_collision(0)
+	return body.get_slide_collision(0)

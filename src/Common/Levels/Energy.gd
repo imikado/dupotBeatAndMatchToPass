@@ -1,10 +1,10 @@
-extends KinematicBody2D
+extends CharacterBody2D
 
 var _target=null
 var _speed=100
 
 func _ready() -> void:
-	$AnimatedSprite.play()
+	$AnimatedSprite2D.play()
 
 func set_target(target):
 	_target=target

@@ -5,8 +5,8 @@ const WALKING_RIGHT:="walking_right"
 const WALKING_LEFT:="walking_left"
 const ATTACK_1_RIGHT:="attack_01_right"
 
-onready var player: KinematicBody2D = owner
-onready var playback: AnimationNodeStateMachinePlayback = get("parameters/playback")
+@onready var player: CharacterBody2D = owner
+@onready var playback: AnimationNodeStateMachinePlayback = get("parameters/playback")
 
 var _state:=IDLE
 

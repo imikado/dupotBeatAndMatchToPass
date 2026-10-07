@@ -1,24 +1,24 @@
 extends Node2D
 
-onready var _playButton:=get_node("Control/playButton")
-onready var _highScoresButton:=get_node("Control/hightScoresButton")
-onready var _settingsButton:=get_node("Control/settingsButton")
+@onready var _playButton:=get_node("Control/playButton")
+@onready var _highScoresButton:=get_node("Control/hightScoresButton")
+@onready var _settingsButton:=get_node("Control/settingsButton")
 
-onready var _version:=get_node("version")
+@onready var _version:=get_node("version")
 
 var _selected=0
 
-onready var _buttonList=[
+@onready var _buttonList=[
 	_playButton,
 	_highScoresButton,
 	_settingsButton
 ]
 
 func _ready() -> void:
-	_playButton.connect("released",self,"goto_game")
+	_playButton.connect("released", Callable(self, "goto_game"))
 	
-	_highScoresButton.connect("released",self,"goto_scores")
-	_settingsButton.connect("released",self,"goto_settings")
+	_highScoresButton.connect("released", Callable(self, "goto_scores"))
+	_settingsButton.connect("released", Callable(self, "goto_settings"))
 	
 	refresh_buttons()
 	
@@ -29,13 +29,13 @@ func _ready() -> void:
 
 	
 func goto_game():
-	get_tree().change_scene("res://src/Levels/LevelTemplate.tscn")
+	get_tree().change_scene_to_file("res://src/Levels/LevelTemplate.tscn")
 	
 func goto_scores():
-	get_tree().change_scene("res://src/UI/scores.tscn")
+	get_tree().change_scene_to_file("res://src/UI/scores.tscn")
 
 func goto_settings():
-	get_tree().change_scene("res://src/UI/settings.tscn")
+	get_tree().change_scene_to_file("res://src/UI/settings.tscn")
 	
 #control buttons
 func _input(event: InputEvent) -> void:
@@ -50,7 +50,7 @@ func get_selected_buton():
 	
 func refresh_buttons():
 	for i in range(_buttonList.size()):
-		_buttonList[i].unselect()
+		_buttonList[i].deselect()
 			
 	get_selected_buton().select()
 	

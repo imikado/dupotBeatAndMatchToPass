@@ -5,15 +5,15 @@ signal is_visible
 var energy_count=0
 var max_energy=6
 
-export(Game.ENEMY_TYPE_LIST) var type :=   Game.ENEMY_TYPE_LIST.ANT
+@export var type :=   Game.ENEMY_TYPE_LIST.ANT # (Game.ENEMY_TYPE_LIST)
 
-onready var _animatedSprite :=get_node("AnimatedSprite")
-onready var _animatedSpriteProgress :=get_node("AnimatedSprite2")
+@onready var _animatedSprite :=get_node("AnimatedSprite2D")
+@onready var _animatedSpriteProgress :=get_node("AnimatedSprite2")
 
-onready var _barrier := get_node("barrier")
-onready var _collisision := get_node("StaticBody2D/CollisionShape2D")
+@onready var _barrier := get_node("barrier")
+@onready var _collisision := get_node("StaticBody2D/CollisionShape2D")
 
-onready var _icons := get_node("icons")
+@onready var _icons := get_node("icons")
 
 
 var _type_icon_list :={}

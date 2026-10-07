@@ -2,7 +2,7 @@ class_name BonusActor
 extends Actor
 
 
-var _player : Position2D
+var _player : Marker2D
 var _near_distance:=10
 var _damage:=10
 const MAX_LIFE=50.0
@@ -11,15 +11,15 @@ var _type= Game.ENEMY_TYPE_LIST.ANT
 
 var _combo_count=0
 
-onready var _animationPlayer:=get_node("BodyPivot/AnimationPlayer")
-onready var _stateMachine := get_node("BonusActorStateMachine")
-onready var _enemy_progress_bar := get_node("BodyPivot/Control/ProgressBar")
-onready var _timer:=get_node("Timer")
+@onready var _animationPlayer:=get_node("BodyPivot/AnimationPlayer")
+@onready var _stateMachine := get_node("BonusActorStateMachine")
+@onready var _enemy_progress_bar := get_node("BodyPivot/Control/ProgressBar")
+@onready var _timer:=get_node("Timer")
 
 var _can_let_item=true
 
 
-var look_direction = Vector2(1, 0) setget set_look_direction
+var look_direction = Vector2(1, 0): set = set_look_direction
 
 func increment_combo_count():
 	_combo_count+=1
@@ -43,7 +43,7 @@ func update_enemy_life(start_value:float, end_value:float)->void:
 	# repeatedly call the `_update_health_bar()` method on this node.
 	
 	var tween := create_tween()
-	tween.tween_method(self,"_update_enemy_health_bar", start_value, health, 0.33)
+	tween.tween_method(Callable(self, "_update_enemy_health_bar"), start_value, health, 0.33)
 	
 	
 	#yield(get_tree().create_timer(1.0), "timeout")
@@ -53,7 +53,7 @@ func can_let_item():
 
 func let_item():
 	_can_let_item=false
-	_timer.connect("timeout",self,"allow_let_item")
+	_timer.connect("timeout", Callable(self, "allow_let_item"))
 	_timer.start()
 
 func allow_let_item():
@@ -72,13 +72,13 @@ func set_look_direction(value):
 	look_direction = value
 
 	
-func setTarget(player: Position2D):
+func setTarget(player: Marker2D):
 	_player= player
 	set_physics_process(true)
 
 	
 func _ready() -> void:
-	_animationPlayer.connect("animation_finished",_stateMachine,"_on_animation_finished")
+	_animationPlayer.connect("animation_finished", Callable(_stateMachine, "_on_animation_finished"))
 	_stateMachine.set_state_walk()
 	
 	_enemy_progress_bar.set_max(MAX_LIFE)
@@ -103,8 +103,8 @@ func took_damage(damage:int):
 	_stateMachine.set_state_damaged()
 	
 	var tween := create_tween()
-	tween.tween_property(self,"modulate",Color.red,0.3)
-	tween.tween_property(self,"modulate",Color.white,0.2)
+	tween.tween_property(self,"modulate",Color.RED,0.3)
+	tween.tween_property(self,"modulate",Color.WHITE,0.2)
 	
 		
 	if get_life() <= 0.0:

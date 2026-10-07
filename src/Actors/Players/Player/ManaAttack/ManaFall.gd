@@ -3,8 +3,8 @@ extends Node2D
 signal fall_ended
 
 
-onready var _sprite:=get_node("Sprite")
-onready var _hitBox:=get_node("HitBox/CollisionShape2D")
+@onready var _sprite:=get_node("Sprite2D")
+@onready var _hitBox:=get_node("HitBox/CollisionShape2D")
 
 
 var _damage:=20

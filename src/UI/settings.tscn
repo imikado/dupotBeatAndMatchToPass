@@ -1,158 +1,160 @@
-[gd_scene load_steps=12 format=2]
+[gd_scene format=3]
 
-[ext_resource path="res://src/Levels/LevelTemplate/background.png" type="Texture" id=1]
-[ext_resource path="res://src/Common/UI/fonts/font.tres" type="DynamicFont" id=2]
-[ext_resource path="res://src/UI/settings.gd" type="Script" id=3]
-[ext_resource path="res://src/UI/menu/menuButton.tscn" type="PackedScene" id=4]
-[ext_resource path="res://src/Common/UI/theme.tres" type="Theme" id=5]
-[ext_resource path="res://src/UI/menu/checkbox_off.png" type="Texture" id=6]
-[ext_resource path="res://src/UI/menu/checkbox_on.png" type="Texture" id=7]
-[ext_resource path="res://src/Common/UI/Controls/Arrow.png" type="Texture" id=8]
-[ext_resource path="res://src/Common/UI/Controls/Attack01.png" type="Texture" id=9]
-[ext_resource path="res://src/Common/UI/Controls/Attack02.png" type="Texture" id=10]
+[ext_resource type="Texture2D" path="res://src/Levels/LevelTemplate/background.png" id="1"]
+[ext_resource type="FontVariation" path="res://src/Common/UI/fonts/font.tres" id="2"]
+[ext_resource type="Script" path="res://src/UI/settings.gd" id="3"]
+[ext_resource type="PackedScene" path="res://src/UI/menu/menuButton.tscn" id="4"]
+[ext_resource type="Theme" path="res://src/Common/UI/theme.tres" id="5"]
+[ext_resource type="Texture2D" path="res://src/UI/menu/checkbox_off.png" id="6"]
+[ext_resource type="Texture2D" path="res://src/UI/menu/checkbox_on.png" id="7"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Arrow.png" id="8"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Attack01.png" id="9"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Attack02.png" id="10"]
 
-[sub_resource type="TileSet" id=1]
-0/name = "background.png 0"
-0/texture = ExtResource( 1 )
-0/tex_offset = Vector2( 0, 0 )
-0/modulate = Color( 1, 1, 1, 1 )
-0/region = Rect2( 0, 0, 91, 72 )
-0/tile_mode = 0
-0/occluder_offset = Vector2( 0, 0 )
-0/navigation_offset = Vector2( 0, 0 )
-0/shape_offset = Vector2( 0, 0 )
-0/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
-0/shape_one_way = false
-0/shape_one_way_margin = 0.0
-0/shapes = [  ]
-0/z_index = 0
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_1"]
+texture = ExtResource("1")
+texture_region_size = Vector2i(91, 72)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(-14, -4)
 
-[node name="settings" type="Control"]
-rect_pivot_offset = Vector2( -7, 53 )
-theme = ExtResource( 5 )
-script = ExtResource( 3 )
+[sub_resource type="TileSet" id="1"]
+tile_size = Vector2i(64, 64)
+sources/0 = SubResource("TileSetAtlasSource_1")
 
-[node name="TileMap" type="TileMap" parent="."]
-modulate = Color( 0.717647, 0.717647, 0.717647, 1 )
-tile_set = SubResource( 1 )
-format = 1
-tile_data = PoolIntArray( 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 65536, 0, 0, 65537, 0, 0, 65538, 0, 0, 65539, 0, 0, 65540, 0, 0, 131072, 0, 0, 131073, 0, 0, 131074, 0, 0, 131075, 0, 0, 131076, 0, 0 )
+[node name="settings" type="Control" unique_id=429986804]
+layout_mode = 3
+anchors_preset = 0
+pivot_offset = Vector2(-7, 53)
+theme = ExtResource("5")
+script = ExtResource("3")
 
-[node name="background" type="ColorRect" parent="."]
-margin_left = 15.0
-margin_top = 8.0
-margin_right = 304.0
-margin_bottom = 172.0
-color = Color( 1, 1, 1, 0.301961 )
+[node name="TileMap" type="TileMap" parent="." unique_id=357296719]
+modulate = Color(0.717647, 0.717647, 0.717647, 1)
+tile_set = SubResource("1")
+format = 2
+layer_0/tile_data = PackedInt32Array(0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0, 65536, 0, 0, 65537, 0, 0, 65538, 0, 0, 65539, 0, 0, 65540, 0, 0, 131072, 0, 0, 131073, 0, 0, 131074, 0, 0, 131075, 0, 0, 131076, 0, 0)
 
-[node name="backgroundTitle" type="ColorRect" parent="."]
-margin_left = 15.0
-margin_top = 8.0
-margin_right = 304.0
-margin_bottom = 40.0
-color = Color( 0, 0, 0, 0.756863 )
+[node name="background" type="ColorRect" parent="." unique_id=71583212]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 8.0
+offset_right = 304.0
+offset_bottom = 172.0
+color = Color(1, 1, 1, 0.301961)
 
-[node name="title" type="Label" parent="."]
+[node name="backgroundTitle" type="ColorRect" parent="." unique_id=1544755678]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 8.0
+offset_right = 304.0
+offset_bottom = 40.0
+color = Color(0, 0, 0, 0.756863)
+
+[node name="title" type="Label" parent="." unique_id=66364603]
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-margin_left = 15.0
-margin_top = 12.0
-margin_right = 304.0
-margin_bottom = 35.0
-custom_colors/font_color = Color( 1, 1, 1, 1 )
-custom_fonts/font = ExtResource( 2 )
+offset_left = 15.0
+offset_top = 12.0
+offset_right = 304.0
+offset_bottom = 35.0
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 8
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "SETTINGS"
-align = 1
+horizontal_alignment = 1
 
-[node name="menuButton" parent="." instance=ExtResource( 4 )]
-position = Vector2( 228, 17 )
+[node name="menuButton" parent="." unique_id=691189829 instance=ExtResource("4")]
+position = Vector2(228, 17)
 title = "MENU"
 
-[node name="Control" type="Control" parent="."]
-margin_right = 40.0
-margin_bottom = 40.0
+[node name="Control" type="Control" parent="." unique_id=1765343201]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Control"]
-margin_left = 24.0
-margin_top = 43.0
-margin_right = 300.0
-margin_bottom = 72.0
+[node name="VBoxContainer" type="VBoxContainer" parent="Control" unique_id=181538910]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 43.0
+offset_right = 300.0
+offset_bottom = 72.0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Control/VBoxContainer"]
-margin_right = 276.0
-margin_bottom = 23.0
+[node name="HBoxContainer" type="HBoxContainer" parent="Control/VBoxContainer" unique_id=287343203]
+layout_mode = 2
 
-[node name="Label" type="Label" parent="Control/VBoxContainer/HBoxContainer"]
-margin_right = 116.0
-margin_bottom = 23.0
-custom_colors/font_color = Color( 1, 1, 1, 1 )
+[node name="Label" type="Label" parent="Control/VBoxContainer/HBoxContainer" unique_id=197587736]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "Controls tactil"
 uppercase = true
 
-[node name="contolsEnabled" type="TouchScreenButton" parent="Control/VBoxContainer/HBoxContainer"]
-position = Vector2( 244, 6 )
-normal = ExtResource( 7 )
+[node name="contolsEnabled" type="TouchScreenButton" parent="Control/VBoxContainer/HBoxContainer" unique_id=1792923379]
+position = Vector2(244, 6)
+texture_normal = ExtResource("7")
 
-[node name="contolsDisabled" type="TouchScreenButton" parent="Control/VBoxContainer/HBoxContainer"]
-position = Vector2( 244, 6 )
-normal = ExtResource( 6 )
+[node name="contolsDisabled" type="TouchScreenButton" parent="Control/VBoxContainer/HBoxContainer" unique_id=277393323]
+position = Vector2(244, 6)
+texture_normal = ExtResource("6")
 
-[node name="controlsMap" type="Node2D" parent="."]
+[node name="controlsMap" type="Node2D" parent="." unique_id=1552570647]
 
-[node name="right" type="TouchScreenButton" parent="controlsMap"]
-position = Vector2( 126, 137 )
-normal = ExtResource( 8 )
+[node name="right" type="TouchScreenButton" parent="controlsMap" unique_id=912798779]
+position = Vector2(126, 137)
+texture_normal = ExtResource("8")
 
-[node name="left" type="TouchScreenButton" parent="controlsMap"]
-position = Vector2( 92, 153 )
+[node name="left" type="TouchScreenButton" parent="controlsMap" unique_id=19129457]
+position = Vector2(92, 153)
 rotation = -3.14159
-normal = ExtResource( 8 )
+texture_normal = ExtResource("8")
 
-[node name="up" type="TouchScreenButton" parent="controlsMap"]
-position = Vector2( 101, 129 )
+[node name="up" type="TouchScreenButton" parent="controlsMap" unique_id=1252097550]
+position = Vector2(101, 129)
 rotation = -1.5708
-normal = ExtResource( 8 )
+texture_normal = ExtResource("8")
 
-[node name="down" type="TouchScreenButton" parent="controlsMap"]
-position = Vector2( 117, 137 )
+[node name="down" type="TouchScreenButton" parent="controlsMap" unique_id=1748974819]
+position = Vector2(117, 137)
 rotation = 1.5708
-normal = ExtResource( 8 )
+texture_normal = ExtResource("8")
 
-[node name="attack" type="TouchScreenButton" parent="controlsMap"]
-position = Vector2( 191, 136 )
-normal = ExtResource( 9 )
+[node name="attack" type="TouchScreenButton" parent="controlsMap" unique_id=1439278884]
+position = Vector2(191, 136)
+texture_normal = ExtResource("9")
 
-[node name="manaAttack" type="TouchScreenButton" parent="controlsMap"]
-position = Vector2( 216, 137 )
-normal = ExtResource( 10 )
+[node name="manaAttack" type="TouchScreenButton" parent="controlsMap" unique_id=1505119412]
+position = Vector2(216, 137)
+texture_normal = ExtResource("10")
 
-[node name="Label" type="Label" parent="controlsMap"]
-margin_left = 88.0
-margin_top = 79.0
-margin_right = 224.0
-margin_bottom = 102.0
-custom_colors/font_color = Color( 1, 1, 1, 1 )
+[node name="Label" type="Label" parent="controlsMap" unique_id=1560934321]
+offset_left = 88.0
+offset_top = 79.0
+offset_right = 224.0
+offset_bottom = 102.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "CLICK TO CHANGE KEY"
 uppercase = true
 
-[node name="modalKey" type="ColorRect" parent="."]
+[node name="modalKey" type="ColorRect" parent="." unique_id=1193259317]
 visible = false
-margin_left = -1.0
-margin_top = 14.0
-margin_right = 345.0
-margin_bottom = 201.0
-color = Color( 0, 0, 0, 0.780392 )
+layout_mode = 0
+offset_left = -1.0
+offset_top = 14.0
+offset_right = 345.0
+offset_bottom = 201.0
+color = Color(0, 0, 0, 0.780392)
 
-[node name="Label" type="Label" parent="modalKey"]
-margin_left = 102.0
-margin_top = 69.0
-margin_right = 218.0
-margin_bottom = 92.0
-custom_colors/font_color = Color( 1, 1, 1, 1 )
+[node name="Label" type="Label" parent="modalKey" unique_id=1311544468]
+layout_mode = 0
+offset_left = 102.0
+offset_top = 69.0
+offset_right = 218.0
+offset_bottom = 92.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "PRESS NEW KEY"
-align = 1
+horizontal_alignment = 1
 uppercase = true
 
 [connection signal="pressed" from="Control/VBoxContainer/HBoxContainer/contolsEnabled" to="." method="_on_contolsEnabled_pressed"]

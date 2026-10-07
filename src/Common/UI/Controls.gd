@@ -1,6 +1,6 @@
 extends CanvasLayer
 
-onready var _attackManaButton:=get_node("manaAttack")
+@onready var _attackManaButton:=get_node("manaAttack")
 
 func _ready() -> void:
 	if(!Game.isControlsEnabled()):

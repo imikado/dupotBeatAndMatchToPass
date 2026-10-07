@@ -1,761 +1,879 @@
-[gd_scene load_steps=77 format=2]
+[gd_scene format=3]
 
-[ext_resource path="res://src/Actors/Players/Player.gd" type="Script" id=1]
-[ext_resource path="res://src/Actors/Players/Player/States/OnGround/PlayerStateDamaged.gd" type="Script" id=2]
-[ext_resource path="res://src/Actors/Players/Player/player-idle.png" type="Texture" id=3]
-[ext_resource path="res://src/Actors/Players/Player/player-walking.png" type="Texture" id=4]
-[ext_resource path="res://src/Actors/Players/Player/player-attacking-01.png" type="Texture" id=5]
-[ext_resource path="res://src/Actors/Players/Player/PlayerStateMachine.gd" type="Script" id=6]
-[ext_resource path="res://src/Actors/Players/Player/States/OnGround/PlayerStateIdle.gd" type="Script" id=7]
-[ext_resource path="res://src/Actors/Players/Player/States/OnGround/PlayerStateMove.gd" type="Script" id=8]
-[ext_resource path="res://src/Actors/Players/stateDisplay.gd" type="Script" id=9]
-[ext_resource path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack01.gd" type="Script" id=10]
-[ext_resource path="res://src/Actors/Players/Player/player-damaged.png" type="Texture" id=11]
-[ext_resource path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack02.gd" type="Script" id=12]
-[ext_resource path="res://src/Actors/Players/Player/player-attacking-02.png" type="Texture" id=13]
-[ext_resource path="res://src/Actors/Players/Player/player-attacking-03.png" type="Texture" id=14]
-[ext_resource path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack03.gd" type="Script" id=15]
-[ext_resource path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack04.gd" type="Script" id=16]
-[ext_resource path="res://src/Actors/Players/Player/player-attacking-04.png" type="Texture" id=17]
-[ext_resource path="res://src/Actors/Players/Player/player-attacking-mana-01.png" type="Texture" id=18]
-[ext_resource path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttackMana01.gd" type="Script" id=20]
-[ext_resource path="res://src/Actors/Players/Player/ManaAttack/ManaFall.tscn" type="PackedScene" id=21]
-[ext_resource path="res://src/Actors/Players/Player/player-get-lifeBottle.png" type="Texture" id=22]
-[ext_resource path="res://src/Actors/Players/Player/States/OnGround/GetLifeBottle.gd" type="Script" id=23]
-[ext_resource path="res://src/Actors/Players/Player/player-gameover.png" type="Texture" id=24]
-[ext_resource path="res://src/Actors/Players/Player/States/OnGround/Gameover.gd" type="Script" id=25]
+[ext_resource type="Script" path="res://src/Actors/Players/Player.gd" id="1"]
+[ext_resource type="Script" path="res://src/Actors/Players/Player/States/OnGround/PlayerStateDamaged.gd" id="2"]
+[ext_resource type="Texture2D" path="res://src/Actors/Players/Player/player-idle.png" id="3"]
+[ext_resource type="Texture2D" path="res://src/Actors/Players/Player/player-walking.png" id="4"]
+[ext_resource type="Texture2D" path="res://src/Actors/Players/Player/player-attacking-01.png" id="5"]
+[ext_resource type="Script" path="res://src/Actors/Players/Player/PlayerStateMachine.gd" id="6"]
+[ext_resource type="Script" path="res://src/Actors/Players/Player/States/OnGround/PlayerStateIdle.gd" id="7"]
+[ext_resource type="Script" path="res://src/Actors/Players/Player/States/OnGround/PlayerStateMove.gd" id="8"]
+[ext_resource type="Script" path="res://src/Actors/Players/stateDisplay.gd" id="9"]
+[ext_resource type="Script" path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack01.gd" id="10"]
+[ext_resource type="Texture2D" path="res://src/Actors/Players/Player/player-damaged.png" id="11"]
+[ext_resource type="Script" path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack02.gd" id="12"]
+[ext_resource type="Texture2D" path="res://src/Actors/Players/Player/player-attacking-02.png" id="13"]
+[ext_resource type="Texture2D" path="res://src/Actors/Players/Player/player-attacking-03.png" id="14"]
+[ext_resource type="Script" path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack03.gd" id="15"]
+[ext_resource type="Script" path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttack04.gd" id="16"]
+[ext_resource type="Texture2D" path="res://src/Actors/Players/Player/player-attacking-04.png" id="17"]
+[ext_resource type="Texture2D" path="res://src/Actors/Players/Player/player-attacking-mana-01.png" id="18"]
+[ext_resource type="Script" path="res://src/Actors/Players/Player/States/Attacks/PlayerStateAttackMana01.gd" id="20"]
+[ext_resource type="PackedScene" path="res://src/Actors/Players/Player/ManaAttack/ManaFall.tscn" id="21"]
+[ext_resource type="Texture2D" path="res://src/Actors/Players/Player/player-get-lifeBottle.png" id="22"]
+[ext_resource type="Script" path="res://src/Actors/Players/Player/States/OnGround/GetLifeBottle.gd" id="23"]
+[ext_resource type="Texture2D" path="res://src/Actors/Players/Player/player-gameover.png" id="24"]
+[ext_resource type="Script" path="res://src/Actors/Players/Player/States/OnGround/Gameover.gd" id="25"]
 
-[sub_resource type="Animation" id=46]
+[sub_resource type="Animation" id="46"]
 resource_name = "attacking_01_right"
 length = 0.3
 tracks/0/type = "value"
-tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.1, 0.2, 0.3 ),
-"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 1,
-"values": [ 0, 1, 2, 3 ]
+"values": [0, 1, 2, 3]
 }
 tracks/1/type = "value"
-tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite2D:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ "attacking01" ]
+"values": ["attacking01"]
 }
 tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
 tracks/2/path = NodePath("BodyPivot/HitBox/CollisionShape2D:disabled")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
-tracks/2/imported = false
-tracks/2/enabled = true
 tracks/2/keys = {
-"times": PoolRealArray( 0, 0.2, 0.25 ),
-"transitions": PoolRealArray( 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.2, 0.25),
+"transitions": PackedFloat32Array(1, 1, 1),
 "update": 1,
-"values": [ true, false, true ]
+"values": [true, false, true]
 }
 
-[sub_resource type="Animation" id=51]
+[sub_resource type="Animation" id="51"]
 resource_name = "attacking_02_right"
 length = 0.3
 tracks/0/type = "value"
-tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.1, 0.2, 0.3 ),
-"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 1,
-"values": [ 0, 1, 2, 3 ]
+"values": [0, 1, 2, 3]
 }
 tracks/1/type = "value"
-tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite2D:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ "attacking02" ]
+"values": ["attacking02"]
 }
 tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
 tracks/2/path = NodePath("BodyPivot/HitBox/CollisionShape2D:disabled")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
-tracks/2/imported = false
-tracks/2/enabled = true
 tracks/2/keys = {
-"times": PoolRealArray( 0, 0.2, 0.25 ),
-"transitions": PoolRealArray( 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.2, 0.25),
+"transitions": PackedFloat32Array(1, 1, 1),
 "update": 1,
-"values": [ true, false, true ]
+"values": [true, false, true]
 }
 
-[sub_resource type="Animation" id=55]
+[sub_resource type="Animation" id="55"]
 resource_name = "attacking_03_right"
 length = 0.35
 tracks/0/type = "value"
-tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.1, 0.2, 0.3 ),
-"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 1,
-"values": [ 0, 1, 2, 3 ]
+"values": [0, 1, 2, 3]
 }
 tracks/1/type = "value"
-tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite2D:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ "attacking03" ]
+"values": ["attacking03"]
 }
 tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
 tracks/2/path = NodePath("BodyPivot/HitBox/CollisionShape2D:disabled")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
-tracks/2/imported = false
-tracks/2/enabled = true
 tracks/2/keys = {
-"times": PoolRealArray( 0, 0.2, 0.25 ),
-"transitions": PoolRealArray( 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.2, 0.25),
+"transitions": PackedFloat32Array(1, 1, 1),
 "update": 1,
-"values": [ true, false, true ]
+"values": [true, false, true]
 }
 
-[sub_resource type="Animation" id=59]
+[sub_resource type="Animation" id="59"]
 resource_name = "attacking_04_right"
 length = 0.35
 tracks/0/type = "value"
-tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.1, 0.2, 0.3 ),
-"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 1,
-"values": [ 0, 1, 2, 3 ]
+"values": [0, 1, 2, 3]
 }
 tracks/1/type = "value"
-tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite2D:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ "attacking04" ]
+"values": ["attacking04"]
 }
 tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
 tracks/2/path = NodePath("BodyPivot/HitBox/CollisionShape2D:disabled")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
-tracks/2/imported = false
-tracks/2/enabled = true
 tracks/2/keys = {
-"times": PoolRealArray( 0, 0.2, 0.25 ),
-"transitions": PoolRealArray( 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.2, 0.25),
+"transitions": PackedFloat32Array(1, 1, 1),
 "update": 1,
-"values": [ true, false, true ]
+"values": [true, false, true]
 }
 
-[sub_resource type="Animation" id=75]
+[sub_resource type="Animation" id="75"]
 resource_name = "attacking_mana_01_right"
 length = 2.3
 tracks/0/type = "value"
-tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.1, 0.2, 0.3 ),
-"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 1,
-"values": [ 0, 1, 2, 3 ]
+"values": [0, 1, 2, 3]
 }
 tracks/1/type = "value"
-tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite2D:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ "attacking_mana01" ]
+"values": ["attacking_mana01"]
 }
 tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
 tracks/2/path = NodePath("BodyPivot/HitBox/CollisionShape2D:disabled")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
-tracks/2/imported = false
-tracks/2/enabled = true
 tracks/2/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ true ]
+"values": [true]
 }
 tracks/3/type = "method"
+tracks/3/imported = false
+tracks/3/enabled = true
 tracks/3/path = NodePath(".")
 tracks/3/interp = 1
 tracks/3/loop_wrap = true
-tracks/3/imported = false
-tracks/3/enabled = true
 tracks/3/keys = {
-"times": PoolRealArray( 0.2, 1, 1.8, 2.2 ),
-"transitions": PoolRealArray( 1, 1, 1, 1 ),
-"values": [ {
-"args": [  ],
-"method": "mana_attack_start"
+"times": PackedFloat32Array(0.2, 1, 1.8, 2.2),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"values": [{
+"args": [],
+"method": &"mana_attack_start"
 }, {
-"args": [  ],
-"method": "mana_attack_start"
+"args": [],
+"method": &"mana_attack_start"
 }, {
-"args": [  ],
-"method": "mana_attack_start"
+"args": [],
+"method": &"mana_attack_start"
 }, {
-"args": [  ],
-"method": "_on_ManaFall_fall_ended"
-} ]
+"args": [],
+"method": &"_on_ManaFall_fall_ended"
+}]
 }
 tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
 tracks/4/path = NodePath("ManaFalling:visible")
 tracks/4/interp = 1
 tracks/4/loop_wrap = true
-tracks/4/imported = false
-tracks/4/enabled = true
 tracks/4/keys = {
-"times": PoolRealArray( 0.1, 0.2, 2.2 ),
-"transitions": PoolRealArray( 1, 1, 1 ),
+"times": PackedFloat32Array(0.1, 0.2, 2.2),
+"transitions": PackedFloat32Array(1, 1, 1),
 "update": 1,
-"values": [ false, true, false ]
+"values": [false, true, false]
 }
 
-[sub_resource type="Animation" id=47]
+[sub_resource type="Animation" id="47"]
 resource_name = "damaged"
 length = 0.5
 tracks/0/type = "value"
-tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.2, 0.4 ),
-"transitions": PoolRealArray( 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.2, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1),
 "update": 1,
-"values": [ 0, 1, 2 ]
+"values": [0, 1, 2]
 }
 tracks/1/type = "value"
-tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite2D:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ "damaged_right" ]
+"values": ["damaged_right"]
 }
 
-[sub_resource type="Animation" id=91]
+[sub_resource type="Animation" id="91"]
 resource_name = "gameover"
 length = 1.3
 tracks/0/type = "value"
-tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.2, 0.4, 0.6, 0.8, 1 ),
-"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6, 0.8, 1),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
 "update": 1,
-"values": [ 0, 1, 2, 3, 4, 5 ]
+"values": [0, 1, 2, 3, 4, 5]
 }
 tracks/1/type = "value"
-tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite2D:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ "gameover" ]
+"values": ["gameover"]
 }
 
-[sub_resource type="Animation" id=79]
+[sub_resource type="Animation" id="79"]
 resource_name = "get_life_bottle"
 tracks/0/type = "value"
-tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9 ),
-"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.9),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
 "update": 1,
-"values": [ 0, 1, 2, 3, 4, 3, 4, 3 ]
+"values": [0, 1, 2, 3, 4, 3, 4, 3]
 }
 tracks/1/type = "value"
-tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite2D:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ "getLifeBootle" ]
+"values": ["getLifeBootle"]
 }
 tracks/2/type = "method"
+tracks/2/imported = false
+tracks/2/enabled = true
 tracks/2/path = NodePath(".")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
-tracks/2/imported = false
-tracks/2/enabled = true
 tracks/2/keys = {
-"times": PoolRealArray( 0.5, 0.7 ),
-"transitions": PoolRealArray( 1, 1 ),
-"values": [ {
-"args": [  ],
-"method": "blink_green"
+"times": PackedFloat32Array(0.5, 0.7),
+"transitions": PackedFloat32Array(1, 1),
+"values": [{
+"args": [],
+"method": &"blink_green"
 }, {
-"args": [  ],
-"method": "emit_player_tookadvantage_of_lifebottle"
-} ]
+"args": [],
+"method": &"emit_player_tookadvantage_of_lifebottle"
+}]
 }
 
-[sub_resource type="Animation" id=2]
+[sub_resource type="Animation" id="2"]
 resource_name = "idle"
 length = 2.0
-loop = true
+loop_mode = 1
 tracks/0/type = "value"
-tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PoolRealArray( 0.1, 0.7, 1.5 ),
-"transitions": PoolRealArray( 1, 1, 1 ),
+"times": PackedFloat32Array(0.1, 0.7, 1.5),
+"transitions": PackedFloat32Array(1, 1, 1),
 "update": 1,
-"values": [ 0, 1, 2 ]
+"values": [0, 1, 2]
 }
 tracks/1/type = "value"
-tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite2D:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PoolRealArray( 0.1 ),
-"transitions": PoolRealArray( 1 ),
+"times": PackedFloat32Array(0.1),
+"transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ "idle" ]
+"values": ["idle"]
 }
 
-[sub_resource type="Animation" id=19]
+[sub_resource type="Animation" id="19"]
 resource_name = "walking_right"
 length = 0.5
-loop = true
+loop_mode = 1
 tracks/0/type = "value"
-tracks/0/path = NodePath("BodyPivot/AnimatedSprite:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.2, 0.4 ),
-"transitions": PoolRealArray( 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.2, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1),
 "update": 1,
-"values": [ 0, 1, 5 ]
+"values": [0, 1, 5]
 }
 tracks/1/type = "value"
-tracks/1/path = NodePath("BodyPivot/AnimatedSprite:animation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite2D:animation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PoolRealArray( 0.1 ),
-"transitions": PoolRealArray( 1 ),
+"times": PackedFloat32Array(0.1),
+"transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ "walk_right" ]
+"values": ["walk_right"]
 }
 
-[sub_resource type="AtlasTexture" id=41]
-atlas = ExtResource( 5 )
-region = Rect2( 0, 0, 64, 64 )
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_gunu0"]
+_data = {
+&"attacking_01_right": SubResource("46"),
+&"attacking_02_right": SubResource("51"),
+&"attacking_03_right": SubResource("55"),
+&"attacking_04_right": SubResource("59"),
+&"attacking_mana_01_right": SubResource("75"),
+&"damaged": SubResource("47"),
+&"gameover": SubResource("91"),
+&"get_life_bottle": SubResource("79"),
+&"idle": SubResource("2"),
+&"walking_right": SubResource("19")
+}
 
-[sub_resource type="AtlasTexture" id=42]
-atlas = ExtResource( 5 )
-region = Rect2( 64, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="41"]
+atlas = ExtResource("5")
+region = Rect2(0, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=43]
-atlas = ExtResource( 5 )
-region = Rect2( 128, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="42"]
+atlas = ExtResource("5")
+region = Rect2(64, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=44]
-atlas = ExtResource( 5 )
-region = Rect2( 192, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="43"]
+atlas = ExtResource("5")
+region = Rect2(128, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=63]
-atlas = ExtResource( 13 )
-region = Rect2( 0, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="44"]
+atlas = ExtResource("5")
+region = Rect2(192, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=64]
-atlas = ExtResource( 13 )
-region = Rect2( 64, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="63"]
+atlas = ExtResource("13")
+region = Rect2(0, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=65]
-atlas = ExtResource( 13 )
-region = Rect2( 128, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="64"]
+atlas = ExtResource("13")
+region = Rect2(64, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=66]
-atlas = ExtResource( 13 )
-region = Rect2( 192, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="65"]
+atlas = ExtResource("13")
+region = Rect2(128, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=67]
-atlas = ExtResource( 14 )
-region = Rect2( 0, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="66"]
+atlas = ExtResource("13")
+region = Rect2(192, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=68]
-atlas = ExtResource( 14 )
-region = Rect2( 64, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="67"]
+atlas = ExtResource("14")
+region = Rect2(0, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=69]
-atlas = ExtResource( 14 )
-region = Rect2( 128, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="68"]
+atlas = ExtResource("14")
+region = Rect2(64, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=70]
-atlas = ExtResource( 14 )
-region = Rect2( 192, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="69"]
+atlas = ExtResource("14")
+region = Rect2(128, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=71]
-atlas = ExtResource( 17 )
-region = Rect2( 0, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="70"]
+atlas = ExtResource("14")
+region = Rect2(192, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=72]
-atlas = ExtResource( 17 )
-region = Rect2( 64, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="71"]
+atlas = ExtResource("17")
+region = Rect2(0, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=73]
-atlas = ExtResource( 17 )
-region = Rect2( 128, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="72"]
+atlas = ExtResource("17")
+region = Rect2(64, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=74]
-atlas = ExtResource( 17 )
-region = Rect2( 192, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="73"]
+atlas = ExtResource("17")
+region = Rect2(128, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=76]
-atlas = ExtResource( 18 )
-region = Rect2( 0, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="74"]
+atlas = ExtResource("17")
+region = Rect2(192, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=77]
-atlas = ExtResource( 18 )
-region = Rect2( 64, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="76"]
+atlas = ExtResource("18")
+region = Rect2(0, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=78]
-atlas = ExtResource( 18 )
-region = Rect2( 128, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="77"]
+atlas = ExtResource("18")
+region = Rect2(64, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=48]
-atlas = ExtResource( 11 )
-region = Rect2( 0, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="78"]
+atlas = ExtResource("18")
+region = Rect2(128, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=49]
-atlas = ExtResource( 11 )
-region = Rect2( 64, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="48"]
+atlas = ExtResource("11")
+region = Rect2(0, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=50]
-atlas = ExtResource( 11 )
-region = Rect2( 128, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="49"]
+atlas = ExtResource("11")
+region = Rect2(64, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=85]
-atlas = ExtResource( 24 )
-region = Rect2( 0, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="50"]
+atlas = ExtResource("11")
+region = Rect2(128, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=86]
-atlas = ExtResource( 24 )
-region = Rect2( 64, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="85"]
+atlas = ExtResource("24")
+region = Rect2(0, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=87]
-atlas = ExtResource( 24 )
-region = Rect2( 128, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="86"]
+atlas = ExtResource("24")
+region = Rect2(64, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=88]
-atlas = ExtResource( 24 )
-region = Rect2( 192, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="87"]
+atlas = ExtResource("24")
+region = Rect2(128, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=89]
-atlas = ExtResource( 24 )
-region = Rect2( 256, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="88"]
+atlas = ExtResource("24")
+region = Rect2(192, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=90]
-atlas = ExtResource( 24 )
-region = Rect2( 320, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="89"]
+atlas = ExtResource("24")
+region = Rect2(256, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=80]
-atlas = ExtResource( 22 )
-region = Rect2( 0, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="90"]
+atlas = ExtResource("24")
+region = Rect2(320, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=81]
-atlas = ExtResource( 22 )
-region = Rect2( 64, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="80"]
+atlas = ExtResource("22")
+region = Rect2(0, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=82]
-atlas = ExtResource( 22 )
-region = Rect2( 128, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="81"]
+atlas = ExtResource("22")
+region = Rect2(64, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=83]
-atlas = ExtResource( 22 )
-region = Rect2( 192, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="82"]
+atlas = ExtResource("22")
+region = Rect2(128, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=84]
-atlas = ExtResource( 22 )
-region = Rect2( 256, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="83"]
+atlas = ExtResource("22")
+region = Rect2(192, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=34]
-atlas = ExtResource( 3 )
-region = Rect2( 0, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="84"]
+atlas = ExtResource("22")
+region = Rect2(256, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=35]
-atlas = ExtResource( 3 )
-region = Rect2( 64, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="34"]
+atlas = ExtResource("3")
+region = Rect2(0, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=36]
-atlas = ExtResource( 3 )
-region = Rect2( 128, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="35"]
+atlas = ExtResource("3")
+region = Rect2(64, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=37]
-atlas = ExtResource( 4 )
-region = Rect2( 0, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="36"]
+atlas = ExtResource("3")
+region = Rect2(128, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=38]
-atlas = ExtResource( 4 )
-region = Rect2( 64, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="37"]
+atlas = ExtResource("4")
+region = Rect2(0, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=39]
-atlas = ExtResource( 4 )
-region = Rect2( 128, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="38"]
+atlas = ExtResource("4")
+region = Rect2(64, 0, 64, 64)
 
-[sub_resource type="SpriteFrames" id=10]
-animations = [ {
-"frames": [ SubResource( 41 ), SubResource( 42 ), SubResource( 43 ), SubResource( 44 ) ],
-"loop": true,
-"name": "attacking01",
+[sub_resource type="AtlasTexture" id="39"]
+atlas = ExtResource("4")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="10"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("41")
+}, {
+"duration": 1.0,
+"texture": SubResource("42")
+}, {
+"duration": 1.0,
+"texture": SubResource("43")
+}, {
+"duration": 1.0,
+"texture": SubResource("44")
+}],
+"loop": 1,
+"name": &"attacking01",
 "speed": 5.0
 }, {
-"frames": [ SubResource( 63 ), SubResource( 64 ), SubResource( 65 ), SubResource( 66 ) ],
-"loop": true,
-"name": "attacking02",
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("63")
+}, {
+"duration": 1.0,
+"texture": SubResource("64")
+}, {
+"duration": 1.0,
+"texture": SubResource("65")
+}, {
+"duration": 1.0,
+"texture": SubResource("66")
+}],
+"loop": 1,
+"name": &"attacking02",
 "speed": 5.0
 }, {
-"frames": [ SubResource( 67 ), SubResource( 68 ), SubResource( 69 ), SubResource( 70 ) ],
-"loop": true,
-"name": "attacking03",
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("67")
+}, {
+"duration": 1.0,
+"texture": SubResource("68")
+}, {
+"duration": 1.0,
+"texture": SubResource("69")
+}, {
+"duration": 1.0,
+"texture": SubResource("70")
+}],
+"loop": 1,
+"name": &"attacking03",
 "speed": 5.0
 }, {
-"frames": [ SubResource( 71 ), SubResource( 72 ), SubResource( 73 ), SubResource( 74 ) ],
-"loop": true,
-"name": "attacking04",
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("71")
+}, {
+"duration": 1.0,
+"texture": SubResource("72")
+}, {
+"duration": 1.0,
+"texture": SubResource("73")
+}, {
+"duration": 1.0,
+"texture": SubResource("74")
+}],
+"loop": 1,
+"name": &"attacking04",
 "speed": 5.0
 }, {
-"frames": [ SubResource( 76 ), SubResource( 77 ), SubResource( 78 ) ],
-"loop": true,
-"name": "attacking_mana01",
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("76")
+}, {
+"duration": 1.0,
+"texture": SubResource("77")
+}, {
+"duration": 1.0,
+"texture": SubResource("78")
+}],
+"loop": 1,
+"name": &"attacking_mana01",
 "speed": 5.0
 }, {
-"frames": [ SubResource( 48 ), SubResource( 49 ), SubResource( 50 ) ],
-"loop": true,
-"name": "damaged_right",
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("48")
+}, {
+"duration": 1.0,
+"texture": SubResource("49")
+}, {
+"duration": 1.0,
+"texture": SubResource("50")
+}],
+"loop": 1,
+"name": &"damaged_right",
 "speed": 5.0
 }, {
-"frames": [ SubResource( 85 ), SubResource( 86 ), SubResource( 87 ), SubResource( 88 ), SubResource( 89 ), SubResource( 90 ) ],
-"loop": true,
-"name": "gameover",
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("85")
+}, {
+"duration": 1.0,
+"texture": SubResource("86")
+}, {
+"duration": 1.0,
+"texture": SubResource("87")
+}, {
+"duration": 1.0,
+"texture": SubResource("88")
+}, {
+"duration": 1.0,
+"texture": SubResource("89")
+}, {
+"duration": 1.0,
+"texture": SubResource("90")
+}],
+"loop": 1,
+"name": &"gameover",
 "speed": 5.0
 }, {
-"frames": [ SubResource( 80 ), SubResource( 81 ), SubResource( 82 ), SubResource( 83 ), SubResource( 84 ) ],
-"loop": true,
-"name": "getLifeBootle",
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("80")
+}, {
+"duration": 1.0,
+"texture": SubResource("81")
+}, {
+"duration": 1.0,
+"texture": SubResource("82")
+}, {
+"duration": 1.0,
+"texture": SubResource("83")
+}, {
+"duration": 1.0,
+"texture": SubResource("84")
+}],
+"loop": 1,
+"name": &"getLifeBootle",
 "speed": 5.0
 }, {
-"frames": [ SubResource( 34 ), SubResource( 35 ), SubResource( 36 ) ],
-"loop": true,
-"name": "idle",
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("34")
+}, {
+"duration": 1.0,
+"texture": SubResource("35")
+}, {
+"duration": 1.0,
+"texture": SubResource("36")
+}],
+"loop": 1,
+"name": &"idle",
 "speed": 5.0
 }, {
-"frames": [ SubResource( 37 ), SubResource( 38 ), SubResource( 39 ) ],
-"loop": true,
-"name": "walk_right",
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("37")
+}, {
+"duration": 1.0,
+"texture": SubResource("38")
+}, {
+"duration": 1.0,
+"texture": SubResource("39")
+}],
+"loop": 1,
+"name": &"walk_right",
 "speed": 5.0
-} ]
+}]
 
-[sub_resource type="RectangleShape2D" id=40]
-extents = Vector2( 4, 5 )
+[sub_resource type="RectangleShape2D" id="40"]
+size = Vector2(8, 10)
 
-[sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 6, 5.25 )
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(12, 10.5)
 
-[node name="Player" type="KinematicBody2D"]
+[node name="Player" type="CharacterBody2D" unique_id=231728310]
 collision_mask = 3
-script = ExtResource( 1 )
-__meta__ = {
-"_edit_horizontal_guides_": [ -8.0 ]
-}
+script = ExtResource("1")
 
-[node name="BodyPivot" type="Position2D" parent="."]
+[node name="BodyPivot" type="Marker2D" parent="." unique_id=1769645640]
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="BodyPivot"]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BodyPivot" unique_id=56307026]
 root_node = NodePath("../..")
-anims/attacking_01_right = SubResource( 46 )
-anims/attacking_02_right = SubResource( 51 )
-anims/attacking_03_right = SubResource( 55 )
-anims/attacking_04_right = SubResource( 59 )
-anims/attacking_mana_01_right = SubResource( 75 )
-anims/damaged = SubResource( 47 )
-anims/gameover = SubResource( 91 )
-anims/get_life_bottle = SubResource( 79 )
-anims/idle = SubResource( 2 )
-anims/walking_right = SubResource( 19 )
+libraries/ = SubResource("AnimationLibrary_gunu0")
 
-[node name="AnimatedSprite" type="AnimatedSprite" parent="BodyPivot"]
-position = Vector2( -1, -32 )
-frames = SubResource( 10 )
-animation = "attacking_mana01"
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="BodyPivot" unique_id=1202633424]
+position = Vector2(-1, -32)
+sprite_frames = SubResource("10")
+animation = &"attacking_mana01"
 frame = 2
 
-[node name="HitBox" type="Area2D" parent="BodyPivot"]
-position = Vector2( 0, -12 )
+[node name="HitBox" type="Area2D" parent="BodyPivot" unique_id=565797605]
+position = Vector2(0, -12)
 collision_mask = 2
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="BodyPivot/HitBox"]
-position = Vector2( 15, -1 )
-shape = SubResource( 40 )
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BodyPivot/HitBox" unique_id=1130214523]
+position = Vector2(15, -1)
+shape = SubResource("40")
 disabled = true
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2( -1, -5.75 )
-shape = SubResource( 1 )
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=222224851]
+position = Vector2(-1, -5.75)
+shape = SubResource("1")
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1096964891]
 visible = false
-current = true
-smoothing_enabled = true
-smoothing_speed = 2.0
-drag_margin_left = 0.5
-drag_margin_right = 0.5
+position_smoothing_enabled = true
+position_smoothing_speed = 2.0
+drag_left_margin = 0.5
+drag_right_margin = 0.5
 
-[node name="StateMachine" type="Node" parent="."]
-script = ExtResource( 6 )
+[node name="StateMachine" type="Node" parent="." unique_id=440726761]
+script = ExtResource("6")
 START_STATE = NodePath("Idle")
 
-[node name="Idle" type="Node" parent="StateMachine"]
-script = ExtResource( 7 )
+[node name="Idle" type="Node" parent="StateMachine" unique_id=982417501]
+script = ExtResource("7")
 
-[node name="Walk" type="Node" parent="StateMachine"]
-script = ExtResource( 8 )
+[node name="Walk" type="Node" parent="StateMachine" unique_id=2010156259]
+script = ExtResource("8")
 
-[node name="Attack01" type="Node" parent="StateMachine"]
-script = ExtResource( 10 )
+[node name="Attack01" type="Node" parent="StateMachine" unique_id=392726338]
+script = ExtResource("10")
 
-[node name="Attack02" type="Node" parent="StateMachine"]
-script = ExtResource( 12 )
+[node name="Attack02" type="Node" parent="StateMachine" unique_id=726254767]
+script = ExtResource("12")
 
-[node name="Attack03" type="Node" parent="StateMachine"]
-script = ExtResource( 15 )
+[node name="Attack03" type="Node" parent="StateMachine" unique_id=689136038]
+script = ExtResource("15")
 
-[node name="Attack04" type="Node" parent="StateMachine"]
-script = ExtResource( 16 )
+[node name="Attack04" type="Node" parent="StateMachine" unique_id=994553343]
+script = ExtResource("16")
 
-[node name="Damaged" type="Node" parent="StateMachine"]
-script = ExtResource( 2 )
+[node name="Damaged" type="Node" parent="StateMachine" unique_id=1856387816]
+script = ExtResource("2")
 
-[node name="AttackMana01" type="Node" parent="StateMachine"]
-script = ExtResource( 20 )
+[node name="AttackMana01" type="Node" parent="StateMachine" unique_id=936840450]
+script = ExtResource("20")
 
-[node name="GetLifeBottle" type="Node" parent="StateMachine"]
-script = ExtResource( 23 )
+[node name="GetLifeBottle" type="Node" parent="StateMachine" unique_id=1601911969]
+script = ExtResource("23")
 
-[node name="Gameover" type="Node" parent="StateMachine"]
-script = ExtResource( 25 )
+[node name="Gameover" type="Node" parent="StateMachine" unique_id=1461491262]
+script = ExtResource("25")
 
-[node name="stateDisplay" type="Label" parent="."]
-margin_left = -20.0
-margin_top = -48.0
-margin_right = 20.0
-margin_bottom = -34.0
+[node name="stateDisplay" type="Label" parent="." unique_id=1391894534]
+offset_left = -20.0
+offset_top = -48.0
+offset_right = 20.0
+offset_bottom = -34.0
 text = "dddaa"
-script = ExtResource( 9 )
+script = ExtResource("9")
 
-[node name="ManaFalling" type="Node2D" parent="."]
+[node name="ManaFalling" type="Node2D" parent="." unique_id=243177537]
 visible = false
 
-[node name="ManaFall" parent="ManaFalling" instance=ExtResource( 21 )]
-position = Vector2( -101, -93 )
+[node name="ManaFall" parent="ManaFalling" unique_id=1357890014 instance=ExtResource("21")]
+position = Vector2(-101, -93)
 
-[node name="ManaFall2" parent="ManaFalling" instance=ExtResource( 21 )]
-position = Vector2( -72, -64 )
+[node name="ManaFall2" parent="ManaFalling" unique_id=187544660 instance=ExtResource("21")]
+position = Vector2(-72, -64)
 
-[node name="ManaFall3" parent="ManaFalling" instance=ExtResource( 21 )]
-position = Vector2( -22, -38 )
+[node name="ManaFall3" parent="ManaFalling" unique_id=635827066 instance=ExtResource("21")]
+position = Vector2(-22, -38)
 
-[node name="ManaFall4" parent="ManaFalling" instance=ExtResource( 21 )]
-position = Vector2( 40, -53 )
+[node name="ManaFall4" parent="ManaFalling" unique_id=1915840978 instance=ExtResource("21")]
+position = Vector2(40, -53)
 
-[node name="ManaFall5" parent="ManaFalling" instance=ExtResource( 21 )]
-position = Vector2( 69, -74 )
+[node name="ManaFall5" parent="ManaFalling" unique_id=493775299 instance=ExtResource("21")]
+position = Vector2(69, -74)
 
-[node name="ManaFall6" parent="ManaFalling" instance=ExtResource( 21 )]
-position = Vector2( 108, -96 )
+[node name="ManaFall6" parent="ManaFalling" unique_id=1913269887 instance=ExtResource("21")]
+position = Vector2(108, -96)
 
-[node name="ManaFall7" parent="ManaFalling" instance=ExtResource( 21 )]
-position = Vector2( -54, -108 )
+[node name="ManaFall7" parent="ManaFalling" unique_id=1781452024 instance=ExtResource("21")]
+position = Vector2(-54, -108)
 
-[node name="ManaFall8" parent="ManaFalling" instance=ExtResource( 21 )]
-position = Vector2( -14, -120 )
+[node name="ManaFall8" parent="ManaFalling" unique_id=323668365 instance=ExtResource("21")]
+position = Vector2(-14, -120)
 
-[node name="ManaFall9" parent="ManaFalling" instance=ExtResource( 21 )]
-position = Vector2( 42, -107 )
+[node name="ManaFall9" parent="ManaFalling" unique_id=1790506789 instance=ExtResource("21")]
+position = Vector2(42, -107)
 
-[node name="ManaFall10" parent="ManaFalling" instance=ExtResource( 21 )]
-position = Vector2( 88, -118 )
+[node name="ManaFall10" parent="ManaFalling" unique_id=422984233 instance=ExtResource("21")]
+position = Vector2(88, -118)
 
 [connection signal="animation_finished" from="BodyPivot/AnimationPlayer" to="StateMachine" method="_on_animation_finished"]
 [connection signal="body_entered" from="BodyPivot/HitBox" to="." method="_on_HitBox_body_entered"]

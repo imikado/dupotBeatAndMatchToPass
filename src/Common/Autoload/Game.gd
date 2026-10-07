@@ -27,7 +27,7 @@ func is_debug():
 
 
 func saveHighScore(newScoreValue):
-	var datetimeNow = OS.get_datetime()
+	var datetimeNow = Time.get_datetime_dict_from_system()
 
 	var dateTimeString = (
 		str("%04d" % [datetimeNow.year])
@@ -50,7 +50,7 @@ func saveHighScore(newScoreValue):
 
 	highScoreList.append(newScoreObj)
 
-	var jsonList = JSON.print(highScoreList)
+	var jsonList = JSON.stringify(highScoreList)
 	saveFile(PATH_HIGHSCORE, jsonList)
 
 	pass
@@ -74,30 +74,31 @@ func isHighestScore(highScoreList, askScore):
 
 
 func getHighScoreList():
-	var directory = Directory.new()
-	if !directory.file_exists(PATH_HIGHSCORE):
+	if !FileAccess.file_exists(PATH_HIGHSCORE):
 		return []
 
 	var content = loadFile(PATH_HIGHSCORE)
 
-	var highScoreListParseResult = JSON.parse(content)
+	var highScoreListParseResult = JSON.parse_string(content)
 
-	if typeof(highScoreListParseResult.result) == TYPE_ARRAY:
-		return highScoreListParseResult.result
+	if typeof(highScoreListParseResult) == TYPE_ARRAY:
+		return highScoreListParseResult
 
 	return []
 
 
 func saveFile(filepath, content):
-	var file = File.new()
-	file.open(filepath, File.WRITE)
+	var file = FileAccess.open(filepath, FileAccess.WRITE)
+	if file == null:
+		return
 	file.store_string(content)
 	file.close()
 
 
 func loadFile(filepath):
-	var file = File.new()
-	file.open(filepath, File.READ)
+	var file = FileAccess.open(filepath, FileAccess.READ)
+	if file == null:
+		return ""
 	var content = file.get_as_text()
 	file.close()
 	return content

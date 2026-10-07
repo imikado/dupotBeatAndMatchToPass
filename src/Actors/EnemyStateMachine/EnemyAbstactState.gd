@@ -22,4 +22,4 @@ func die():
 
 func play_animation(animation):
 	print("animation:"+animation)
-	return owner.get_parent().get_node("BodyPivot/AnimationPlayer").play(animation)
+	owner.get_parent().get_node("BodyPivot/AnimationPlayer").play(animation)

@@ -1,336 +1,398 @@
-[gd_scene load_steps=36 format=2]
+[gd_scene format=3]
 
-[ext_resource path="res://src/Actors/SimpleEnemies/Beetle/beetle-attacking01.png" type="Texture" id=1]
-[ext_resource path="res://src/Actors/EnemyStateMachine.tscn" type="PackedScene" id=2]
-[ext_resource path="res://src/Actors/SimpleEnemies/Beetle/beetle-damaged.png" type="Texture" id=3]
-[ext_resource path="res://src/Actors/SimpleEnemies/Beetle/beetle-idle.png" type="Texture" id=4]
-[ext_resource path="res://src/Actors/SimpleEnemies/Beetle/beetle-died.png" type="Texture" id=5]
-[ext_resource path="res://src/Actors/SimpleEnemies/Beetle/beetle-walking.png" type="Texture" id=6]
-[ext_resource path="res://src/Actors/SimpleEnemies/Beetle.gd" type="Script" id=7]
+[ext_resource type="Texture2D" path="res://src/Actors/SimpleEnemies/Beetle/beetle-attacking01.png" id="1"]
+[ext_resource type="PackedScene" path="res://src/Actors/EnemyStateMachine.tscn" id="2"]
+[ext_resource type="Texture2D" path="res://src/Actors/SimpleEnemies/Beetle/beetle-damaged.png" id="3"]
+[ext_resource type="Texture2D" path="res://src/Actors/SimpleEnemies/Beetle/beetle-idle.png" id="4"]
+[ext_resource type="Texture2D" path="res://src/Actors/SimpleEnemies/Beetle/beetle-died.png" id="5"]
+[ext_resource type="Texture2D" path="res://src/Actors/SimpleEnemies/Beetle/beetle-walking.png" id="6"]
+[ext_resource type="Script" path="res://src/Actors/SimpleEnemies/Beetle.gd" id="7"]
 
-[sub_resource type="AtlasTexture" id=58]
-atlas = ExtResource( 1 )
-region = Rect2( 0, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="58"]
+atlas = ExtResource("1")
+region = Rect2(0, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=59]
-atlas = ExtResource( 1 )
-region = Rect2( 64, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="59"]
+atlas = ExtResource("1")
+region = Rect2(64, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=60]
-atlas = ExtResource( 1 )
-region = Rect2( 128, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="60"]
+atlas = ExtResource("1")
+region = Rect2(128, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=61]
-atlas = ExtResource( 1 )
-region = Rect2( 192, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="61"]
+atlas = ExtResource("1")
+region = Rect2(192, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=65]
-atlas = ExtResource( 3 )
-region = Rect2( 0, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="65"]
+atlas = ExtResource("3")
+region = Rect2(0, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=66]
-atlas = ExtResource( 3 )
-region = Rect2( 64, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="66"]
+atlas = ExtResource("3")
+region = Rect2(64, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=67]
-atlas = ExtResource( 3 )
-region = Rect2( 128, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="67"]
+atlas = ExtResource("3")
+region = Rect2(128, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=68]
-atlas = ExtResource( 3 )
-region = Rect2( 192, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="68"]
+atlas = ExtResource("3")
+region = Rect2(192, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=69]
-atlas = ExtResource( 5 )
-region = Rect2( 0, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="69"]
+atlas = ExtResource("5")
+region = Rect2(0, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=70]
-atlas = ExtResource( 5 )
-region = Rect2( 64, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="70"]
+atlas = ExtResource("5")
+region = Rect2(64, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=71]
-atlas = ExtResource( 5 )
-region = Rect2( 128, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="71"]
+atlas = ExtResource("5")
+region = Rect2(128, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=72]
-atlas = ExtResource( 5 )
-region = Rect2( 192, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="72"]
+atlas = ExtResource("5")
+region = Rect2(192, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=55]
-atlas = ExtResource( 4 )
-region = Rect2( 0, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="55"]
+atlas = ExtResource("4")
+region = Rect2(0, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=56]
-atlas = ExtResource( 4 )
-region = Rect2( 64, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="56"]
+atlas = ExtResource("4")
+region = Rect2(64, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=57]
-atlas = ExtResource( 4 )
-region = Rect2( 128, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="57"]
+atlas = ExtResource("4")
+region = Rect2(128, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=62]
-atlas = ExtResource( 6 )
-region = Rect2( 0, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="62"]
+atlas = ExtResource("6")
+region = Rect2(0, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=63]
-atlas = ExtResource( 6 )
-region = Rect2( 64, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="63"]
+atlas = ExtResource("6")
+region = Rect2(64, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id=64]
-atlas = ExtResource( 6 )
-region = Rect2( 128, 0, 64, 64 )
+[sub_resource type="AtlasTexture" id="64"]
+atlas = ExtResource("6")
+region = Rect2(128, 0, 64, 64)
 
-[sub_resource type="SpriteFrames" id=45]
-animations = [ {
-"frames": [ SubResource( 58 ), SubResource( 59 ), SubResource( 60 ), SubResource( 61 ) ],
-"loop": true,
-"name": "attacking01",
+[sub_resource type="SpriteFrames" id="45"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("58")
+}, {
+"duration": 1.0,
+"texture": SubResource("59")
+}, {
+"duration": 1.0,
+"texture": SubResource("60")
+}, {
+"duration": 1.0,
+"texture": SubResource("61")
+}],
+"loop": 1,
+"name": &"attacking01",
 "speed": 5.0
 }, {
-"frames": [ SubResource( 65 ), SubResource( 66 ), SubResource( 67 ), SubResource( 68 ) ],
-"loop": true,
-"name": "damaged",
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("65")
+}, {
+"duration": 1.0,
+"texture": SubResource("66")
+}, {
+"duration": 1.0,
+"texture": SubResource("67")
+}, {
+"duration": 1.0,
+"texture": SubResource("68")
+}],
+"loop": 1,
+"name": &"damaged",
 "speed": 5.0
 }, {
-"frames": [ SubResource( 69 ), SubResource( 70 ), SubResource( 71 ), SubResource( 72 ) ],
-"loop": true,
-"name": "died",
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("69")
+}, {
+"duration": 1.0,
+"texture": SubResource("70")
+}, {
+"duration": 1.0,
+"texture": SubResource("71")
+}, {
+"duration": 1.0,
+"texture": SubResource("72")
+}],
+"loop": 1,
+"name": &"died",
 "speed": 5.0
 }, {
-"frames": [ SubResource( 55 ), SubResource( 56 ), SubResource( 57 ) ],
-"loop": true,
-"name": "idle",
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("55")
+}, {
+"duration": 1.0,
+"texture": SubResource("56")
+}, {
+"duration": 1.0,
+"texture": SubResource("57")
+}],
+"loop": 1,
+"name": &"idle",
 "speed": 5.0
 }, {
-"frames": [ SubResource( 62 ), SubResource( 63 ), SubResource( 64 ) ],
-"loop": true,
-"name": "walking",
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("62")
+}, {
+"duration": 1.0,
+"texture": SubResource("63")
+}, {
+"duration": 1.0,
+"texture": SubResource("64")
+}],
+"loop": 1,
+"name": &"walking",
 "speed": 5.0
-} ]
+}]
 
-[sub_resource type="Animation" id=46]
+[sub_resource type="Animation" id="46"]
 resource_name = "attacking_01_right"
 length = 0.6
 tracks/0/type = "value"
-tracks/0/path = NodePath("BodyPivot/AnimatedSprite:animation")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite2D:animation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ "attacking01" ]
+"values": ["attacking01"]
 }
 tracks/1/type = "value"
-tracks/1/path = NodePath("BodyPivot/AnimatedSprite:frame")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite2D:frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PoolRealArray( 0, 0.1, 0.2, 0.3 ),
-"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 1,
-"values": [ 0, 1, 2, 3 ]
+"values": [0, 1, 2, 3]
 }
 tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
 tracks/2/path = NodePath("BodyPivot/HitBox/CollisionShape2D:disabled")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
-tracks/2/imported = false
-tracks/2/enabled = true
 tracks/2/keys = {
-"times": PoolRealArray( 0, 0.3, 0.4 ),
-"transitions": PoolRealArray( 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.3, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1),
 "update": 1,
-"values": [ true, false, true ]
+"values": [true, false, true]
 }
 
-[sub_resource type="Animation" id=47]
+[sub_resource type="Animation" id="47"]
 resource_name = "damaged"
 length = 0.4
 tracks/0/type = "value"
-tracks/0/path = NodePath("BodyPivot/AnimatedSprite:animation")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite2D:animation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ "damaged" ]
+"values": ["damaged"]
 }
 tracks/1/type = "value"
-tracks/1/path = NodePath("BodyPivot/AnimatedSprite:frame")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite2D:frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PoolRealArray( 0, 0.1, 0.2 ),
-"transitions": PoolRealArray( 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.1, 0.2),
+"transitions": PackedFloat32Array(1, 1, 1),
 "update": 1,
-"values": [ 0, 1, 2 ]
+"values": [0, 1, 2]
 }
 
-[sub_resource type="Animation" id=48]
+[sub_resource type="Animation" id="48"]
 resource_name = "died"
 length = 0.4
 tracks/0/type = "value"
-tracks/0/path = NodePath("BodyPivot/AnimatedSprite:animation")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite2D:animation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ "died" ]
+"values": ["died"]
 }
 tracks/1/type = "value"
-tracks/1/path = NodePath("BodyPivot/AnimatedSprite:frame")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite2D:frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PoolRealArray( 0, 0.1, 0.2, 0.3 ),
-"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 1,
-"values": [ 0, 1, 2, 3 ]
+"values": [0, 1, 2, 3]
 }
 
-[sub_resource type="Animation" id=49]
+[sub_resource type="Animation" id="49"]
 resource_name = "idle"
-loop = true
+loop_mode = 1
 tracks/0/type = "value"
-tracks/0/path = NodePath("BodyPivot/AnimatedSprite:animation")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite2D:animation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ "idle" ]
+"values": ["idle"]
 }
 tracks/1/type = "value"
-tracks/1/path = NodePath("BodyPivot/AnimatedSprite:frame")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite2D:frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PoolRealArray( 0, 0.5, 1 ),
-"transitions": PoolRealArray( 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.5, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
 "update": 1,
-"values": [ 0, 1, 2 ]
+"values": [0, 1, 2]
 }
 
-[sub_resource type="Animation" id=50]
+[sub_resource type="Animation" id="50"]
 resource_name = "walking_right"
-loop = true
+loop_mode = 1
 tracks/0/type = "value"
-tracks/0/path = NodePath("BodyPivot/AnimatedSprite:animation")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
+tracks/0/path = NodePath("BodyPivot/AnimatedSprite2D:animation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PoolRealArray( 0 ),
-"transitions": PoolRealArray( 1 ),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [ "walking" ]
+"values": ["walking"]
 }
 tracks/1/type = "value"
-tracks/1/path = NodePath("BodyPivot/AnimatedSprite:frame")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
 tracks/1/imported = false
 tracks/1/enabled = true
+tracks/1/path = NodePath("BodyPivot/AnimatedSprite2D:frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PoolRealArray( 0, 0.5, 1 ),
-"transitions": PoolRealArray( 1, 1, 1 ),
+"times": PackedFloat32Array(0, 0.5, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
 "update": 1,
-"values": [ 0, 1, 2 ]
+"values": [0, 1, 2]
 }
 
-[sub_resource type="RectangleShape2D" id=51]
-extents = Vector2( 6, 7 )
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_tc711"]
+_data = {
+&"attacking_01_right": SubResource("46"),
+&"damaged": SubResource("47"),
+&"died": SubResource("48"),
+&"idle": SubResource("49"),
+&"walking_right": SubResource("50")
+}
 
-[sub_resource type="StyleBoxFlat" id=52]
-bg_color = Color( 0, 0.513726, 0.188235, 1 )
+[sub_resource type="RectangleShape2D" id="51"]
+size = Vector2(12, 14)
+
+[sub_resource type="StyleBoxFlat" id="53"]
+bg_color = Color(0, 0, 0, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color( 0, 0, 0, 1 )
+border_color = Color(0, 0, 0, 1)
 
-[sub_resource type="StyleBoxFlat" id=53]
-bg_color = Color( 0, 0, 0, 1 )
+[sub_resource type="StyleBoxFlat" id="52"]
+bg_color = Color(0, 0.513726, 0.188235, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color( 0, 0, 0, 1 )
+border_color = Color(0, 0, 0, 1)
 
-[sub_resource type="CapsuleShape2D" id=54]
-radius = 8.00001
+[sub_resource type="CapsuleShape2D" id="54"]
+radius = 0.99999
 height = 1.99998
 
-[node name="Beetle" type="KinematicBody2D"]
+[node name="Beetle" type="CharacterBody2D" unique_id=1679937594]
 collision_layer = 2
 collision_mask = 2
-script = ExtResource( 7 )
+script = ExtResource("7")
 
-[node name="BodyPivot" type="Position2D" parent="."]
+[node name="BodyPivot" type="Marker2D" parent="." unique_id=1738091307]
 
-[node name="AnimatedSprite" type="AnimatedSprite" parent="BodyPivot"]
-position = Vector2( 0, -32 )
-frames = SubResource( 45 )
-animation = "attacking01"
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="BodyPivot" unique_id=1771718952]
+position = Vector2(0, -32)
+sprite_frames = SubResource("45")
+animation = &"attacking01"
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="BodyPivot"]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="BodyPivot" unique_id=1719107470]
 root_node = NodePath("../..")
-anims/attacking_01_right = SubResource( 46 )
-anims/damaged = SubResource( 47 )
-anims/died = SubResource( 48 )
-anims/idle = SubResource( 49 )
-anims/walking_right = SubResource( 50 )
+libraries/ = SubResource("AnimationLibrary_tc711")
 
-[node name="HitBox" type="Area2D" parent="BodyPivot"]
+[node name="HitBox" type="Area2D" parent="BodyPivot" unique_id=347127255]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="BodyPivot/HitBox"]
-position = Vector2( 12, -7 )
-shape = SubResource( 51 )
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BodyPivot/HitBox" unique_id=509243921]
+position = Vector2(12, -7)
+shape = SubResource("51")
 disabled = true
 
-[node name="Control" type="Control" parent="BodyPivot"]
-margin_right = 40.0
-margin_bottom = 40.0
+[node name="Control" type="Control" parent="BodyPivot" unique_id=1624449582]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
 
-[node name="ProgressBar" type="ProgressBar" parent="BodyPivot/Control"]
+[node name="ProgressBar" type="ProgressBar" parent="BodyPivot/Control" unique_id=1290679622]
 visible = false
-margin_left = -22.0
-margin_top = 8.0
-margin_right = 8.0
-margin_bottom = 12.0
-rect_min_size = Vector2( 30, 4 )
-custom_styles/fg = SubResource( 52 )
-custom_styles/bg = SubResource( 53 )
+custom_minimum_size = Vector2(30, 4)
+layout_mode = 0
+offset_left = -22.0
+offset_top = 8.0
+offset_right = 8.0
+offset_bottom = 12.0
+theme_override_styles/background = SubResource("53")
+theme_override_styles/fill = SubResource("52")
 value = 50.0
-percent_visible = false
+show_percentage = false
 
-[node name="EnemyStateMachine" parent="." instance=ExtResource( 2 )]
+[node name="EnemyStateMachine" parent="." unique_id=337676021 instance=ExtResource("2")]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2( -1, -8 )
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1656370678]
+position = Vector2(-1, -8)
 rotation = 1.57079
-shape = SubResource( 54 )
+shape = SubResource("54")
 
-[node name="Timer" type="Timer" parent="."]
+[node name="Timer" type="Timer" parent="." unique_id=1816767190]

@@ -32,4 +32,4 @@ const ANIM_GAMEOVER = "gameover"
 
 
 func play_animation(animation):
-	return owner.get_node("BodyPivot/AnimationPlayer").play(animation)
+	owner.get_node("BodyPivot/AnimationPlayer").play(animation)

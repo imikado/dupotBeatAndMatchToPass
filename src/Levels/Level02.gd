@@ -4,35 +4,35 @@ const MIN_SPAWN_Y = 127
 
 const MAX_ENEMY = 4
 
-onready var _ysort = get_node("YSort")
-onready var _player = get_node("YSort/Player")
-onready var _cameraLimitRect = get_node("CameraLimitRect")
-onready var _hud = get_node("HUD")
-onready var _controls = get_node("Controls")
+@onready var _ysort = get_node("Node2D")
+@onready var _player = get_node("Node2D/Player")
+@onready var _cameraLimitRect = get_node("CameraLimitRect")
+@onready var _hud = get_node("HUD")
+@onready var _controls = get_node("Controls")
 
-onready var _hudScore := get_node("HUD/Position2D")
+@onready var _hudScore := get_node("HUD/Marker2D")
 
-onready var Ant := preload("res://src/Actors/SimpleEnemies/Ant.tscn")
-onready var Beetle := preload("res://src/Actors/SimpleEnemies/Beetle.tscn")
-onready var Spider := preload("res://src/Actors/SimpleEnemies/Spider.tscn")
+@onready var Ant := preload("res://src/Actors/SimpleEnemies/Ant.tscn")
+@onready var Beetle := preload("res://src/Actors/SimpleEnemies/Beetle.tscn")
+@onready var Spider := preload("res://src/Actors/SimpleEnemies/Spider.tscn")
 
-onready var Energie := preload("res://src/Common/Levels/Energy.tscn")
+@onready var Energie := preload("res://src/Common/Levels/Energy.tscn")
 
-onready var ComboPlusOne := preload("res://src/Actors/Players/ComboPlusOne.tscn")
-onready var ComboBonus := preload("res://src/Actors/Players/Player/ComboBonus.tscn")
+@onready var ComboPlusOne := preload("res://src/Actors/Players/ComboPlusOne.tscn")
+@onready var ComboBonus := preload("res://src/Actors/Players/Player/ComboBonus.tscn")
 
-onready var _spawnPositionLeft := get_node("YSort/Player/SpawnPosition2DLeft")
-onready var _spawnPositionLeft2 := get_node("YSort/Player/SpawnPosition2DLeft2")
-onready var _spawnPositionRight := get_node("YSort/Player/SpawnPosition2DRight")
-onready var _spawnPositionRight2 := get_node("YSort/Player/SpawnPosition2DRight2")
+@onready var _spawnPositionLeft := get_node("Node2D/Player/SpawnPosition2DLeft")
+@onready var _spawnPositionLeft2 := get_node("Node2D/Player/SpawnPosition2DLeft2")
+@onready var _spawnPositionRight := get_node("Node2D/Player/SpawnPosition2DRight")
+@onready var _spawnPositionRight2 := get_node("Node2D/Player/SpawnPosition2DRight2")
 
-onready var _spawnTimer := get_node("Timers/SpawnTimer")
-onready var _manaTimer := get_node("Timers/ManaTimer")
-onready var _introTimer := get_node("Timers/IntroTimer")
+@onready var _spawnTimer := get_node("Timers/SpawnTimer")
+@onready var _manaTimer := get_node("Timers/ManaTimer")
+@onready var _introTimer := get_node("Timers/IntroTimer")
 
-onready var _electricalBarriers := get_node("ElectricalBarriers")
+@onready var _electricalBarriers := get_node("ElectricalBarriers")
 
-onready var _specialEffects := get_node("SpecialEffects")
+@onready var _specialEffects := get_node("SpecialEffects")
 
 var _active_barrier_list := []
 
@@ -40,7 +40,7 @@ var _wave_number = 2
 var _total_wave_number = 0
 var _random_combo_count = 0
 
-onready var _wave_array := [
+@onready var _wave_array := [
 	[
 		{"type": Game.ENEMY_TYPE_LIST.ANT, "position": _spawnPositionLeft},
 		{"type": Game.ENEMY_TYPE_LIST.BEETLE, "position": _spawnPositionRight}
@@ -89,28 +89,26 @@ func _ready() -> void:
 
 	_player.set_camera_limit_rect(_cameraLimitRect)
 
-	Events.connect("player_health_changed", self, "_on_player_healt_changed")
-	Events.connect("actor_health_changed", self, "_on_actor_healt_changed")
+	Events.connect("player_health_changed", Callable(self, "_on_player_healt_changed"))
+	Events.connect("actor_health_changed", Callable(self, "_on_actor_healt_changed"))
 
-	Events.connect("actor_took_damage", self, "_on_actor_took_damage")
-	Events.connect("actor_took_damage_by_bullet", self, "_on_actor_took_damage_by_bullet")
+	Events.connect("actor_took_damage", Callable(self, "_on_actor_took_damage"))
+	Events.connect("actor_took_damage_by_bullet", Callable(self, "_on_actor_took_damage_by_bullet"))
 
-	Events.connect("player_launch_mana_attack", self, "_on_player_launch_mana_attack")
+	Events.connect("player_launch_mana_attack", Callable(self, "_on_player_launch_mana_attack"))
 
 	#life bottles
-	Events.connect("player_took_lifebottle", self, "_on_player_took_lifebottle")
+	Events.connect("player_took_lifebottle", Callable(self, "_on_player_took_lifebottle"))
 
-	Events.connect(
-		"player_tookadvantage_of_lifebottle", self, "_on_player_tookadvantage_of_lifebottle"
-	)
+	Events.player_tookadvantage_of_lifebottle.connect(_on_player_tookadvantage_of_lifebottle)
 
-	Events.connect("player_gameover", self, "gameover")
+	Events.connect("player_gameover", Callable(self, "gameover"))
 
 	_manaTimer.start()
 
 	for GroupLoop in _electricalBarriers.get_children():
 		for BarrierLoop in GroupLoop.get_children():
-			BarrierLoop.connect("is_visible", self, "_on_barrier_is_visible", [BarrierLoop])
+			BarrierLoop.connect("is_visible", Callable(self, "_on_barrier_is_visible").bind(BarrierLoop))
 
 	#_active_barrier_list.append(get_node("ElectricalBarriers/01/ElectricalBarrier"))
 	process_spawn()
@@ -149,16 +147,16 @@ func _on_player_healt_changed(newLife: float):
 		Game.saveHighScore(GlobalPlayer.get_score())
 		_player.gameover()
 		get_tree().paused = true
-		_player.pause_mode = Node.PAUSE_MODE_PROCESS
+		_player.process_mode = Node.PROCESS_MODE_ALWAYS
 
 
 func gameover():
 	get_tree().paused = false
-	get_tree().change_scene("res://src/UI/GameOver.tscn")
+	get_tree().change_scene_to_file("res://src/UI/GameOver.tscn")
 
 
 func manage_combo_for_actor(actor):
-	var new_combo_plus_one = ComboPlusOne.instance()
+	var new_combo_plus_one = ComboPlusOne.instantiate()
 	new_combo_plus_one.global_position = actor.global_position + Vector2(0, -20)
 
 	var combo_count = actor.get_combo_count()
@@ -177,23 +175,23 @@ func manage_combo_for_actor(actor):
 		#delta_position.x=25
 		delta_position.y = -25
 
-		var new_combo_bonus = ComboBonus.instance()
+		var new_combo_bonus = ComboBonus.instantiate()
 		new_combo_bonus.global_position = actor.global_position + Vector2(0, -50)
-		new_combo_bonus.connect("combo_arrived", self, "_on_combo_bonus_finished")
+		new_combo_bonus.connect("combo_arrived", Callable(self, "_on_combo_bonus_finished"))
 		new_combo_bonus.set_target(_hudScore)
-		new_combo_bonus.set_as_toplevel(true)
+		new_combo_bonus.set_as_top_level(true)
 
 		_specialEffects.add_child(new_combo_bonus)
 
 	new_combo_plus_one.global_position += delta_position
 
-	new_combo_plus_one.set_as_toplevel(true)
+	new_combo_plus_one.set_as_top_level(true)
 	_specialEffects.add_child(new_combo_plus_one)
 
 	actor.increment_combo_count()
 
 
-func _on_actor_healt_changed(actor: KinematicBody2D, previous_value: float, new_value: float):
+func _on_actor_healt_changed(actor: CharacterBody2D, previous_value: float, new_value: float):
 	actor.update_enemy_life(previous_value, new_value)
 
 	if _player.is_combo():
@@ -205,7 +203,7 @@ func _on_actor_healt_changed(actor: KinematicBody2D, previous_value: float, new_
 	if new_value <= 0.0:
 		increment_score(10)
 
-		var new_energy = Energie.instance()
+		var new_energy = Energie.instantiate()
 		new_energy.global_position = actor.global_position
 		add_child(new_energy)
 		var barrier_target = find_barrier_for_actor(actor)
@@ -228,7 +226,7 @@ func _on_combo_bonus_finished():
 	increment_score(10)
 
 
-func find_barrier_for_actor(actor: KinematicBody2D):
+func find_barrier_for_actor(actor: CharacterBody2D):
 	var near_x = 0
 	var nearer_barrier = null
 
@@ -262,7 +260,7 @@ func _on_actor_took_damage_by_bullet(actor, damage, bullet):
 
 
 func spawn_enemy_on_position(enemy_to_spawn, spawn_position, offset = Vector2.ZERO):
-	var enemy_spawn = enemy_to_spawn.instance()
+	var enemy_spawn = enemy_to_spawn.instantiate()
 
 	var active_barrier = find_barrier_for_actor(enemy_spawn)
 	if active_barrier == null:
@@ -365,7 +363,7 @@ func update_mana_button():
 
 func _on_Gate_player_entered_gate() -> void:
 	print("next level")
-	get_tree().change_scene("res://src/UI/LevelCompleted.tscn")
+	get_tree().change_scene_to_file("res://src/UI/LevelCompleted.tscn")
 	pass  # Replace with function body.
 
 

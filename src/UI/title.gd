@@ -10,7 +10,7 @@ func _ready():
 		Game.setControlsEnabled(false)
 		pass
 		
-	yield(get_tree().create_timer(2.0), "timeout")
+	await get_tree().create_timer(2.0).timeout
 	_on_Timer_timeout()
 	pass # Replace with function body.
 
@@ -21,5 +21,5 @@ func _ready():
 
 
 func _on_Timer_timeout():
-	get_tree().change_scene("res://src/UI/menu.tscn")
+	get_tree().change_scene_to_file("res://src/UI/menu.tscn")
 	pass # Replace with function body.

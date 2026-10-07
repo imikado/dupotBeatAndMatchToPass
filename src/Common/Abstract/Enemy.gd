@@ -2,7 +2,7 @@ class_name Enemy
 extends Actor
 
 
-var _player : KinematicBody2D
+var _player : CharacterBody2D
 var _near_distance:=10
 var _damage:=10
 const MAX_LIFE=50.0
@@ -11,14 +11,14 @@ var _type= Game.ENEMY_TYPE_LIST.ANT
 
 var _combo_count=0
 
-onready var _animationPlayer:=get_node("BodyPivot/AnimationPlayer")
-onready var _stateMachine := get_node("EnemyStateMachine")
-onready var _enemy_progress_bar := get_node("BodyPivot/Control/ProgressBar")
-onready var _timer:=get_node("Timer")
+@onready var _animationPlayer:=get_node("BodyPivot/AnimationPlayer")
+@onready var _stateMachine := get_node("EnemyStateMachine")
+@onready var _enemy_progress_bar := get_node("BodyPivot/Control/ProgressBar")
+@onready var _timer:=get_node("Timer")
 
-onready var _hitBox:=get_node("BodyPivot/HitBox")
+@onready var _hitBox:=get_node("BodyPivot/HitBox")
 
-var look_direction = Vector2(1, 0) setget set_look_direction
+var look_direction = Vector2(1, 0): set = set_look_direction
 
 func increment_combo_count():
 	_combo_count+=1
@@ -42,7 +42,7 @@ func update_enemy_life(start_value:float, end_value:float)->void:
 	# repeatedly call the `_update_health_bar()` method on this node.
 	
 	var tween := create_tween()
-	tween.tween_method(self,"_update_enemy_health_bar", start_value, health, 0.33)
+	tween.tween_method(Callable(self, "_update_enemy_health_bar"), start_value, health, 0.33)
 	
 	
 	#yield(get_tree().create_timer(1.0), "timeout")
@@ -64,18 +64,18 @@ func set_look_direction(value):
 	look_direction = value
 
 	
-func setPlayer(player: KinematicBody2D):
+func setPlayer(player: CharacterBody2D):
 	_player= player
 	set_physics_process(true)
 
 	
 func _ready() -> void:
-	_animationPlayer.connect("animation_finished",_stateMachine,"_on_animation_finished")
+	_animationPlayer.connect("animation_finished", Callable(_stateMachine, "_on_animation_finished"))
 	_stateMachine.set_state_walk()
 	
 	_enemy_progress_bar.set_max(MAX_LIFE)
-	_hitBox.connect("body_entered",self,"_on_HitBox_body_entered")
-	_timer.connect("timeout",self,"hide_progressbar")
+	_hitBox.connect("body_entered", Callable(self, "_on_HitBox_body_entered"))
+	_timer.connect("timeout", Callable(self, "hide_progressbar"))
 	
 	
 func get_life():
@@ -97,8 +97,8 @@ func took_damage(damage:int):
 	_stateMachine.set_state_damaged()
 	
 	var tween := create_tween()
-	tween.tween_property(self,"modulate",Color.red,0.3)
-	tween.tween_property(self,"modulate",Color.white,0.2)
+	tween.tween_property(self,"modulate",Color.RED,0.3)
+	tween.tween_property(self,"modulate",Color.WHITE,0.2)
 	
 		
 	if get_life() <= 0.0:

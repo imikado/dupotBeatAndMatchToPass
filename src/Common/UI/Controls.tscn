@@ -1,59 +1,59 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene format=3]
 
-[ext_resource path="res://src/Common/UI/Controls/Arrow.png" type="Texture" id=1]
-[ext_resource path="res://src/Common/UI/Controls/Attack01.png" type="Texture" id=2]
-[ext_resource path="res://src/Common/UI/Controls/Attack02.png" type="Texture" id=3]
-[ext_resource path="res://src/Common/UI/Controls.gd" type="Script" id=4]
-[ext_resource path="res://src/Common/UI/Controls/ArrowPressed.png" type="Texture" id=5]
-[ext_resource path="res://src/Common/UI/Controls/Attack02Pressed.png" type="Texture" id=6]
-[ext_resource path="res://src/Common/UI/Controls/Attack01Pressed.png" type="Texture" id=7]
-[ext_resource path="res://src/Common/UI/joystick-big.tscn" type="PackedScene" id=8]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Arrow.png" id="1"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Attack01.png" id="2"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Attack02.png" id="3"]
+[ext_resource type="Script" path="res://src/Common/UI/Controls.gd" id="4"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/ArrowPressed.png" id="5"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Attack02Pressed.png" id="6"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Attack01Pressed.png" id="7"]
+[ext_resource type="PackedScene" path="res://src/Common/UI/joystick-big.tscn" id="8"]
 
-[node name="Controls" type="CanvasLayer"]
-script = ExtResource( 4 )
+[node name="Controls" type="CanvasLayer" unique_id=995688000]
+script = ExtResource("4")
 
-[node name="left" type="TouchScreenButton" parent="."]
+[node name="left" type="TouchScreenButton" parent="." unique_id=518661993]
 visible = false
-position = Vector2( 24, 176 )
+position = Vector2(24, 176)
 rotation = 3.14159
-normal = ExtResource( 1 )
-pressed = ExtResource( 5 )
+texture_normal = ExtResource("1")
+texture_pressed = ExtResource("5")
 action = "move_left"
 
-[node name="right" type="TouchScreenButton" parent="."]
+[node name="right" type="TouchScreenButton" parent="." unique_id=812539652]
 visible = false
-position = Vector2( 56, 160 )
-normal = ExtResource( 1 )
-pressed = ExtResource( 5 )
+position = Vector2(56, 160)
+texture_normal = ExtResource("1")
+texture_pressed = ExtResource("5")
 action = "move_right"
 
-[node name="up" type="TouchScreenButton" parent="."]
+[node name="up" type="TouchScreenButton" parent="." unique_id=1117812866]
 visible = false
-position = Vector2( 32, 152 )
+position = Vector2(32, 152)
 rotation = -1.5708
-normal = ExtResource( 1 )
-pressed = ExtResource( 5 )
+texture_normal = ExtResource("1")
+texture_pressed = ExtResource("5")
 action = "move_up"
 
-[node name="down" type="TouchScreenButton" parent="."]
+[node name="down" type="TouchScreenButton" parent="." unique_id=2044028295]
 visible = false
-position = Vector2( 48, 160 )
+position = Vector2(48, 160)
 rotation = 1.5708
-normal = ExtResource( 1 )
-pressed = ExtResource( 5 )
+texture_normal = ExtResource("1")
+texture_pressed = ExtResource("5")
 action = "move_down"
 
-[node name="attack1" type="TouchScreenButton" parent="."]
-position = Vector2( 264, 160 )
-normal = ExtResource( 2 )
-pressed = ExtResource( 7 )
+[node name="attack1" type="TouchScreenButton" parent="." unique_id=863766938]
+position = Vector2(264, 160)
+texture_normal = ExtResource("2")
+texture_pressed = ExtResource("7")
 action = "attack"
 
-[node name="manaAttack" type="TouchScreenButton" parent="."]
-position = Vector2( 296, 160 )
-normal = ExtResource( 3 )
-pressed = ExtResource( 6 )
+[node name="manaAttack" type="TouchScreenButton" parent="." unique_id=1472968989]
+position = Vector2(296, 160)
+texture_normal = ExtResource("3")
+texture_pressed = ExtResource("6")
 action = "attack_mana"
 
-[node name="joystick-big" parent="." instance=ExtResource( 8 )]
-position = Vector2( 33, 147 )
+[node name="joystick-big" parent="." unique_id=2041500792 instance=ExtResource("8")]
+position = Vector2(33, 147)

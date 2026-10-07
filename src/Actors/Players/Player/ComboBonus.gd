@@ -1,4 +1,4 @@
-extends AnimatedSprite
+extends AnimatedSprite2D
 
 signal combo_arrived
 
@@ -18,7 +18,7 @@ func _on_ComboBonus_animation_finished() -> void:
 	var tween = create_tween()
 	tween.tween_property(self,"global_position",_target.global_position,1)
 	
-	tween.connect("finished",self,"_on_combo_finished")
+	tween.connect("finished", Callable(self, "_on_combo_finished"))
 
 func _on_combo_finished()->void:
 	queue_free()

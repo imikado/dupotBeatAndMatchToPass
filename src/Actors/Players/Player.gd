@@ -11,16 +11,16 @@ const STATE_ATTACK04 = "Attack04"
 var _damage = 10
 
 #onready var _animationTree := get_node("AnimationTree")
-onready var _camera := get_node("Camera2D")
-onready var _stateDisplay := get_node("stateDisplay")
+@onready var _camera := get_node("Camera2D")
+@onready var _stateDisplay := get_node("stateDisplay")
 
-onready var _hitBox := get_node("BodyPivot/HitBox/CollisionShape2D")
+@onready var _hitBox := get_node("BodyPivot/HitBox/CollisionShape2D")
 
-onready var _stateMachine := get_node("StateMachine")
+@onready var _stateMachine := get_node("StateMachine")
 
-onready var _manaFalling := get_node("ManaFalling")
+@onready var _manaFalling := get_node("ManaFalling")
 
-var look_direction = Vector2(1, 0) setget set_look_direction
+var look_direction = Vector2(1, 0): set = set_look_direction
 
 var _cameraLimitRect: ReferenceRect
 
@@ -56,8 +56,8 @@ func took_damage(damage: int):
 	_stateMachine.set_damaged()
 
 	var tween = create_tween()
-	tween.tween_property(self, "modulate", Color.red, 0.2)
-	tween.tween_property(self, "modulate", Color.white, 0.2)
+	tween.tween_property(self, "modulate", Color.RED, 0.2)
+	tween.tween_property(self, "modulate", Color.WHITE, 0.2)
 
 
 func get_life_bottle():
@@ -70,17 +70,17 @@ func gameover():
 
 func blink_green():
 	var tween = create_tween()
-	tween.tween_property(self, "modulate", Color.green, 0.2)
-	tween.tween_property(self, "modulate", Color.white, 0.1)
-	tween.tween_property(self, "modulate", Color.green, 0.2)
-	tween.tween_property(self, "modulate", Color.white, 0.2)
+	tween.tween_property(self, "modulate", Color.GREEN, 0.2)
+	tween.tween_property(self, "modulate", Color.WHITE, 0.1)
+	tween.tween_property(self, "modulate", Color.GREEN, 0.2)
+	tween.tween_property(self, "modulate", Color.WHITE, 0.2)
 
 
 func set_camera_limit_rect(referenceRect: ReferenceRect):
 	_cameraLimitRect = referenceRect
 
-	var cameraLimitRectGlobalPosition = _cameraLimitRect.rect_global_position
-	var cameraLimitRectSize = _cameraLimitRect.rect_size + cameraLimitRectGlobalPosition
+	var cameraLimitRectGlobalPosition = _cameraLimitRect.global_position
+	var cameraLimitRectSize = _cameraLimitRect.size + cameraLimitRectGlobalPosition
 
 	_camera.limit_left = cameraLimitRectGlobalPosition.x
 	_camera.limit_top = cameraLimitRectGlobalPosition.y

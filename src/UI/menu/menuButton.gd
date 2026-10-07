@@ -1,9 +1,9 @@
 extends TouchScreenButton
 
-export var title="text"
-onready var _label=$Label
+@export var title="text"
+@onready var _label=$Label
 
-onready var _lifeBottle=$lifeBottle
+@onready var _lifeBottle=$lifeBottle
 
 func _ready() -> void:
 	_label.text=title.to_upper()
@@ -14,7 +14,7 @@ func select()->void:
 	_lifeBottle.play()
 	pass
 	
-func unselect()->void:
+func deselect()->void:
 	_lifeBottle.visible=false
 	_lifeBottle.stop()
 	pass

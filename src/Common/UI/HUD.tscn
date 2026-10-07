@@ -1,124 +1,115 @@
-[gd_scene load_steps=10 format=2]
+[gd_scene format=3]
 
-[ext_resource path="res://src/Common/UI/HUD.gd" type="Script" id=1]
-[ext_resource path="res://src/Common/UI/fonts/Pixeled.ttf" type="DynamicFontData" id=2]
-[ext_resource path="res://src/Common/UI/hud/icon-player.png" type="Texture" id=3]
-[ext_resource path="res://src/Common/UI/theme.tres" type="Theme" id=4]
+[ext_resource type="Script" path="res://src/Common/UI/HUD.gd" id="1"]
+[ext_resource type="FontFile" path="res://src/Common/UI/fonts/Pixeled.ttf" id="2"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/hud/icon-player.png" id="3"]
+[ext_resource type="Theme" path="res://src/Common/UI/theme.tres" id="4"]
 
-[sub_resource type="StyleBoxFlat" id=39]
-bg_color = Color( 0.164706, 0.498039, 0, 1 )
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color( 0, 0, 0, 1 )
+[sub_resource type="StyleBoxFlat" id="40"]
+bg_color = Color(0, 0, 0, 1)
 corner_radius_top_left = 2
 corner_radius_top_right = 2
 corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id=40]
-bg_color = Color( 0, 0, 0, 1 )
+[sub_resource type="StyleBoxFlat" id="39"]
+bg_color = Color(0.164706, 0.498039, 0, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 1)
 corner_radius_top_left = 2
 corner_radius_top_right = 2
 corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id=41]
-bg_color = Color( 0.0196078, 0.0862745, 0.627451, 1 )
+[sub_resource type="StyleBoxFlat" id="42"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="41"]
+bg_color = Color(0.0196078, 0.0862745, 0.627451, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color( 0, 0, 0, 1 )
+border_color = Color(0, 0, 0, 1)
 corner_radius_top_left = 2
 corner_radius_top_right = 2
 corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
 
-[sub_resource type="StyleBoxFlat" id=42]
-bg_color = Color( 0, 0, 0, 1 )
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
+[sub_resource type="FontVariation" id="3"]
+base_font = ExtResource("2")
 
-[sub_resource type="DynamicFont" id=3]
-use_mipmaps = true
-use_filter = true
-font_data = ExtResource( 2 )
+[node name="HUD" type="CanvasLayer" unique_id=911642530]
+script = ExtResource("1")
 
-[node name="HUD" type="CanvasLayer"]
-script = ExtResource( 1 )
-__meta__ = {
-"_edit_horizontal_guides_": [ 25.0 ]
-}
-
-[node name="Icon" type="TextureRect" parent="."]
-margin_right = 20.0
-margin_bottom = 22.0
-rect_min_size = Vector2( 20, 0 )
-texture = ExtResource( 3 )
+[node name="Icon" type="TextureRect" parent="." unique_id=348695475]
+custom_minimum_size = Vector2(20, 0)
+offset_right = 20.0
+offset_bottom = 22.0
+texture = ExtResource("3")
 stretch_mode = 6
 
-[node name="Control" type="Control" parent="."]
-margin_left = 29.0
-margin_top = 3.0
-margin_right = 69.0
-margin_bottom = 43.0
-__meta__ = {
-"_edit_group_": true
-}
+[node name="Control" type="Control" parent="." unique_id=1637275193]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 29.0
+offset_top = 3.0
+offset_right = 69.0
+offset_bottom = 43.0
 
-[node name="LifeProgressBar" type="ProgressBar" parent="Control"]
-margin_right = 100.0
-margin_bottom = 10.0
-rect_min_size = Vector2( 100, 10 )
+[node name="LifeProgressBar" type="ProgressBar" parent="Control" unique_id=1160583269]
+custom_minimum_size = Vector2(100, 10)
+layout_mode = 0
+offset_right = 100.0
+offset_bottom = 10.0
 size_flags_vertical = 4
-custom_styles/fg = SubResource( 39 )
-custom_styles/bg = SubResource( 40 )
-percent_visible = false
-__meta__ = {
-"_edit_group_": true
-}
+theme_override_styles/background = SubResource("40")
+theme_override_styles/fill = SubResource("39")
+show_percentage = false
 
-[node name="ManaProgressBar" type="ProgressBar" parent="Control"]
-margin_top = 14.0
-margin_right = 80.0
-margin_bottom = 20.0
-rect_min_size = Vector2( 80, 6 )
+[node name="ManaProgressBar" type="ProgressBar" parent="Control" unique_id=1493417315]
+custom_minimum_size = Vector2(80, 6)
+layout_mode = 0
+offset_top = 14.0
+offset_right = 80.0
+offset_bottom = 20.0
 size_flags_horizontal = 0
-custom_styles/fg = SubResource( 41 )
-custom_styles/bg = SubResource( 42 )
+theme_override_styles/background = SubResource("42")
+theme_override_styles/fill = SubResource("41")
 max_value = 80.0
-percent_visible = false
-__meta__ = {
-"_edit_group_": true
-}
+show_percentage = false
 
-[node name="score" type="Label" parent="."]
-margin_left = 137.0
-margin_top = -13.0
-margin_right = 205.0
-margin_bottom = 33.0
+[node name="score" type="Label" parent="." unique_id=1925335038]
+offset_left = 137.0
+offset_top = -13.0
+offset_right = 205.0
+offset_bottom = 33.0
 grow_vertical = 0
 size_flags_horizontal = 0
 size_flags_vertical = 1
-custom_fonts/font = SubResource( 3 )
+theme_override_fonts/font = SubResource("3")
+theme_override_font_sizes/font_size = 16
 text = "0000"
-valign = 1
+vertical_alignment = 1
 
-[node name="level" type="Label" parent="."]
-margin_left = 217.0
-margin_right = 317.0
-margin_bottom = 23.0
+[node name="level" type="Label" parent="." unique_id=947313916]
+offset_left = 217.0
+offset_right = 317.0
+offset_bottom = 23.0
 grow_horizontal = 0
-theme = ExtResource( 4 )
-custom_colors/font_color = Color( 1, 1, 1, 1 )
+theme = ExtResource("4")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "Level 02"
-align = 2
+horizontal_alignment = 2
 
-[node name="Position2D" type="Position2D" parent="."]
-position = Vector2( 152, 14 )
+[node name="Marker2D" type="Marker2D" parent="." unique_id=822439506]
+position = Vector2(152, 14)

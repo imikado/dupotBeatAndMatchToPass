@@ -1,21 +1,21 @@
 extends Control
 
 
-onready var _menuButton:=get_node("menuButton")
+@onready var _menuButton:=get_node("menuButton")
 
-onready var _controlsBoxEnabled :=get_node("Control/VBoxContainer/HBoxContainer/contolsEnabled")
-onready var _controlsBoxDisabled :=get_node("Control/VBoxContainer/HBoxContainer/contolsDisabled")
+@onready var _controlsBoxEnabled :=get_node("Control/VBoxContainer/HBoxContainer/contolsEnabled")
+@onready var _controlsBoxDisabled :=get_node("Control/VBoxContainer/HBoxContainer/contolsDisabled")
 
-onready var _controlsMap := get_node("controlsMap")
+@onready var _controlsMap := get_node("controlsMap")
 
-onready var _modal:=get_node("modalKey")
+@onready var _modal:=get_node("modalKey")
 
 var recordingEnabled=false
 var recordingAction
 
 func _ready() -> void:
 	close_modal()
-	_menuButton.connect("released",self,"goto_menu")
+	_menuButton.connect("released", Callable(self, "goto_menu"))
 	_menuButton.select()
 	
 	update_controlsEnabled_toggle(Game.isControlsEnabled())
@@ -39,7 +39,7 @@ func close_controlsMap():
 
 
 func goto_menu():
-	get_tree().change_scene("res://src/UI/menu.tscn")
+	get_tree().change_scene_to_file("res://src/UI/menu.tscn")
 
 
 func update_controlsEnabled_toggle(enabled: bool) -> void:
@@ -71,11 +71,11 @@ func record_keymap(action):
 	recordingEnabled=true
 	open_modal()
 	
-func _unhandled_key_input(event: InputEventKey) -> void:
+func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and recordingEnabled:
 		
 		var ev = InputEventKey.new()
-		ev.scancode =event.scancode
+		ev.keycode =event.keycode
 		
 		#if InputMap.has_action(recordingAction):
 		#	InputMap.erase_action(recordingAction)

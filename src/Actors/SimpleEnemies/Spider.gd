@@ -1,9 +1,9 @@
 extends Enemy
 
-onready var Bullet = preload("res://src/Actors/SimpleEnemies/Spider/Bullet.tscn")
-onready var BulletSpawnPosition= get_node("BodyPivot/BulletSpawnPosition")
+@onready var Bullet = preload("res://src/Actors/SimpleEnemies/Spider/Bullet.tscn")
+@onready var BulletSpawnPosition= get_node("BodyPivot/BulletSpawnPosition")
 
-onready var _bodyPivot:=get_node("BodyPivot")
+@onready var _bodyPivot:=get_node("BodyPivot")
 
 
 func _init() -> void:
@@ -18,7 +18,7 @@ func attack():
 	
 func spawn_bullet():
 	var side
-	var new_bullet= Bullet.instance()
+	var new_bullet= Bullet.instantiate()
 		
 	if _player.global_position.x < global_position.x:
 		side=new_bullet.LEFT

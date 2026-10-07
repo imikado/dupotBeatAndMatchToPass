@@ -6,7 +6,7 @@ const WALKING_LEFT:="walking_left"
 const ATTACKING_1_RIGHT:="attacking01_right"
 const ATTACKING_1_LEFT:="attacking01_left"
 
-onready var playback: AnimationNodeStateMachinePlayback = get("parameters/playback")
+@onready var playback: AnimationNodeStateMachinePlayback = get("parameters/playback")
 
 var _state:=IDLE
 

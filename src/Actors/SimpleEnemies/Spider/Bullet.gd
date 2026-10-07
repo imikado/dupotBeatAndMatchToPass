@@ -1,4 +1,4 @@
-extends KinematicBody2D
+extends CharacterBody2D
 
 const LEFT="left"
 const RIGHT="right"
@@ -9,7 +9,7 @@ var _damage=20
 
 var _is_finishing=false
 
-onready var _animation = get_node("AnimatedSprite")
+@onready var _animation = get_node("AnimatedSprite2D")
 
 
 

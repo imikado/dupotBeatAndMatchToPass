@@ -34,6 +34,7 @@ func _ready():
 	}
 	
 	START_STATE=STATE_IDLE
+	super._ready()
 
 func _change_state(state_name):
 	
@@ -46,11 +47,5 @@ func _change_state(state_name):
 	if state_name in [STATE_ATTACK01,STATE_DAMAGED]:
 		states_stack.push_front(states_map[state_name])
 	
-	._change_state(state_name)
+	super._change_state(state_name)
 
-func _input(event):
-	"""
-	Here we only handle input that can interrupt states, attacking in this case
-	otherwise we let the state node handle it
-	"""
-	current_state.handle_input(event)
