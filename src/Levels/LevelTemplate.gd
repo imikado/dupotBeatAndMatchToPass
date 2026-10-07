@@ -2,6 +2,8 @@ extends Node2D
 
 const MIN_SPAWN_Y = 127
 
+const LIFE_BOTTLE_HEAL = 30
+
 const MAX_ENEMY = 5
 
 @onready var _ysort = get_node("Node2D")
@@ -42,6 +44,12 @@ const MAX_ENEMY = 5
 @onready var _lifeBottles:=get_node("lifeBottles")
 
 var _active_barrier_list := []
+
+var _opened_barrier_count := 0
+var _total_barrier_count := 0
+var _was_mana_ready := false
+
+var _pause_menu: PauseMenu
 
 var _wave_number = 0
 var _total_wave_number = 0
@@ -140,14 +148,24 @@ func _ready() -> void:
 
 	#GlobalPlayer.set_level(1)
 	GlobalPlayer.update_life(GlobalPlayer.START_LIFE)
+	_player.set_life(GlobalPlayer.life)
 
 	_hud.update_player_life(GlobalPlayer.life)
 	_hud.update_score(GlobalPlayer.get_score())
 	_hud.update_player_mana(GlobalPlayer.mana)
 
+	_was_mana_ready = GlobalPlayer.can_use_amount_mana(GlobalPlayer.attack_amount_mana)
 	update_mana_button()
+	_hud.update_streak(GlobalPlayer.kill_streak, GlobalPlayer.get_multiplier())
 
 	_player.set_camera_limit_rect(_cameraLimitRect)
+
+	_pause_menu = PauseMenu.new()
+	add_child(_pause_menu)
+
+	Sound.play_music()
+	Sound.play("go", 0.0)
+	_hud.show_banner("LEVEL " + ("%02d" % GlobalPlayer.get_level()), "MATCH THE ENEMIES TO OPEN THE BARRIERS", Color("ffd34d"), 1.8)
 
 	Events.connect("player_health_changed", Callable(self, "_on_player_healt_changed"))
 	Events.connect("actor_health_changed", Callable(self, "_on_actor_healt_changed"))
@@ -169,14 +187,23 @@ func _ready() -> void:
 	for GroupLoop in _electricalBarriers.get_children():
 		for BarrierLoop in GroupLoop.get_children():
 			BarrierLoop.connect("is_visible", Callable(self, "_on_barrier_is_visible").bind(BarrierLoop))
+			BarrierLoop.opened.connect(_on_barrier_opened)
+			_total_barrier_count += 1
 
 	#_active_barrier_list.append(get_node("ElectricalBarriers/01/ElectricalBarrier"))
 	process_spawn()
 	process_spawn()
 
 func _input(event: InputEvent) -> void:
-	if Game.isInputEscapeButton(event):
-		get_tree().change_scene_to_file("res://src/UI/menu.tscn")
+	if Game.isInputPauseButton(event) and GlobalPlayer.life > 0 and not _pause_menu.is_open():
+		_pause_menu.open()
+		get_viewport().set_input_as_handled()
+
+
+func _notification(what: int) -> void:
+	# Android back button / window focus lost: pause instead of losing the run
+	if (what == NOTIFICATION_WM_GO_BACK_REQUEST or what == NOTIFICATION_APPLICATION_FOCUS_OUT) and is_inside_tree() and _pause_menu and GlobalPlayer.life > 0:
+		_pause_menu.open()
 
 
 func build_level():
@@ -228,13 +255,14 @@ func build_level():
 
 #life bottles
 func _on_player_took_lifebottle(bottle) -> void:
+	Sound.play("bottle", 0.0)
+	Fx.floating_text(_specialEffects, "+" + str(LIFE_BOTTLE_HEAL) + " HP", _player.global_position + Vector2(0, -30), Color("7bed9f"))
 	_player.get_life_bottle()
 	bottle.queue_free()
 
 
 func _on_player_tookadvantage_of_lifebottle() -> void:
-	GlobalPlayer.update_life(GlobalPlayer.life + 10)
-	_hud.update_player_life(GlobalPlayer.life)
+	_player.heal(LIFE_BOTTLE_HEAL)
 
 
 func _on_barrier_is_visible(barrier):
@@ -250,7 +278,30 @@ func _on_barrier_is_visible(barrier):
 		_spawnTimer.start()
 
 
+func _on_barrier_opened(barrier) -> void:
+	_opened_barrier_count += 1
+	_player.shake_camera(3.0, 0.3)
+
+	var is_group_open = true
+	for sibling in barrier.get_parent().get_children():
+		if not sibling.is_open():
+			is_group_open = false
+
+	if _opened_barrier_count >= _total_barrier_count:
+		_hud.show_banner("THE GATE IS OPEN!", "GO RIGHT >>>", Color("7fdbff"))
+	elif is_group_open:
+		_hud.show_banner("WAY CLEAR!", "GO RIGHT >>>", Color("7fdbff"))
+	else:
+		_hud.show_banner("BARRIER OPEN!", "", Color("7fdbff"), 0.8)
+
+
 func _on_player_healt_changed(newLife: float):
+	if newLife < GlobalPlayer.life and GlobalPlayer.kill_streak > 0:
+		if GlobalPlayer.get_multiplier() > 1:
+			Fx.floating_text(_specialEffects, "COMBO LOST", _player.global_position + Vector2(0, -30), Color("ff4d4d"))
+		GlobalPlayer.reset_streak()
+		_hud.update_streak(GlobalPlayer.kill_streak, GlobalPlayer.get_multiplier())
+
 	GlobalPlayer.update_life(newLife)
 	_hud.update_player_life(GlobalPlayer.life)
 
@@ -264,7 +315,7 @@ func _on_player_healt_changed(newLife: float):
 
 func gameover():
 	get_tree().paused = false
-	get_tree().change_scene_to_file("res://src/UI/GameOver.tscn")
+	Transition.goto("res://src/UI/GameOver.tscn")
 
 
 func manage_combo_for_actor(actor):
@@ -292,6 +343,7 @@ func manage_combo_for_actor(actor):
 		new_combo_bonus.connect("combo_arrived", Callable(self, "_on_combo_bonus_finished"))
 		new_combo_bonus.set_target(_hudScore)
 		new_combo_bonus.set_as_top_level(true)
+		Sound.play("combo", 0.0)
 
 		_specialEffects.add_child(new_combo_bonus)
 
@@ -313,7 +365,18 @@ func _on_actor_healt_changed(actor: CharacterBody2D, previous_value: float, new_
 		actor.reset_combo_count()
 
 	if new_value <= 0.0:
-		increment_score(10)
+		var multiplier = GlobalPlayer.register_kill()
+		var points = 10 * multiplier
+		increment_score(points)
+		_hud.update_streak(GlobalPlayer.kill_streak, multiplier)
+
+		var text_color = Color.WHITE if multiplier == 1 else Color("ffd34d")
+		Fx.floating_text(_specialEffects, "+" + str(points), actor.global_position + Vector2(0, -24), text_color)
+		Fx.burst(_specialEffects, actor.global_position + Vector2(0, -6), Fx.enemy_color(actor.get_type()))
+		Sound.play("enemy_die")
+
+		Game.hit_stop(0.06)
+		_player.shake_camera(2.0, 0.1)
 
 		var new_energy = Energie.instantiate()
 		new_energy.global_position = actor.global_position
@@ -467,13 +530,19 @@ func _on_player_launch_mana_attack() -> void:
 
 
 func update_mana_button():
-	if GlobalPlayer.can_use_amount_mana(GlobalPlayer.attack_amount_mana):
+	var is_mana_ready = GlobalPlayer.can_use_amount_mana(GlobalPlayer.attack_amount_mana)
+	if is_mana_ready:
 		_controls.enable_mana_button()
 	else:
 		_controls.disable_mana_button()
 
+	if is_mana_ready and not _was_mana_ready:
+		Sound.play("mana_ready", 0.0)
+		Fx.floating_text(_specialEffects, "MANA READY", _player.global_position + Vector2(0, -36), Color("74b9ff"))
+	_was_mana_ready = is_mana_ready
+
 
 func _on_Gate_player_entered_gate() -> void:
 	
-	get_tree().change_scene_to_file("res://src/UI/LevelCompleted.tscn")
+	Transition.goto("res://src/UI/LevelCompleted.tscn")
 	pass  # Replace with function body.

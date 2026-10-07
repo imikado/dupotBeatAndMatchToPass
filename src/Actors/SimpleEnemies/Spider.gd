@@ -17,6 +17,7 @@ func attack():
 	spawn_bullet()
 	
 func spawn_bullet():
+	Sound.play("spider_shot")
 	var side
 	var new_bullet= Bullet.instantiate()
 		

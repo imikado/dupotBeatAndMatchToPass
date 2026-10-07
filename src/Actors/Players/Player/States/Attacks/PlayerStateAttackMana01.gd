@@ -9,6 +9,11 @@ var _event_count=0
 func enter():
 	play_animation(ANIM_ATTACK_MANA_01_RIGHT)
 	_event_count=0
+	owner.mana_cast_begin()
+
+
+func exit():
+	owner.mana_cast_end()
 	
 
 

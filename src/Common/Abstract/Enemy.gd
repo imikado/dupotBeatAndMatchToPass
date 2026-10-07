@@ -93,6 +93,7 @@ func took_damage(damage:int):
 		return
 		
 	update_life(_life - damage)
+	Sound.play("hit", 0.15)
 	
 	_stateMachine.set_state_damaged()
 	

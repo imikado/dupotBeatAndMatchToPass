@@ -39,7 +39,7 @@ func close_controlsMap():
 
 
 func goto_menu():
-	get_tree().change_scene_to_file("res://src/UI/menu.tscn")
+	Transition.goto("res://src/UI/menu.tscn")
 
 
 func update_controlsEnabled_toggle(enabled: bool) -> void:

@@ -2,6 +2,8 @@ extends Node2D
 
 const MIN_SPAWN_Y = 127
 
+const LIFE_BOTTLE_HEAL = 30
+
 @onready var _ysort = get_node("Node2D")
 @onready var _player = get_node("Node2D/Player")
 @onready var _cameraLimitRect = get_node("CameraLimitRect")
@@ -55,6 +57,8 @@ var _timeLeft := 15
 
 var levelCompleted = 0
 
+var _pause_menu: PauseMenu
+
 
 func debug():
 	_player.global_position.x += 300
@@ -70,11 +74,20 @@ func _ready() -> void:
 
 	levelCompleted = GlobalPlayer.get_level()
 
+	_player.set_life(GlobalPlayer.life)
 	_hud.update_player_life(GlobalPlayer.life)
 	_hud.update_score(GlobalPlayer.get_score())
 	_hud.update_player_mana(GlobalPlayer.mana)
 	
 	_hud.set_bonus_level()
+	_hud.update_streak(GlobalPlayer.kill_streak, GlobalPlayer.get_multiplier())
+
+	_pause_menu = PauseMenu.new()
+	add_child(_pause_menu)
+
+	Sound.play_music()
+	Sound.play("go", 0.0)
+	_hud.show_banner("BONUS STAGE", "HIT THE SQUIRRELS TO GET LIFE BOTTLES", Color("7bed9f"), 1.8)
 
 	update_mana_button()
 
@@ -107,6 +120,17 @@ func _ready() -> void:
 		newSquirrel.setTarget(startEndMoveLoop["end"])
 
 
+func _input(event: InputEvent) -> void:
+	if Game.isInputPauseButton(event) and GlobalPlayer.life > 0 and not _pause_menu.is_open():
+		_pause_menu.open()
+		get_viewport().set_input_as_handled()
+
+
+func _notification(what: int) -> void:
+	if (what == NOTIFICATION_WM_GO_BACK_REQUEST or what == NOTIFICATION_APPLICATION_FOCUS_OUT) and is_inside_tree() and _pause_menu and GlobalPlayer.life > 0:
+		_pause_menu.open()
+
+
 func _on_barrier_is_visible(barrier):
 	var is_first_barrier = false
 	if _active_barrier_list.size() == 0:
@@ -121,12 +145,16 @@ func _on_barrier_is_visible(barrier):
 
 
 func _on_player_healt_changed(newLife: float):
+	if newLife < GlobalPlayer.life and GlobalPlayer.kill_streak > 0:
+		GlobalPlayer.reset_streak()
+		_hud.update_streak(GlobalPlayer.kill_streak, GlobalPlayer.get_multiplier())
+
 	GlobalPlayer.update_life(newLife)
 	_hud.update_player_life(GlobalPlayer.life)
 
 	if newLife <= 0:
 		Game.saveHighScore(GlobalPlayer.get_score())
-		get_tree().change_scene_to_file("res://src/UI/GameOver.tscn")
+		Transition.goto("res://src/UI/GameOver.tscn")
 
 
 func manage_combo_for_actor(actor):
@@ -177,6 +205,9 @@ func _on_actor_healt_changed(actor: CharacterBody2D, previous_value: float, new_
 	if new_value <= 0.0:
 		increment_score(10)
 
+		Game.hit_stop(0.06)
+		_player.shake_camera(2.0, 0.1)
+
 		var new_energy = Energie.instantiate()
 		new_energy.global_position = actor.global_position
 		add_child(new_energy)
@@ -224,6 +255,9 @@ func _on_actor_took_damage(actor, damage):
 
 
 func _on_actor_let_item(actor):
+	Sound.play("hit", 0.15)
+	Sound.play("combo", 0.0)
+	Fx.burst(_specialEffects, actor.global_position + Vector2(0, -6), Color("d2a679"), 8)
 	var newLifeBottle = LifeBottle.instantiate()
 	_bonus.add_child(newLifeBottle)
 
@@ -306,20 +340,27 @@ func update_mana_button():
 
 
 func _on_player_took_lifebottle(bottle) -> void:
+	Sound.play("bottle", 0.0)
+	Fx.floating_text(_specialEffects, "+" + str(LIFE_BOTTLE_HEAL) + " HP", _player.global_position + Vector2(0, -30), Color("7bed9f"))
 	_player.get_life_bottle()
 	bottle.queue_free()
 
 
 func _on_player_tookadvantage_of_lifebottle() -> void:
-	GlobalPlayer.update_life(GlobalPlayer.life + 10)
-	_hud.update_player_life(GlobalPlayer.life)
+	_player.heal(LIFE_BOTTLE_HEAL)
 
 
 func _on_timeLeft_timeout() -> void:
 	_timeLeft -= 1
 	if _timeLeft < 0:
-		get_tree().change_scene_to_file("res://src/Levels/LevelTemplate.tscn")
+		Transition.goto("res://src/Levels/LevelTemplate.tscn")
 
 	_timeLeftLabel.text = str(_timeLeft)
+
+	if _timeLeft <= 3 and _timeLeft > 0:
+		Sound.play("energy", 0.0, 0.0, 0.8)
+		_timeLeftLabel.pivot_offset = _timeLeftLabel.size / 2
+		_timeLeftLabel.scale = Vector2(1.5, 1.5)
+		create_tween().tween_property(_timeLeftLabel, "scale", Vector2.ONE, 0.3)
 
 	pass  # Replace with function body.

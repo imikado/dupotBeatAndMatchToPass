@@ -4,34 +4,58 @@
 
 # ⚔️ Beat And Match To Pass
 
-**Beat them all… or not. Beat only the right number to match and pass!**
+**Beat them all… or not. Beat the *right* enemies to open the way!**
 
-Free · Linux x86_64 · Android · Made with Godot 3.6
+A fast pixel-art beat 'em up where every swing counts.
+Free · Linux · Android · Made with Godot 4
 
 [![Flathub](https://img.shields.io/flathub/v/org.dupot.beatmatchtopass?logo=flathub&logoColor=white&label=Flathub&color=4a90d9)](https://flathub.org/apps/org.dupot.beatmatchtopass)
 [![Snap Store](https://img.shields.io/badge/Snap%20Store-dupot--beat--match--to--pass-82BEA0?logo=snapcraft&logoColor=white)](https://snapcraft.io/dupot-beat-match-to-pass)
-[![Godot 3.6](https://img.shields.io/badge/Godot-3.6-478CBF?logo=godotengine&logoColor=white)](https://godotengine.org)
+[![Godot 4.7](https://img.shields.io/badge/Godot-4.7-478CBF?logo=godotengine&logoColor=white)](https://godotengine.org)
 [![License: LGPL-2.1](https://img.shields.io/badge/License-LGPL--2.1-blue.svg)](LICENSE)
 
 <a href="https://flathub.org/apps/org.dupot.beatmatchtopass"><img width="200" alt="Get it on Flathub" src="https://flathub.org/api/badge?locale=en"/></a>
 <a href="https://snapcraft.io/dupot-beat-match-to-pass"><img width="200" alt="Get it from the Snap Store" src="https://snapcraft.io/static/images/badges/en/snap-store-black.svg"/></a>
 
+<img src="docs/media/lightning.png" alt="Gordon calling down a lightning storm on the ants" width="720" />
+
 </div>
 
 ---
 
-## 📖 About
+## 📖 The idea
 
-Gordon stands in front of locked gates. To open each one, he has to **beat exactly the number of enemies it asks for**, then move on to the next.
+Gordon's path through the forest is blocked by **electric barriers**. Each barrier shows an enemy: an ant, a beetle or a spider. Only defeating **that kind of enemy** charges it, and once it is full, it shuts down and the way is open.
 
-- 🗡️ **Sword**: slash your way through the enemies standing between you and the gate
-- ⚡ **Mana attack**: call down lightning when the crowd gets too big
-- 🧪 **Life bottles**: pick them up to get back on your feet
-- 👹 **Bosses**: tougher foes wait for you along the way
-- 🎁 **Bonus level**: an extra challenge for those who make it
-- 🏆 **Best scores**: try to beat your own record
+So you don't just mash buttons: you pick your targets, keep your combo going and save your lightning for the right moment. Clear every barrier, reach the gate, and move on to the next level.
 
-Count your hits, open the gates, and reach the end of every level.
+<div align="center">
+
+<img src="docs/media/gameplay.gif" alt="Sword combo, kills and the lightning storm in action" width="640" />
+
+</div>
+
+## ✨ Features
+
+- 🗡️ **Four-hit sword combo**: keep pressing attack to chain slashes, and land three combo hits on the same enemy for a score bonus.
+- 🔥 **Kill streaks**: every 5 kills in a row raise your score multiplier, up to **x4**. Get hit and the streak is gone.
+- ⚡ **Lightning storm**: spend your mana to darken the sky and call down three volleys of lightning on everything around you. You can't be hurt while casting, so it also works as a panic button.
+- 🐜 **Three enemy types**: ants swarm you, beetles hit hard, and spiders shoot from a distance. Beetles join in at level 2 and spiders at level 3, and every level adds more barriers to open.
+- 🧪 **Life bottles**: they show up from level 2 on to heal you mid-fight.
+- 🐿️ **Bonus stage**: between levels you get 15 seconds to hit the squirrels and grab extra life bottles.
+- 🏆 **Best scores**: chase your record, with a big *NEW RECORD!* when you beat it.
+- 🎵 **Chiptune music and retro sound effects**, plus hit-stop, screen shake and particles that make every blow land.
+- ⏸️ **Pause anytime**, keys you can remap, gamepad support and on-screen touch controls on Android.
+
+## 🎬 From boot to battle
+
+A loading screen that really preloads the game, an animated title, a lively menu and smooth fades between every screen.
+
+<div align="center">
+
+<img src="docs/media/launch.gif" alt="Boot logo, animated title screen and main menu" width="640" />
+
+</div>
 
 ## 📸 Screenshots
 
@@ -49,10 +73,19 @@ Count your hits, open the gates, and reach the end of every level.
 | Action | Keyboard | Gamepad |
 |---|---|---|
 | Move | ← ↑ → ↓ arrow keys | D-pad / stick |
-| Sword attack | `Enter` or `Space` | Button A |
-| Mana attack (lightning) | `Ctrl` | Button B |
+| Sword attack (press again to chain the combo) | `Enter` or `Space` | Button A |
+| Lightning storm (needs mana) | `Ctrl` | Button B |
+| Pause | `Esc` | Start |
+| Music on / off | `M` | — |
 
 ⌨️ Keys can be remapped from the **Settings** menu, and Android gets on-screen touch controls.
+
+## 💡 Tips
+
+- **Look at the barrier icon** before you fight: defeating the wrong species won't charge the barrier.
+- **Protect your streak.** Backing off for a second is often worth more than trading hits.
+- **Mana refills on its own** and with every kill. The bar turns blue and *MANA READY* pops up when you can cast again.
+- **Keep the storm for crowds**, or for when a spider has you in its sights: you're untouchable while casting.
 
 ## 📦 Install
 
@@ -73,14 +106,20 @@ sudo snap install dupot-beat-match-to-pass
 
 ## 🛠️ Build from source
 
-1. Install [Godot 3.6](https://godotengine.org/download/3.x).
+1. Install [Godot 4.7](https://godotengine.org/download).
 2. Clone the repository:
    ```bash
    git clone https://github.com/imikado/dupotBeatAndMatchToPass.git
    ```
 3. Open `project.godot` in Godot and press **F5** to play.
 
-Export presets for **Linux**, **Android**, **Android TV / Fire TV** and **HTML5** are included in `export_presets.cfg`. Snap packaging files live in [`export/linux/snap`](export/linux/snap).
+Export presets for **Linux** and **Android** are included in `export_presets.cfg`. Snap packaging files live in [`export/linux/snap`](export/linux/snap).
+
+All the sound effects and the music are generated by a small dependency-free Python script. Tweak it and run it again to change them:
+
+```bash
+python3 tools/generate_audio.py
+```
 
 ## 🕹️ More from dupot.org
 

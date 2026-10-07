@@ -13,6 +13,8 @@ var _is_debug := false
 
 var _is_controls_enabled := true
 
+var last_score_is_record := false
+
 
 func isControlsEnabled():
 	return _is_controls_enabled
@@ -24,6 +26,12 @@ func setControlsEnabled(enabled):
 
 func is_debug():
 	return _is_debug
+
+
+func hit_stop(duration: float, time_scale: float = 0.05) -> void:
+	Engine.time_scale = time_scale
+	await get_tree().create_timer(duration, true, false, true).timeout
+	Engine.time_scale = 1.0
 
 
 func saveHighScore(newScoreValue):
@@ -43,8 +51,10 @@ func saveHighScore(newScoreValue):
 
 	var highScoreList = getHighScoreList()
 
+	last_score_is_record = false
 	if !isHighestScore(highScoreList, newScoreValue):
 		return
+	last_score_is_record = true
 
 	var newScoreObj = {"score": newScoreValue, "date": dateTimeString}
 
@@ -112,6 +122,14 @@ func isInputValidateButton(event: InputEvent)->bool:
 	if event.is_action_pressed("attack") or event.is_action_pressed("ui_accept"):
 		return true
 	return false
+
+# Escape / gamepad Start / Home: deliberately not ui_cancel, which is also gamepad B (mana attack)
+func isInputPauseButton(event: InputEvent)->bool:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+		return true
+	if event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_START:
+		return true
+	return event.is_action_pressed("ui_home")
 
 func isInputEscapeButton(event: InputEvent)->bool:
 	if event.is_action_pressed("ui_home") or event.is_action_pressed("ui_cancel"):

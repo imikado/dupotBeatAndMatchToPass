@@ -5,12 +5,17 @@ const START_LIFE = 100
 const START_MANA = 10
 const MAX_MANA = 80
 
+const STREAK_STEP = 5
+const MAX_MULTIPLIER = 4
+
 var _score = 0
 var life = START_LIFE
 var mana = START_MANA
 var _level = 1
 
 var attack_amount_mana = 10
+
+var kill_streak = 0
 
 
 func set_level(level):
@@ -26,6 +31,7 @@ func reset_game():
 	_score = START_SCORE
 	life = START_LIFE
 	mana = START_MANA
+	kill_streak = 0
 
 
 func get_score():
@@ -58,3 +64,16 @@ func decrease_health(value):
 
 func update_life(value):
 	life = value
+
+
+func register_kill() -> int:
+	kill_streak += 1
+	return get_multiplier()
+
+
+func get_multiplier() -> int:
+	return min(1 + kill_streak / STREAK_STEP, MAX_MULTIPLIER)
+
+
+func reset_streak():
+	kill_streak = 0

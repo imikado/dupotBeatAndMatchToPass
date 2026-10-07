@@ -8,7 +8,10 @@ extends Control
 var levelCompleted=0
 
 func _ready() -> void:
-	_score.text=str(GlobalPlayer.get_score())
+	Sound.stop_music()
+	Sound.play("level_complete", 0.0)
+
+	ScoreReveal.count_up(self, _score, GlobalPlayer.get_score())
 
 	levelCompleted=GlobalPlayer.get_level()
 	
@@ -23,6 +26,9 @@ func _input(event: InputEvent) -> void:
 
 
 func goto_nextLevel():
+	if Transition.is_busy():
+		return
+	Sound.play("menu_select", 0.0)
 	GlobalPlayer.set_level(GlobalPlayer.get_level()+1)
-	get_tree().change_scene_to_file("res://src/Levels/LevelBonus.tscn")
+	Transition.goto("res://src/Levels/LevelBonus.tscn")
 	

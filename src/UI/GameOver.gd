@@ -13,7 +13,12 @@ extends Control
 var _selected=1
 
 func _ready() -> void:
-	_score.text=str(GlobalPlayer.get_score())
+	Sound.stop_music()
+	Sound.play("gameover", 0.0)
+
+	var reveal = ScoreReveal.count_up(self, _score, GlobalPlayer.get_score())
+	if Game.last_score_is_record and GlobalPlayer.get_score() > 0:
+		reveal.tween_callback(ScoreReveal.show_record.bind(self, _score))
 
 	_menuButton.connect("released", Callable(self, "goto_menu"))
 	_scoreButton.connect("released", Callable(self, "goto_scores"))
@@ -23,11 +28,17 @@ func _ready() -> void:
 	refresh_buttons()
 
 func goto_menu():
+	if Transition.is_busy():
+		return
+	Sound.play("menu_select", 0.0)
 	GlobalPlayer.reset_game()
-	get_tree().change_scene_to_file("res://src/UI/menu.tscn")
+	Transition.goto("res://src/UI/menu.tscn")
 	
 func goto_scores():
-	get_tree().change_scene_to_file("res://src/UI/scores.tscn")
+	if Transition.is_busy():
+		return
+	Sound.play("menu_select", 0.0)
+	Transition.goto("res://src/UI/scores.tscn")
 
 #control buttons
 func _input(event: InputEvent) -> void:
@@ -49,4 +60,5 @@ func next_button():
 	_selected+=1
 	if(_selected>=_buttonList.size()):
 		_selected=0
+	Sound.play("menu_move", 0.0)
 	refresh_buttons()

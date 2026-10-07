@@ -1,6 +1,7 @@
 extends Node2D
 
 signal is_visible
+signal opened(barrier)
 
 var energy_count=0
 var max_energy=6
@@ -59,6 +60,10 @@ func get_type():
 	return type
 
 
+func is_open() -> bool:
+	return energy_count >= max_energy
+
+
 func enable_barrier():
 	_barrier.visible=true
 	_collisision.disabled=false
@@ -75,9 +80,19 @@ func increment():
 		enable_barrier()
 		
 	_animatedSpriteProgress.frame=energy_count
+	Sound.play("energy", 0.0, 0.0, 1.0 + 0.08 * energy_count)
+	pulse()
 	
 	if energy_count==max_energy:
 		disable_barrier()
+		Sound.play("barrier_open", 0.0)
+		emit_signal("opened", self)
+
+
+func pulse() -> void:
+	var tween := create_tween()
+	tween.tween_property(_animatedSpriteProgress, "scale", Vector2(1.4, 1.4), 0.08)
+	tween.tween_property(_animatedSpriteProgress, "scale", Vector2.ONE, 0.12)
 
 
 func _on_VisibilityNotifier2D_screen_entered() -> void:

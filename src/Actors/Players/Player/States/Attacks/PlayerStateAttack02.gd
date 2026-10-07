@@ -8,6 +8,7 @@ var _event_count=0
 
 func enter():
 	play_animation(ANIM_ATTACK_02_RIGHT)
+	Sound.play("swing", 0.03, 0.0, 1.12)
 	_event_count=0
 	
 func handle_input(event):
