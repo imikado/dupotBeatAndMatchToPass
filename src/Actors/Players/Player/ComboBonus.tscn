@@ -59,3 +59,4 @@ sprite_frames = SubResource("7")
 script = ExtResource("2")
 
 [connection signal="animation_finished" from="." to="." method="_on_ComboBonus_animation_finished"]
+[connection signal="animation_looped" from="." to="." method="_on_ComboBonus_animation_finished"]

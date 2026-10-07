@@ -8,7 +8,7 @@ const MIN_SPAWN_Y = 127
 @onready var _hud = get_node("HUD")
 @onready var _controls = get_node("Controls")
 
-@onready var _hudScore := get_node("HUD/Container/Score/Marker2D")
+@onready var _hudScore := get_node("HUD/Marker2D")
 
 @onready var Ant := preload("res://src/Actors/SimpleEnemies/Ant.tscn")
 @onready var Beetle := preload("res://src/Actors/SimpleEnemies/Beetle.tscn")
@@ -33,10 +33,10 @@ const MIN_SPAWN_Y = 127
 @onready var _positionLeftTop := get_node("Bonus/leftTop")
 @onready var _positionLeftBottom := get_node("Bonus/leftBottom")
 
-@onready var _spawnTimer := get_node("Timers/SpawnTimer")
-@onready var _manaTimer := get_node("Timers/ManaTimer")
+@onready var _spawnTimer := get_node_or_null("Timers/SpawnTimer")
+@onready var _manaTimer := get_node_or_null("Timers/ManaTimer")
 
-@onready var _electricalBarriers := get_node("ElectricalBarriers")
+@onready var _electricalBarriers := get_node_or_null("ElectricalBarriers")
 
 @onready var _specialEffects := get_node("SpecialEffects")
 

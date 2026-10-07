@@ -176,7 +176,7 @@ func _ready() -> void:
 
 func _input(event: InputEvent) -> void:
 	if Game.isInputEscapeButton(event):
-		get_tree().change_scene_to_file("res://android/build/assets/src/UI/menu.tscn")
+		get_tree().change_scene_to_file("res://src/UI/menu.tscn")
 
 
 func build_level():
