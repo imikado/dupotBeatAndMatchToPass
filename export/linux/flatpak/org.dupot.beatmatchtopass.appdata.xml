@@ -11,7 +11,7 @@
   <summary>Beat them all</summary>
   <description>
     <p>
-  This Game was made with Godot 3.5
+  This game was made with Godot 4.7
     </p>
     <p>
        Gordon must kill enemies to open gates and finish levels
@@ -46,6 +46,7 @@
   <content_rating type="oars-1.1"/>
   <releases>
 
+    <release date="2026-10-08" version="1.9.0"/>
     <release date="2025-01-11" version="1.6.2">
       <description>
         <ul>
