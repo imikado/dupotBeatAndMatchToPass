@@ -323,8 +323,8 @@ border_width_bottom = 1
 border_color = Color(0, 0, 0, 1)
 
 [sub_resource type="CapsuleShape2D" id="6"]
-radius = 0.0
-height = 0.0
+radius = 4.0
+height = 18.0
 
 [node name="Squirrel" type="CharacterBody2D" unique_id=1624843415]
 collision_layer = 2

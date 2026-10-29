@@ -3,6 +3,7 @@ extends Node2D
 const MIN_SPAWN_Y = 127
 
 const LIFE_BOTTLE_HEAL = 30
+const BOTTLE_DROP_DISTANCE = 18
 
 @onready var _ysort = get_node("Node2D")
 @onready var _player = get_node("Node2D/Player")
@@ -51,7 +52,7 @@ var _wave_number = 2
 var _total_wave_number = 0
 var _random_combo_count = 0
 
-var _timeLeft := 15
+var _timeLeft := 25
 
 @onready var _wave_array := []
 
@@ -117,7 +118,7 @@ func _ready() -> void:
 		_ysort.add_child(newSquirrel)
 		print(startEndMoveLoop)
 		newSquirrel.set_global_position(startEndMoveLoop["start"].global_position)
-		newSquirrel.setTarget(startEndMoveLoop["end"])
+		newSquirrel.setTarget(startEndMoveLoop["end"], startEndMoveLoop["start"])
 
 
 func _input(event: InputEvent) -> void:
@@ -258,10 +259,20 @@ func _on_actor_let_item(actor):
 	Sound.play("hit", 0.15)
 	Sound.play("combo", 0.0)
 	Fx.burst(_specialEffects, actor.global_position + Vector2(0, -6), Color("d2a679"), 8)
-	var newLifeBottle = LifeBottle.instantiate()
-	_bonus.add_child(newLifeBottle)
+	Fx.hit_spark(_specialEffects, actor.global_position + Vector2(0, -12))
+	Game.hit_stop(0.05)
 
-	newLifeBottle.set_global_position(actor.global_position + Vector2(0, 20))
+	# La bouteille part du côté opposé au joueur et reste dans la zone jouable
+	var side = 1.0 if actor.global_position.x >= _player.global_position.x else -1.0
+	var min_y = min(_positionLeftTop.global_position.y, _positionRightTop.global_position.y)
+	var max_y = max(_positionLeftBottom.global_position.y, _positionRightBottom.global_position.y)
+	var target = actor.global_position + Vector2(side * BOTTLE_DROP_DISTANCE, randf_range(-4, 4))
+	target.y = clamp(target.y, min_y, max_y)
+
+	var newLifeBottle = LifeBottle.instantiate()
+	_ysort.add_child(newLifeBottle)
+	newLifeBottle.global_position = actor.global_position
+	newLifeBottle.pop_to(target)
 
 
 func _on_actor_took_damage_by_bullet(actor, damage, bullet):

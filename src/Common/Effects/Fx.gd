@@ -2,6 +2,7 @@ class_name Fx
 extends RefCounted
 
 const FONT := preload("res://src/Common/UI/fonts/littleFont.tres")
+const CHARACTER_SHADER := preload("res://src/Common/Effects/character.gdshader")
 
 const ENEMY_COLORS = {
 	Game.ENEMY_TYPE_LIST.ANT: Color("c8553d"),
@@ -55,6 +56,104 @@ static func burst(parent: Node, global_pos: Vector2, color: Color, amount: int =
 
 static func enemy_color(type) -> Color:
 	return ENEMY_COLORS.get(type, Color.WHITE)
+
+
+# Écrase/étire un pivot placé aux pieds puis le ramène à sa taille, en gardant
+# le sens du regard (scale.x = ±1) même s'il change pendant l'animation
+static func squash(pivot: Node2D, amount: Vector2, duration: float = 0.12) -> void:
+	var facing := -1.0 if pivot.scale.x < 0 else 1.0
+	pivot.scale = Vector2(facing * amount.x, amount.y)
+	var tween := pivot.create_tween()
+	tween.tween_method(func(t: float):
+		var current_facing := -1.0 if pivot.scale.x < 0 else 1.0
+		pivot.scale = Vector2(current_facing * lerpf(amount.x, 1.0, t), lerpf(amount.y, 1.0, t))
+	, 0.0, 1.0, duration).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+# Contour + ombrage de profondeur : un matériau par sprite (paramètres propres à chacun)
+static func character_material(sprite: CanvasItem) -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.shader = CHARACTER_SHADER
+	sprite.material = material
+	return material
+
+
+static var _shadow_textures := {}
+
+
+# Ombre ovale pixel art aux pieds d'un personnage
+static func shadow(parent: Node2D, width: int) -> Sprite2D:
+	if not _shadow_textures.has(width):
+		var height: int = max(3, width / 4)
+		var image := Image.create(width, height, false, Image.FORMAT_RGBA8)
+		var rx := width / 2.0
+		var ry := height / 2.0
+		for y in range(height):
+			for x in range(width):
+				var dx := (x + 0.5 - rx) / rx
+				var dy := (y + 0.5 - ry) / ry
+				if dx * dx + dy * dy <= 1.0:
+					image.set_pixel(x, y, Color(0, 0, 0, 1))
+		_shadow_textures[width] = ImageTexture.create_from_image(image)
+
+	var sprite := Sprite2D.new()
+	sprite.texture = _shadow_textures[width]
+	sprite.modulate = Color(1, 1, 1, 0.55)
+	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	parent.add_child(sprite)
+	parent.move_child(sprite, 0)
+	return sprite
+
+
+# Petites étincelles au point d'impact d'un coup d'épée
+static func hit_spark(parent: Node, global_pos: Vector2) -> void:
+	var particles := CPUParticles2D.new()
+	particles.one_shot = true
+	particles.emitting = false
+	particles.amount = 6
+	particles.lifetime = 0.18
+	particles.explosiveness = 1.0
+	particles.spread = 180.0
+	particles.initial_velocity_min = 40.0
+	particles.initial_velocity_max = 80.0
+	particles.damping_min = 200.0
+	particles.damping_max = 300.0
+	particles.scale_amount_min = 1.0
+	particles.scale_amount_max = 2.0
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(1, 1, 1, 1))
+	ramp.set_color(1, Color(1, 0.85, 0.3, 0))
+	particles.color_ramp = ramp
+	particles.z_index = 60
+	parent.add_child(particles)
+	particles.global_position = global_pos
+	particles.finished.connect(particles.queue_free)
+	particles.emitting = true
+
+
+# Poussière soulevée par les pieds (départ, demi-tour)
+static func dust(parent: Node, global_pos: Vector2, direction: float) -> void:
+	var particles := CPUParticles2D.new()
+	particles.one_shot = true
+	particles.emitting = false
+	particles.amount = 5
+	particles.lifetime = 0.35
+	particles.explosiveness = 0.9
+	particles.direction = Vector2(-direction, -0.6)
+	particles.spread = 25.0
+	particles.gravity = Vector2(0, 20)
+	particles.initial_velocity_min = 12.0
+	particles.initial_velocity_max = 25.0
+	particles.scale_amount_min = 1.0
+	particles.scale_amount_max = 2.0
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(0.85, 0.8, 0.65, 0.8))
+	ramp.set_color(1, Color(0.85, 0.8, 0.65, 0))
+	particles.color_ramp = ramp
+	parent.add_child(particles)
+	particles.global_position = global_pos
+	particles.finished.connect(particles.queue_free)
+	particles.emitting = true
 
 
 # ambient glowing dots drifting over a 320x180 screen

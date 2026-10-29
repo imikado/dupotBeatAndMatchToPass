@@ -13,6 +13,7 @@ func enter():
 	var input_direction = get_input_direction()
 	update_look_direction(input_direction)
 	play_animation(ANIM_WALK_RIGHT)
+	owner.dust()
 
 
 func handle_input(event):
@@ -23,7 +24,12 @@ func update(delta):
 	var input_direction = get_input_direction()
 	if not input_direction:
 		emit_signal("finished", STATE_IDLE)
+
+	# Demi-tour : un peu de poussière
+	var facing = owner.get_node("BodyPivot").scale.x
 	update_look_direction(input_direction)
+	if input_direction.x != 0 and sign(input_direction.x) != sign(facing):
+		owner.dust()
 
 	speed = MAX_WALK_SPEED
 	var collision_info = move(speed, input_direction)

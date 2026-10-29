@@ -3,12 +3,12 @@ extends Enemy
 @onready var Bullet = preload("res://src/Actors/SimpleEnemies/Spider/Bullet.tscn")
 @onready var BulletSpawnPosition= get_node("BodyPivot/BulletSpawnPosition")
 
-@onready var _bodyPivot:=get_node("BodyPivot")
 
 
 func _init() -> void:
 	_near_distance=300
 	_damage=20
+	_shadow_width=18
 
 	_type= Game.ENEMY_TYPE_LIST.SPIDER
 

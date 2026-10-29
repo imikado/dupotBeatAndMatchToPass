@@ -38,7 +38,6 @@ func _ready():
 
 func _change_state(state_name):
 	
-	print("change state:"+state_name)
 	"""
 	The base state_machine interface this node extends does most of the work
 	"""

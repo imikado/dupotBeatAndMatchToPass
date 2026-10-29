@@ -22,16 +22,16 @@ func handle_input(event):
 func update(delta):
 	
 	if is_near_player():
-		emit_signal("finished",STATE_IDLE)
+		owner.get_parent().on_target_reached()
 		return
 		
 	var input_direction = get_input_direction()
 	if not input_direction:
-		emit_signal("finished", STATE_IDLE)
+		return
 		
 	update_look_direction(input_direction)
 
-	speed = MAX_WALK_SPEED
+	speed = MAX_WALK_SPEED * owner.get_parent().get_speed_factor()
 	var collision_info = move(speed, input_direction)
 	if not collision_info:
 		return

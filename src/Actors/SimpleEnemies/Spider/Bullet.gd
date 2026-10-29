@@ -42,7 +42,6 @@ func _physics_process(delta: float) -> void:
 		
 
 func _on_VisibilityNotifier2D_screen_exited() -> void:
-	print("bullet deleted")
 	queue_free()
 	pass # Replace with function body.
 

@@ -13,5 +13,4 @@ func update(delta):
 
 
 func _on_animation_finished(anim_name):
-	emit_signal("finished", STATE_WALK)
 	die()

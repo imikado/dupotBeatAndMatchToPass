@@ -120,6 +120,7 @@ offset_bottom = 201.0
 position = Vector2(824, 163)
 
 [node name="Node2D" type="Node2D" parent="." unique_id=662232680]
+y_sort_enabled = true
 
 [node name="Player" parent="Node2D" unique_id=1590623646 instance=ExtResource("2")]
 position = Vector2(-204, 127)

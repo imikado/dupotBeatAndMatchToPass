@@ -24,6 +24,7 @@ var _damage = 10
 @onready var _stateDisplay := get_node("stateDisplay")
 
 @onready var _hitBox := get_node("BodyPivot/HitBox/CollisionShape2D")
+@onready var _bodyPivot := get_node("BodyPivot")
 
 @onready var _stateMachine := get_node("StateMachine")
 
@@ -45,6 +46,7 @@ var _tint_tween: Tween
 var _aura_particles: CPUParticles2D
 var _aura_light: PointLight2D
 var _aura_tween: Tween
+var _lunge_tween: Tween
 
 
 func _ready() -> void:
@@ -60,6 +62,9 @@ func _ready() -> void:
 	#mana_attack_start()
 
 	build_storm_effects()
+
+	Fx.shadow(self, 16).position = Vector2(-1, -1)
+	Fx.character_material(get_node("BodyPivot/AnimatedSprite2D"))
 
 
 func build_storm_effects() -> void:
@@ -123,6 +128,7 @@ func took_damage(damage: int):
 
 	Sound.play("player_hurt")
 	_stateMachine.set_damaged()
+	Fx.squash(_bodyPivot, Vector2(1.25, 0.8), 0.2)
 	shake_camera(4.0, 0.25)
 	start_invincibility()
 
@@ -140,6 +146,26 @@ func start_invincibility():
 		tween.tween_property(self, "modulate:a", 1.0, INVINCIBILITY_BLINK)
 
 	tween.tween_callback(func(): _is_invincible = false)
+
+
+# Petit pas en avant pendant un coup d'épée, avec étirement du personnage
+func attack_lunge(distance: float, amount: Vector2 = Vector2(1.15, 0.9)) -> void:
+	var direction := Vector2(-1 if _bodyPivot.scale.x < 0 else 1, 0)
+	Fx.squash(_bodyPivot, amount, 0.15)
+
+	if _lunge_tween:
+		_lunge_tween.kill()
+	var moved := [0.0]
+	_lunge_tween = create_tween()
+	_lunge_tween.tween_method(func(done: float):
+		move_and_collide(direction * (done - moved[0]))
+		moved[0] = done
+	, 0.0, distance, 0.08).set_ease(Tween.EASE_OUT)
+
+
+func dust() -> void:
+	var direction := -1.0 if _bodyPivot.scale.x < 0 else 1.0
+	Fx.dust(get_parent(), global_position + Vector2(-4 * direction, -1), direction)
 
 
 func shake_camera(strength: float, duration: float):
@@ -185,7 +211,7 @@ func _on_HitBox_body_entered(body: Node) -> void:
 		Events.emit_signal("actor_took_damage", body, _damage)
 	elif body.is_in_group(Game.GROUP_BONUSACTOR):
 		if body.can_let_item():
-			body.let_item()
+			body.let_item(global_position)
 			Events.emit_signal("actor_let_item", body)
 			print("hit bonusactor")
 	pass  # Replace with function body.

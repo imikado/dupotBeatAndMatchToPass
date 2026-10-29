@@ -18,8 +18,7 @@ const ANIM_ATTACK_01_RIGHT="attacking_01_right"
 var current_animation:="none"
 
 func die():
-	owner.get_parent().queue_free()
+	owner.get_parent().start_death()
 
 func play_animation(animation):
-	print("animation:"+animation)
 	owner.get_parent().get_node("BodyPivot/AnimationPlayer").play(animation)

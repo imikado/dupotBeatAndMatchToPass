@@ -8,6 +8,7 @@ var _event_count=0
 
 func enter():
 	play_animation(ANIM_ATTACK_04_RIGHT)
+	owner.attack_lunge(5, Vector2(1.3, 0.8))
 	Sound.play("swing", 0.03, 0.0, 1.36)
 	_event_count=0
 	
