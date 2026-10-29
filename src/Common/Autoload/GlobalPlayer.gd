@@ -8,6 +8,9 @@ const MAX_MANA = 80
 const STREAK_STEP = 5
 const MAX_MULTIPLIER = 4
 
+# Les niveaux 1 à 3 introduisent les ennemis, la difficulté augmente ensuite
+const DIFFICULTY_START_LEVEL = 3
+
 var _score = 0
 var life = START_LIFE
 var mana = START_MANA
@@ -24,6 +27,11 @@ func set_level(level):
 
 func get_level():
 	return _level
+
+
+# 0 jusqu'au niveau 3, puis +1 par niveau
+func get_difficulty() -> int:
+	return max(0, _level - DIFFICULTY_START_LEVEL)
 
 
 func reset_game():

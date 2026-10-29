@@ -6,6 +6,9 @@ signal opened(barrier)
 var energy_count=0
 var max_energy=6
 
+# La jauge a 7 images (0 à 6) quel que soit max_energy
+const PROGRESS_LAST_FRAME=6
+
 @export var type :=   Game.ENEMY_TYPE_LIST.ANT # (Game.ENEMY_TYPE_LIST)
 
 @onready var _animatedSprite :=get_node("AnimatedSprite2D")
@@ -60,6 +63,12 @@ func get_type():
 	return type
 
 
+func set_max_energy(value):
+	if Game.DEBUG_ENABLED:
+		return
+	max_energy=value
+
+
 func is_open() -> bool:
 	return energy_count >= max_energy
 
@@ -79,7 +88,7 @@ func increment():
 		energy_count=0
 		enable_barrier()
 		
-	_animatedSpriteProgress.frame=energy_count
+	_animatedSpriteProgress.frame=int(floor(energy_count * PROGRESS_LAST_FRAME / float(max_energy)))
 	Sound.play("energy", 0.0, 0.0, 1.0 + 0.08 * energy_count)
 	pulse()
 	

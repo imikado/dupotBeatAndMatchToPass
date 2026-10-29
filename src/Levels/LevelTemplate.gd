@@ -6,6 +6,15 @@ const LIFE_BOTTLE_HEAL = 30
 
 const MAX_ENEMY = 5
 
+# Énergie à apporter à chaque barrière : 6, puis +1 tous les 2 niveaux après le niveau 3
+const BARRIER_ENERGY = 6
+const MAX_BARRIER_ENERGY = 10
+
+# Délai entre deux vagues : lent à l'arrivée sur un groupe de barrières, puis de plus en plus rapide
+const SPAWN_DELAY_START = 15.0
+const SPAWN_DELAY_MID = 10.0
+const SPAWN_DELAY_FAST = 5.0
+
 @onready var _ysort = get_node("Node2D")
 @onready var _player = get_node("Node2D/Player")
 @onready var _cameraLimitRect = get_node("CameraLimitRect")
@@ -54,6 +63,8 @@ var _pause_menu: PauseMenu
 var _wave_number = 0
 var _total_wave_number = 0
 var _random_combo_count = 0
+
+var _current_barrier_group: Node = null
 
 @onready var _wave_array := []
 
@@ -146,8 +157,7 @@ func _ready() -> void:
 		
 	build_level()
 
-	#GlobalPlayer.set_level(1)
-	GlobalPlayer.update_life(GlobalPlayer.START_LIFE)
+	# La vie est conservée d'un niveau à l'autre (fioles du niveau bonus comprises)
 	_player.set_life(GlobalPlayer.life)
 
 	_hud.update_player_life(GlobalPlayer.life)
@@ -215,6 +225,8 @@ func build_level():
 		maxLoop=5
 	
 	var maxX=1000
+
+	var barrierEnergy=min(BARRIER_ENERGY + ceili(GlobalPlayer.get_difficulty() / 2.0), MAX_BARRIER_ENERGY)
 	
 	for i in range(maxLoop):
 		var nodeBarrier=Node2D.new()
@@ -236,6 +248,9 @@ func build_level():
 			
 			barrierItemSpider.global_position.x+=20*2
 		
+		for barrierLoop in nodeBarrier.get_children():
+			barrierLoop.set_max_energy(barrierEnergy)
+
 		_electricalBarriers.add_child(nodeBarrier)
 		
 		nodeBarrier.global_position.x=_spaceBetweenBarrier*i+_spaceStartBarrier
@@ -270,12 +285,20 @@ func _on_barrier_is_visible(barrier):
 	if _active_barrier_list.size() == 0:
 		is_first_barrier = true
 
+	var is_new_group = false
 	if false == _active_barrier_list.has(barrier):
 		_active_barrier_list.append(barrier)
 
+		is_new_group = barrier.get_parent() != _current_barrier_group
+		_current_barrier_group = barrier.get_parent()
+
 	if is_first_barrier:
 		process_spawn()
-		_spawnTimer.start()
+		start_spawn_timer()
+	elif is_new_group:
+		# Répit à l'arrivée sur un nouveau groupe de barrières : le rythme repart du début
+		_total_wave_number = 0
+		start_spawn_timer()
 
 
 func _on_barrier_opened(barrier) -> void:
@@ -288,6 +311,7 @@ func _on_barrier_opened(barrier) -> void:
 			is_group_open = false
 
 	if _opened_barrier_count >= _total_barrier_count:
+		_spawnTimer.stop()
 		_hud.show_banner("THE GATE IS OPEN!", "GO RIGHT >>>", Color("7fdbff"))
 	elif is_group_open:
 		_hud.show_banner("WAY CLEAR!", "GO RIGHT >>>", Color("7fdbff"))
@@ -444,6 +468,7 @@ func spawn_enemy_on_position(enemy_to_spawn, spawn_position, offset = Vector2.ZE
 
 	enemy_spawn.add_to_group(Game.GROUP_ENEMY)
 	enemy_spawn.setPlayer(_player)
+	enemy_spawn.apply_difficulty(GlobalPlayer.get_difficulty())
 
 	if spawn_position.global_position.y < MIN_SPAWN_Y:
 		spawn_position.global_position.y = MIN_SPAWN_Y
@@ -455,7 +480,6 @@ func spawn_enemy_on_position(enemy_to_spawn, spawn_position, offset = Vector2.ZE
 
 func has_too_much_enemy(enemy_to_spawn_type):
 	var current_number = 0
-	print("check has too much:")
 	for enemy_still_there_loop in get_tree().get_nodes_in_group(Game.GROUP_ENEMY):
 		if enemy_to_spawn_type == enemy_still_there_loop.get_type():
 			current_number += 1
@@ -481,6 +505,9 @@ func get_enemy_by_type(type):
 func process_spawn():
 	if _wave_number >= _wave_array.size():
 		return
+	# Porte ouverte : plus de nouveaux ennemis
+	if _total_barrier_count > 0 and _opened_barrier_count >= _total_barrier_count:
+		return
 
 	for wave_loop in _wave_array[_wave_number]:
 		var offset = Vector2.ZERO
@@ -499,13 +526,23 @@ func process_spawn():
 
 func _on_SpawnTimer_timeout() -> void:
 	process_spawn()
+	start_spawn_timer()
 
+
+func start_spawn_timer() -> void:
+	if _opened_barrier_count >= _total_barrier_count:
+		return
+
+	var delay = SPAWN_DELAY_START
 	if _total_wave_number > 8:
-		_spawnTimer.wait_time = 5
+		delay = SPAWN_DELAY_FAST
 	elif _total_wave_number > 4:
-		_spawnTimer.wait_time = 10
+		delay = SPAWN_DELAY_MID
 
-	_spawnTimer.start()
+	# Les vagues arrivent plus vite à chaque niveau après le niveau 3 (jusqu'à -40 %)
+	delay *= max(1.0 - 0.1 * GlobalPlayer.get_difficulty(), 0.6)
+
+	_spawnTimer.start(delay)
 
 
 func _on_ManaTimer_timeout() -> void:

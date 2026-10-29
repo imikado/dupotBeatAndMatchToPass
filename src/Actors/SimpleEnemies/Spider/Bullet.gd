@@ -23,6 +23,9 @@ func explode():
 	_animation.play("explode")
 	set_physics_process(false)
 	
+func set_damage(damage):
+	_damage=damage
+
 func set_direction(side):
 	if side == LEFT:
 		_direction=Vector2(-1,0)

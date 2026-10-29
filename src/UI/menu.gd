@@ -110,6 +110,8 @@ func leave(path: String) -> void:
 
 
 func goto_game():
+	# Nouvelle partie : la vie, le score et le niveau ne sont plus repris de la précédente
+	GlobalPlayer.reset_game()
 	leave("res://src/Levels/LevelTemplate.tscn")
 
 func goto_scores():

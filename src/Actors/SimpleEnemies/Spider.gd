@@ -32,4 +32,5 @@ func spawn_bullet():
 	
 	new_bullet.set_global_position(BulletSpawnPosition.global_position)
 	new_bullet.set_direction(side)
+	new_bullet.set_damage(_damage)
 	

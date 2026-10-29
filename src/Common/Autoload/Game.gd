@@ -15,6 +15,41 @@ var _is_controls_enabled := true
 
 var last_score_is_record := false
 
+# Mode capture (update_screenshots.sh) : lancé avec « -- --screenshots=<dossier> »,
+# F12 enregistre l'écran en 1280x720 dans ce dossier
+const SCREENSHOT_SIZE := Vector2i(1280, 720)
+var _screenshot_dir := ""
+var _screenshot_count := 0
+
+
+func _ready():
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--screenshots="):
+			_screenshot_dir = arg.trim_prefix("--screenshots=")
+	if _screenshot_dir == "":
+		return
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	DirAccess.make_dir_recursive_absolute(_screenshot_dir)
+	DisplayServer.window_set_size(SCREENSHOT_SIZE)
+
+
+func _input(event):
+	if _screenshot_dir == "":
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F12:
+		takeScreenshot()
+
+
+func takeScreenshot():
+	var image := get_viewport().get_texture().get_image()
+	if image.get_size() != SCREENSHOT_SIZE:
+		image.resize(SCREENSHOT_SIZE.x, SCREENSHOT_SIZE.y, Image.INTERPOLATE_LANCZOS)
+	image.convert(Image.FORMAT_RGB8)
+	_screenshot_count += 1
+	var path := _screenshot_dir.path_join("capture_%03d.png" % _screenshot_count)
+	image.save_png(path)
+	print("Capture : ", path)
+
 
 func isControlsEnabled():
 	return _is_controls_enabled

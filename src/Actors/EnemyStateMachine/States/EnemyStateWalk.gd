@@ -1,8 +1,6 @@
 class_name EnemyStateWalk
 extends EnemyAbstractStateMotion
 
-var MAX_WALK_SPEED = 15
-
 var speed = 0.0
 var velocity = Vector2()
 
@@ -31,7 +29,7 @@ func update(delta):
 		
 	update_look_direction(input_direction)
 
-	speed = MAX_WALK_SPEED
+	speed = owner.get_parent().get_walk_speed()
 	var collision_info = move(speed, input_direction)
 	if not collision_info:
 		return

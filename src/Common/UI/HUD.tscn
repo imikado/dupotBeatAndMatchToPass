@@ -1,115 +1,110 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://src/Common/UI/HUD.gd" id="1"]
-[ext_resource type="FontFile" path="res://src/Common/UI/fonts/Pixeled.ttf" id="2"]
 [ext_resource type="Texture2D" path="res://src/Common/UI/hud/icon-player.png" id="3"]
 [ext_resource type="Theme" path="res://src/Common/UI/theme.tres" id="4"]
-
-[sub_resource type="StyleBoxFlat" id="40"]
-bg_color = Color(0, 0, 0, 1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
-anti_aliasing = false
-
-[sub_resource type="StyleBoxFlat" id="39"]
-bg_color = Color(0.164706, 0.498039, 0, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0, 0, 0, 1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
-anti_aliasing = false
-
-[sub_resource type="StyleBoxFlat" id="42"]
-bg_color = Color(0, 0, 0, 1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
-
-[sub_resource type="StyleBoxFlat" id="41"]
-bg_color = Color(0.0196078, 0.0862745, 0.627451, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0, 0, 0, 1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
-
-[sub_resource type="FontVariation" id="3"]
-base_font = ExtResource("2")
+[ext_resource type="Script" path="res://src/Common/UI/PixelBar.gd" id="5"]
 
 [node name="HUD" type="CanvasLayer" unique_id=911642530]
 script = ExtResource("1")
 
-[node name="Icon" type="TextureRect" parent="." unique_id=348695475]
-custom_minimum_size = Vector2(20, 0)
-offset_right = 20.0
+[node name="Portrait" type="Control" parent="." unique_id=1730412256]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 22.0
 offset_bottom = 22.0
+mouse_filter = 2
+
+[node name="Border" type="ColorRect" parent="Portrait" unique_id=1580962715]
+layout_mode = 0
+offset_right = 20.0
+offset_bottom = 20.0
+mouse_filter = 2
+color = Color(0.0784314, 0.0470588, 0.109804, 1)
+
+[node name="Background" type="ColorRect" parent="Portrait" unique_id=1219570473]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 1.0
+offset_right = 19.0
+offset_bottom = 19.0
+mouse_filter = 2
+color = Color(0.188235, 0.145098, 0.227451, 1)
+
+[node name="Highlight" type="ColorRect" parent="Portrait" unique_id=1946118077]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 1.0
+offset_right = 19.0
+offset_bottom = 2.0
+mouse_filter = 2
+color = Color(0.384314, 0.32549, 0.45098, 1)
+
+[node name="Icon" type="TextureRect" parent="Portrait" unique_id=348695475]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 18.0
+offset_bottom = 18.0
+mouse_filter = 2
 texture = ExtResource("3")
-stretch_mode = 6
+stretch_mode = 2
 
 [node name="Control" type="Control" parent="." unique_id=1637275193]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 29.0
+offset_left = 25.0
 offset_top = 3.0
-offset_right = 69.0
-offset_bottom = 43.0
+offset_right = 127.0
+offset_bottom = 21.0
+mouse_filter = 2
 
-[node name="LifeProgressBar" type="ProgressBar" parent="Control" unique_id=1160583269]
-custom_minimum_size = Vector2(100, 10)
+[node name="LifeProgressBar" type="Control" parent="Control" unique_id=1160583269]
 layout_mode = 0
-offset_right = 100.0
-offset_bottom = 10.0
-size_flags_vertical = 4
-theme_override_styles/background = SubResource("40")
-theme_override_styles/fill = SubResource("39")
-show_percentage = false
+offset_right = 102.0
+offset_bottom = 8.0
+mouse_filter = 2
+script = ExtResource("5")
 
-[node name="ManaProgressBar" type="ProgressBar" parent="Control" unique_id=1493417315]
-custom_minimum_size = Vector2(80, 6)
+[node name="ManaProgressBar" type="Control" parent="Control" unique_id=1493417315]
 layout_mode = 0
-offset_top = 14.0
-offset_right = 80.0
-offset_bottom = 20.0
-size_flags_horizontal = 0
-theme_override_styles/background = SubResource("42")
-theme_override_styles/fill = SubResource("41")
+offset_top = 10.0
+offset_right = 82.0
+offset_bottom = 16.0
+mouse_filter = 2
+script = ExtResource("5")
 max_value = 80.0
-show_percentage = false
+fill_color = Color(0.231373, 0.427451, 0.85098, 1)
 
 [node name="score" type="Label" parent="." unique_id=1925335038]
-offset_left = 137.0
-offset_top = -13.0
-offset_right = 205.0
-offset_bottom = 33.0
-grow_vertical = 0
-size_flags_horizontal = 0
-size_flags_vertical = 1
-theme_override_fonts/font = SubResource("3")
-theme_override_font_sizes/font_size = 16
-text = "0000"
+offset_left = 120.0
+offset_top = 1.0
+offset_right = 200.0
+offset_bottom = 14.0
+pivot_offset = Vector2(40, 6)
+theme = ExtResource("4")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.0784314, 0.0470588, 0.109804, 1)
+theme_override_constants/outline_size = 3
+text = "000000"
+horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="level" type="Label" parent="." unique_id=947313916]
 offset_left = 217.0
+offset_top = 1.0
 offset_right = 317.0
-offset_bottom = 23.0
+offset_bottom = 14.0
 grow_horizontal = 0
 theme = ExtResource("4")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-text = "Level 02"
+theme_override_colors/font_outline_color = Color(0.0784314, 0.0470588, 0.109804, 1)
+theme_override_constants/outline_size = 3
+text = "LEVEL 02"
 horizontal_alignment = 2
+vertical_alignment = 1
 
 [node name="Marker2D" type="Marker2D" parent="." unique_id=822439506]
-position = Vector2(152, 14)
+position = Vector2(160, 7)

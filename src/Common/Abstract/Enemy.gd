@@ -8,6 +8,7 @@ var _damage:=10
 const MAX_LIFE=50.0
 var _life:=50.0
 var _type= Game.ENEMY_TYPE_LIST.ANT
+var _walk_speed:=15.0
 
 var _combo_count=0
 
@@ -32,6 +33,14 @@ func reset_combo_count():
 
 func get_type():
 	return _type
+
+func get_walk_speed():
+	return _walk_speed
+
+# Plus rapide et plus fort à chaque niveau après le niveau 3
+func apply_difficulty(difficulty:int):
+	_walk_speed*=min(1.0 + 0.1 * difficulty, 1.6)
+	_damage=int(round(_damage * min(1.0 + 0.1 * difficulty, 1.5)))
 
 func update_enemy_life(start_value:float, end_value:float)->void:
 

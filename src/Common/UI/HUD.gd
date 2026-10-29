@@ -1,22 +1,44 @@
 extends CanvasLayer
 
-@onready var _player_life_progress_bar=get_node("Control/LifeProgressBar" )
+@onready var _player_life_progress_bar:PixelBar=get_node("Control/LifeProgressBar")
+@onready var _player_mana_progress_bar:PixelBar=get_node("Control/ManaProgressBar")
 
-@onready var _player_mana_progress_bar=get_node("Control/ManaProgressBar")
-@onready var _player_mana_progress_bar_color=get_node("Control/ManaProgressBar").get_theme_stylebox("fill")
-
+@onready var _portrait:=get_node("Portrait")
+@onready var _portrait_icon:=get_node("Portrait/Icon")
+@onready var _bars:=get_node("Control")
 
 @onready var _score=get_node("score")
 @onready var _level=get_node("level")
 
 @onready var _score_value:=0
 
-const MANA_COLOR_ENOUGH=Color("0516a0")
-const MANA_COLOR_NOTENOUGH=Color("900000")
+const LIFE_COLOR_HIGH=Color("44a840")
+const LIFE_COLOR_MID=Color("e0b43a")
+const LIFE_COLOR_LOW=Color("d8432e")
+const LIFE_COLOR_BLINK=Color("ffb0a0")
 
+const MANA_COLOR_ENOUGH=Color("3b6dd9")
+const MANA_COLOR_NOTENOUGH=Color("8a2f4a")
+
+const SCORE_COLOR=Color.WHITE
+const SCORE_COLOR_GAIN=Color("ffd34d")
+
+const MID_LIFE_THRESHOLD=50.0
 const LOW_LIFE_THRESHOLD=25.0
 
-var _low_life_tween:Tween
+# Secousse au pixel près (décalages entiers dans la vue 320x180)
+const SHAKE_OFFSETS=[Vector2(-2, 0), Vector2(2, 1), Vector2(-1, -1), Vector2(1, 0), Vector2.ZERO]
+const SHAKE_STEP=0.04
+
+var _life_target:=0.0
+var _mana_cells:=0
+
+var _shake_tween:Tween
+var _portrait_tween:Tween
+var _score_tween:Tween
+var _score_pop_tween:Tween
+var _portrait_position:Vector2
+var _bars_position:Vector2
 
 var _streak_label:Label
 var _banner:Label
@@ -26,6 +48,22 @@ var _banner_tween:Tween
 func _ready() -> void:
 	add_to_group("hud")
 	set_title("LEVEL "+("%02d" % GlobalPlayer.get_level()))
+
+	_portrait_position=_portrait.position
+	_bars_position=_bars.position
+
+	# État de départ sans animation : le niveau appelle ensuite update_* avec les mêmes valeurs
+	_life_target=GlobalPlayer.life
+	_player_life_progress_bar.set_value(_life_target, false)
+	refresh_life_color(_life_target)
+
+	_mana_cells=mana_cells(GlobalPlayer.mana)
+	_player_mana_progress_bar.max_value=GlobalPlayer.MAX_MANA
+	_player_mana_progress_bar.segment=GlobalPlayer.attack_amount_mana
+	_player_mana_progress_bar.set_value(GlobalPlayer.mana, false)
+	refresh_mana_color(GlobalPlayer.mana)
+
+	update_score_value(GlobalPlayer.get_score())
 
 	_streak_label = build_label(5, HORIZONTAL_ALIGNMENT_RIGHT)
 	_streak_label.position = Vector2(217, 13)
@@ -118,79 +156,114 @@ func set_title(text_):
 	_level.text=text_+debug
 
 func update_score(value:int):
-	
-	var start_score=_score_value
-	var end_score:=value
-	
-	var tween := create_tween()
-	tween.tween_method(Callable(self, "update_score_value"), start_score, end_score, 1)
-	
+	if value == _score_value:
+		return
+
+	var is_gain:=value > _score_value
+
+	if _score_tween:
+		_score_tween.kill()
+	_score_tween = create_tween()
+	_score_tween.tween_method(Callable(self, "update_score_value"), _score_value, value, 0.5)
+
+	if is_gain:
+		pop_score()
+
 
 func update_score_value(value:int):
-	_score.text=str(value)
+	_score.text="%06d" % value
 	_score_value=value
-	
-	
+
+
+# Le score grossit d'un coup en jaune puis revient par paliers
+func pop_score() -> void:
+	if _score_pop_tween:
+		_score_pop_tween.kill()
+	_score.scale=Vector2(1.5, 1.5)
+	_score.add_theme_color_override("font_color", SCORE_COLOR_GAIN)
+	_score_pop_tween = create_tween()
+	_score_pop_tween.tween_interval(0.06)
+	_score_pop_tween.tween_property(_score, "scale", Vector2(1.25, 1.25), 0.0)
+	_score_pop_tween.tween_interval(0.06)
+	_score_pop_tween.tween_property(_score, "scale", Vector2.ONE, 0.0)
+	_score_pop_tween.tween_interval(0.2)
+	_score_pop_tween.tween_callback(func(): _score.add_theme_color_override("font_color", SCORE_COLOR))
+
+
+
+func mana_cells(value:float) -> int:
+	return int(floor(value / GlobalPlayer.attack_amount_mana))
+
 
 func update_player_mana(value:float)->void:
-	var end_clamped_value = float(clamp(value, _player_mana_progress_bar.min_value, _player_mana_progress_bar.max_value))
+	_player_mana_progress_bar.set_value(value)
+	refresh_mana_color(value)
 
-	var start_value=_player_mana_progress_bar.value
+	# Une case de plus = une attaque de foudre de plus disponible
+	var cells:=mana_cells(value)
+	if cells > _mana_cells:
+		_player_mana_progress_bar.flash()
+	_mana_cells=cells
 
-	var tween := create_tween().set_trans(Tween.TRANS_LINEAR).set_ease(Tween.EASE_OUT)
-	tween.tween_method(Callable(self, "_update_player_mana_bar"), start_value, end_clamped_value, 0.5)
-	
-	
-func _update_player_mana_bar(value:float)->void:
-	_player_mana_progress_bar.value=value
-	
+
+func refresh_mana_color(value:float) -> void:
 	if value >= GlobalPlayer.attack_amount_mana:
-		set_mana_progress_bar_enough()
+		_player_mana_progress_bar.set_fill_color(MANA_COLOR_ENOUGH)
 	else:
-		set_mana_progress_bar_notenough()
-
-
-func set_mana_progress_bar_enough():
-	_player_mana_progress_bar_color.set_bg_color(MANA_COLOR_ENOUGH)
-
-
-func set_mana_progress_bar_notenough():
-	_player_mana_progress_bar_color.set_bg_color(MANA_COLOR_NOTENOUGH)
+		_player_mana_progress_bar.set_fill_color(MANA_COLOR_NOTENOUGH)
 
 
 func update_player_life(value:float)->void:
-
-	var end_clamped_value = float(clamp(value, _player_life_progress_bar.min_value, _player_life_progress_bar.max_value))
-
-	var start_value=_player_life_progress_bar.value
-
-	var tween := create_tween().set_trans(Tween.TRANS_LINEAR).set_ease(Tween.EASE_IN)
-	tween.tween_method(Callable(self, "_update_player_health_bar"), start_value, end_clamped_value, 0.3)
-	
-	
-	
-func _update_player_health_bar(health_target: float) -> void:
-	_player_life_progress_bar.value = health_target
-
-	if health_target <= LOW_LIFE_THRESHOLD and health_target > 0:
-		start_low_life_warning()
-	else:
-		stop_low_life_warning()
-
-
-func start_low_life_warning() -> void:
-	if _low_life_tween and _low_life_tween.is_valid():
+	var previous:=_life_target
+	_life_target=clamp(value, 0.0, _player_life_progress_bar.max_value)
+	if is_equal_approx(previous, _life_target):
 		return
-	_low_life_tween = create_tween().set_loops()
-	_low_life_tween.tween_property(_player_life_progress_bar, "modulate", Color(1.6, 0.6, 0.6), 0.3)
-	_low_life_tween.tween_property(_player_life_progress_bar, "modulate", Color.WHITE, 0.3)
+
+	_player_life_progress_bar.set_value(_life_target)
+	refresh_life_color(_life_target)
+
+	if _life_target < previous:
+		_player_life_progress_bar.flash()
+		shake_hud()
+		flash_portrait(Color(1.0, 0.3, 0.3))
+	else:
+		flash_portrait(Color(0.5, 1.0, 0.5))
 
 
-func stop_low_life_warning() -> void:
-	if _low_life_tween:
-		_low_life_tween.kill()
-		_low_life_tween = null
-	_player_life_progress_bar.modulate = Color.WHITE
+func refresh_life_color(value:float) -> void:
+	if value > MID_LIFE_THRESHOLD:
+		_player_life_progress_bar.set_fill_color(LIFE_COLOR_HIGH)
+	elif value > LOW_LIFE_THRESHOLD:
+		_player_life_progress_bar.set_fill_color(LIFE_COLOR_MID)
+	else:
+		_player_life_progress_bar.set_fill_color(LIFE_COLOR_LOW)
+
+	if value <= LOW_LIFE_THRESHOLD and value > 0:
+		_player_life_progress_bar.start_blink(LIFE_COLOR_BLINK)
+	else:
+		_player_life_progress_bar.stop_blink()
 
 
+func shake_hud() -> void:
+	if _shake_tween:
+		_shake_tween.kill()
+	_shake_tween = create_tween()
+	for offset in SHAKE_OFFSETS:
+		_shake_tween.tween_callback(func():
+			_portrait.position = _portrait_position + offset
+			_bars.position = _bars_position + offset
+		)
+		_shake_tween.tween_interval(SHAKE_STEP)
 
+
+func flash_portrait(color:Color) -> void:
+	if _portrait_tween:
+		_portrait_tween.kill()
+	_portrait_icon.modulate = color
+	_portrait_tween = create_tween()
+	_portrait_tween.tween_interval(0.1)
+	_portrait_tween.tween_callback(func(): _portrait_icon.modulate = Color.WHITE)
+	_portrait_tween.tween_interval(0.06)
+	_portrait_tween.tween_callback(func(): _portrait_icon.modulate = color)
+	_portrait_tween.tween_interval(0.1)
+	_portrait_tween.tween_callback(func(): _portrait_icon.modulate = Color.WHITE)
