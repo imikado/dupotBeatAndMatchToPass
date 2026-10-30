@@ -17,7 +17,8 @@ var last_score_is_record := false
 
 # Mode capture (update_screenshots.sh) : lancé avec « -- --screenshots=<dossier> »,
 # F12 enregistre l'écran en 1280x720 dans ce dossier ; avec « --tour » en plus,
-# ScreenshotTour joue tout seul et prend les captures du README / de Flathub
+# ScreenshotTour joue tout seul et prend les captures du README / de Flathub ;
+# avec « --demo=<clip> », DemoTour joue la démo du README (update_demo.sh)
 const SCREENSHOT_SIZE := Vector2i(1280, 720)
 var _screenshot_dir := ""
 var _screenshot_count := 0
@@ -25,17 +26,22 @@ var _screenshot_count := 0
 
 func _ready():
 	var is_tour := false
+	var demo := ""
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshots="):
 			_screenshot_dir = arg.trim_prefix("--screenshots=")
 		elif arg == "--tour":
 			is_tour = true
+		elif arg.begins_with("--demo="):
+			demo = arg.trim_prefix("--demo=")
 	if _screenshot_dir == "":
 		return
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	DirAccess.make_dir_recursive_absolute(_screenshot_dir)
 	DisplayServer.window_set_size(SCREENSHOT_SIZE)
-	if is_tour:
+	if demo != "":
+		add_child(load("res://src/Common/Autoload/DemoTour.gd").new(demo))
+	elif is_tour:
 		add_child(preload("res://src/Common/Autoload/ScreenshotTour.gd").new())
 
 
