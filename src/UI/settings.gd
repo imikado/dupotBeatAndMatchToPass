@@ -106,3 +106,7 @@ func _on_attack_pressed() -> void:
 
 func _on_manaAttack_pressed() -> void:
 	record_keymap(PlayerAbstractState.INPUT_ATTACK_MANA)
+
+
+func _on_dash_pressed() -> void:
+	record_keymap(PlayerAbstractState.INPUT_DASH)

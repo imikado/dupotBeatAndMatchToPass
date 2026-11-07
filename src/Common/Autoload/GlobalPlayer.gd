@@ -3,7 +3,8 @@ extends Node
 const START_SCORE = 0
 const START_LIFE = 100
 const START_MANA = 10
-const MAX_MANA = 80
+# 4 tempêtes en réserve au plus
+const MAX_MANA = 40
 
 const STREAK_STEP = 5
 const MAX_MULTIPLIER = 4

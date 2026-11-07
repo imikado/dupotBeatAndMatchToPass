@@ -377,12 +377,12 @@ offset_bottom = 40.0
 
 [node name="ProgressBar" type="ProgressBar" parent="BodyPivot/Control" unique_id=1290679622]
 visible = false
-custom_minimum_size = Vector2(30, 4)
+custom_minimum_size = Vector2(24, 3)
 layout_mode = 0
-offset_left = -22.0
-offset_top = 8.0
-offset_right = 8.0
-offset_bottom = 12.0
+offset_left = -12.0
+offset_top = 4.0
+offset_right = 12.0
+offset_bottom = 7.0
 theme_override_styles/background = SubResource("53")
 theme_override_styles/fill = SubResource("52")
 value = 50.0

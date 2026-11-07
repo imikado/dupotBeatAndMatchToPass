@@ -236,3 +236,132 @@ static func light(parent: Node, color: Color, texture_scale: float = 1.0) -> Poi
 	point_light.enabled = false
 	parent.add_child(point_light)
 	return point_light
+
+
+static var _ring_textures := {}
+static var _scorch_textures := {}
+
+
+# Ellipse pixel art de 1 px d'épaisseur (rapport 1:0.4, vue du sol), mise en cache par rayon
+static func ring_texture(radius: int) -> ImageTexture:
+	if not _ring_textures.has(radius):
+		var width: int = max(2, radius * 2)
+		var height: int = max(2, int(round(radius * 0.4)) * 2)
+		var rx := width / 2.0
+		var ry := height / 2.0
+		var inside := func(x: int, y: int) -> bool:
+			if x < 0 or y < 0 or x >= width or y >= height:
+				return false
+			var dx := (x + 0.5 - rx) / rx
+			var dy := (y + 0.5 - ry) / ry
+			return dx * dx + dy * dy <= 1.0
+		var image := Image.create(width, height, false, Image.FORMAT_RGBA8)
+		for y in range(height):
+			for x in range(width):
+				# bord : dedans, avec au moins un voisin dehors
+				if inside.call(x, y) and not (inside.call(x - 1, y) and inside.call(x + 1, y) and inside.call(x, y - 1) and inside.call(x, y + 1)):
+					image.set_pixel(x, y, Color.WHITE)
+		_ring_textures[radius] = ImageTexture.create_from_image(image)
+	return _ring_textures[radius]
+
+
+# Onde de choc au sol : anneau qui grandit jusqu'à radius puis disparaît.
+# Le rayon avance au pixel près (une texture par rayon, pas de mise à l'échelle floue)
+static func ring(parent: Node, global_pos: Vector2, color: Color, radius := 24.0, duration := 0.3) -> void:
+	var sprite := Sprite2D.new()
+	sprite.texture = ring_texture(2)
+	sprite.modulate = color
+	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	sprite.z_index = 50
+	parent.add_child(sprite)
+	sprite.global_position = global_pos.round()
+
+	var tween := sprite.create_tween()
+	tween.set_parallel(true)
+	tween.tween_method(func(t: float):
+		sprite.texture = ring_texture(int(round(lerpf(2.0, radius, t))))
+	, 0.0, 1.0, duration).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(sprite, "modulate:a", 0.0, duration * 0.6).set_delay(duration * 0.4)
+	tween.chain().tween_callback(sprite.queue_free)
+
+
+# Marque brûlée ovale au sol (bord irrégulier, centre plus sombre), qui s'efface.
+# parent : de préférence le conteneur y-sort des personnages (get_parent() du joueur) :
+# la marque est alors dessinée sous tous les personnages. Sinon, au-dessus des enfants déjà là
+static func scorch(parent: Node, global_pos: Vector2, width := 14, duration := 1.2) -> Sprite2D:
+	if not _scorch_textures.has(width):
+		var height: int = max(4, width / 3)
+		var image := Image.create(width, height, false, Image.FORMAT_RGBA8)
+		var rx := width / 2.0
+		var ry := height / 2.0
+		var rng := RandomNumberGenerator.new()
+		rng.seed = width
+		for y in range(height):
+			for x in range(width):
+				var dx := (x + 0.5 - rx) / rx
+				var dy := (y + 0.5 - ry) / ry
+				var d := dx * dx + dy * dy
+				var noise := rng.randf()
+				if d <= 0.35 or (d <= 1.0 and noise > d * 0.7):
+					var shade := 0.06 if d < 0.35 or noise > 0.8 else 0.16
+					image.set_pixel(x, y, Color(shade, shade * 0.8, shade * 0.6, 1))
+		_scorch_textures[width] = ImageTexture.create_from_image(image)
+
+	var sprite := Sprite2D.new()
+	sprite.texture = _scorch_textures[width]
+	sprite.modulate = Color(1, 1, 1, 0.75)
+	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	parent.add_child(sprite)
+	sprite.global_position = global_pos.round()
+	if parent is Node2D and parent.y_sort_enabled:
+		# trié tout en haut, mais dessiné à sa place
+		sprite.position.y -= 10000
+		sprite.offset.y = 10000
+
+	var tween := sprite.create_tween()
+	tween.tween_property(sprite, "modulate:a", 0.0, duration * 0.6).set_delay(duration * 0.4)
+	tween.tween_callback(sprite.queue_free)
+	return sprite
+
+
+# Traînée courte qui suit target : les length dernières positions (une par image),
+# de transparent à color. Enfant de target, dessinée derrière lui, libérée avec lui
+static func trail(target: Node2D, color: Color, length := 8) -> Line2D:
+	var line := Line2D.new()
+	line.antialiased = false
+	line.show_behind_parent = true
+	line.width = 2.0
+	line.begin_cap_mode = Line2D.LINE_CAP_NONE
+	line.end_cap_mode = Line2D.LINE_CAP_NONE
+	var width_curve := Curve.new()
+	width_curve.add_point(Vector2(0, 0.5))
+	width_curve.add_point(Vector2(1, 1))
+	line.width_curve = width_curve
+	var gradient := Gradient.new()
+	gradient.set_color(0, Color(color, 0))
+	gradient.set_color(1, color)
+	line.gradient = gradient
+
+	var history := PackedVector2Array()
+	var update := func():
+		history.append(target.global_position.round())
+		if history.size() > length:
+			history.remove_at(0)
+		var points := PackedVector2Array()
+		points.resize(history.size())
+		for i in range(history.size()):
+			points[i] = line.to_local(history[i])
+		line.points = points
+		# largeur en pixels d'écran, même si target est agrandi/réduit
+		line.width = 2.0 / maxf(absf(target.global_scale.x), 0.001)
+	var connect_frame := func():
+		if not line.get_tree().process_frame.is_connected(update):
+			line.get_tree().process_frame.connect(update)
+	var disconnect_frame := func():
+		history.clear()
+		if line.get_tree().process_frame.is_connected(update):
+			line.get_tree().process_frame.disconnect(update)
+	line.tree_entered.connect(connect_frame)
+	line.tree_exiting.connect(disconnect_frame)
+	target.add_child(line)
+	return line

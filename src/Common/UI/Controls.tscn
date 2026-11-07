@@ -8,6 +8,8 @@
 [ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Attack02Pressed.png" id="6"]
 [ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Attack01Pressed.png" id="7"]
 [ext_resource type="PackedScene" path="res://src/Common/UI/joystick-big.tscn" id="8"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Dash.png" id="9"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/DashPressed.png" id="10"]
 
 [node name="Controls" type="CanvasLayer" unique_id=995688000]
 script = ExtResource("4")
@@ -54,6 +56,12 @@ position = Vector2(296, 160)
 texture_normal = ExtResource("3")
 texture_pressed = ExtResource("6")
 action = "attack_mana"
+
+[node name="dash" type="TouchScreenButton" parent="." unique_id=1730549213]
+position = Vector2(280, 140)
+texture_normal = ExtResource("9")
+texture_pressed = ExtResource("10")
+action = "dash"
 
 [node name="joystick-big" parent="." unique_id=2041500792 instance=ExtResource("8")]
 position = Vector2(33, 147)

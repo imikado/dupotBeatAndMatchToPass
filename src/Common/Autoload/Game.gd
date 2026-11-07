@@ -56,6 +56,12 @@ func takeScreenshot(file_name := ""):
 	var image := get_viewport().get_texture().get_image()
 	if image.get_size() != SCREENSHOT_SIZE:
 		image.resize(SCREENSHOT_SIZE.x, SCREENSHOT_SIZE.y, Image.INTERPOLATE_LANCZOS)
+	# avec hdr_2d l'image est en flottant et en espace linéaire : repasser en sRGB
+	# pixel par pixel avant la conversion en 8 bits (évite les bandes dans les zones sombres)
+	if image.get_format() in [Image.FORMAT_RGBAH, Image.FORMAT_RGBAF, Image.FORMAT_RGBH, Image.FORMAT_RGBF]:
+		for y in range(image.get_height()):
+			for x in range(image.get_width()):
+				image.set_pixel(x, y, image.get_pixel(x, y).linear_to_srgb())
 	image.convert(Image.FORMAT_RGB8)
 	_screenshot_count += 1
 	if file_name == "":

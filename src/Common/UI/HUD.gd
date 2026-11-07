@@ -19,9 +19,14 @@ const LIFE_COLOR_BLINK=Color("ffb0a0")
 
 const MANA_COLOR_ENOUGH=Color("3b6dd9")
 const MANA_COLOR_NOTENOUGH=Color("8a2f4a")
+const MANA_SHIMMER_PERIOD=2.0
+const MANA_SHIMMER_PERIOD_FULL=0.9
 
 const SCORE_COLOR=Color.WHITE
 const SCORE_COLOR_GAIN=Color("ffd34d")
+
+const STREAK_Y=18
+const BANNER_Y=24
 
 const MID_LIFE_THRESHOLD=50.0
 const LOW_LIFE_THRESHOLD=25.0
@@ -66,18 +71,20 @@ func _ready() -> void:
 	update_score_value(GlobalPlayer.get_score())
 
 	_streak_label = build_label(5, HORIZONTAL_ALIGNMENT_RIGHT)
-	_streak_label.position = Vector2(217, 13)
+	# Sous « LEVEL xx » (glyphes de la police Pixeled jusqu'à y = 20 environ)
+	_streak_label.position = Vector2(217, STREAK_Y)
 	_streak_label.size = Vector2(100, 10)
 	_streak_label.visible = false
 
 	_banner = build_label(10, HORIZONTAL_ALIGNMENT_CENTER)
-	_banner.position = Vector2(0, 60)
+	# Bandeau dans le ciel, au-dessus des personnages et de leurs textes flottants
+	_banner.position = Vector2(0, BANNER_Y)
 	_banner.size = Vector2(320, 24)
 	_banner.pivot_offset = _banner.size / 2
 	_banner.visible = false
 
 	_banner_sub = build_label(5, HORIZONTAL_ALIGNMENT_CENTER)
-	_banner_sub.position = Vector2(0, 86)
+	_banner_sub.position = Vector2(0, BANNER_Y + 22)
 	_banner_sub.size = Vector2(320, 12)
 	_banner_sub.visible = false
 
@@ -209,8 +216,12 @@ func update_player_mana(value:float)->void:
 func refresh_mana_color(value:float) -> void:
 	if value >= GlobalPlayer.attack_amount_mana:
 		_player_mana_progress_bar.set_fill_color(MANA_COLOR_ENOUGH)
+		# Orage disponible : un reflet parcourt la jauge, plus souvent quand elle est pleine
+		var period:=MANA_SHIMMER_PERIOD_FULL if value >= GlobalPlayer.MAX_MANA else MANA_SHIMMER_PERIOD
+		_player_mana_progress_bar.start_shimmer(period)
 	else:
 		_player_mana_progress_bar.set_fill_color(MANA_COLOR_NOTENOUGH)
+		_player_mana_progress_bar.stop_shimmer()
 
 
 func update_player_life(value:float)->void:

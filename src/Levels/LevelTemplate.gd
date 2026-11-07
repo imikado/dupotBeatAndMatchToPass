@@ -6,6 +6,11 @@ const LIFE_BOTTLE_HEAL = 30
 
 const MAX_ENEMY = 5
 
+# Taille d'une vague : 2-3 ennemis au début, puis plus avec le niveau et la difficulté
+const WAVE_SIZE_MAX = 6
+# Décalage vers l'extérieur quand plusieurs ennemis partagent un point d'apparition
+const WAVE_SPOT_SPACING = 25.0
+
 # Énergie à apporter à chaque barrière : 6, puis +1 tous les 2 niveaux après le niveau 3
 const BARRIER_ENERGY = 6
 const MAX_BARRIER_ENERGY = 10
@@ -57,16 +62,15 @@ var _active_barrier_list := []
 var _opened_barrier_count := 0
 var _total_barrier_count := 0
 var _was_mana_ready := false
+# labels « +10 » encore à l'écran (voir kill_text_position)
+var _kill_texts := []
 
 var _pause_menu: PauseMenu
 
-var _wave_number = 0
 var _total_wave_number = 0
 var _random_combo_count = 0
 
 var _current_barrier_group: Node = null
-
-@onready var _wave_array := []
 
 
 
@@ -90,71 +94,6 @@ func _ready() -> void:
 	else:
 		_player.global_position.x += 450
 
-	if GlobalPlayer.get_level() == 1:
-		_wave_array = [
-			[
-				{"type": Game.ENEMY_TYPE_LIST.ANT, "position": _spawnPositionLeft},
-				{"type": Game.ENEMY_TYPE_LIST.ANT, "position": _spawnPositionRight}
-			],
-			[
-				{"type": Game.ENEMY_TYPE_LIST.ANT, "position": _spawnPositionLeft2},
-				{"type": Game.ENEMY_TYPE_LIST.ANT, "position": _spawnPositionRight2},
-				{"type": Game.ENEMY_TYPE_LIST.ANT, "position": _spawnPositionRight}
-			],
-		]
-	elif GlobalPlayer.get_level() == 2:
-		_wave_array = [
-			[
-				{"type": Game.ENEMY_TYPE_LIST.ANT, "position": _spawnPositionLeft},
-				{"type": Game.ENEMY_TYPE_LIST.BEETLE, "position": _spawnPositionRight}
-			],
-			[
-				{"type": Game.ENEMY_TYPE_LIST.ANT, "position": _spawnPositionLeft},
-				{
-					"type": Game.ENEMY_TYPE_LIST.BEETLE,
-					"position": _spawnPositionLeft2,
-					"offset": Vector2(-25, 0)
-				},
-				{"type": Game.ENEMY_TYPE_LIST.ANT, "position": _spawnPositionRight}
-			],
-			[
-				{
-					"type": Game.ENEMY_TYPE_LIST.ANT,
-					"position": _spawnPositionLeft,
-					"offset": Vector2(-25, 0)
-				},
-				{"type": Game.ENEMY_TYPE_LIST.BEETLE, "position": _spawnPositionLeft2},
-				{"type": Game.ENEMY_TYPE_LIST.ANT, "position": _spawnPositionRight},
-				{"type": Game.ENEMY_TYPE_LIST.BEETLE, "position": _spawnPositionRight2}
-			]
-		]
-	elif GlobalPlayer.get_level() >= 3:
-		_wave_array = [
-			[
-				{"type": Game.ENEMY_TYPE_LIST.ANT, "position": _spawnPositionLeft},
-				{"type": Game.ENEMY_TYPE_LIST.BEETLE, "position": _spawnPositionRight},
-				{
-					"type": Game.ENEMY_TYPE_LIST.SPIDER,
-					"position": _spawnPositionLeft2,
-					"offset": Vector2(-5, 0)
-				},
-			],
-			[
-				{"type": Game.ENEMY_TYPE_LIST.SPIDER, "position": _spawnPositionLeft},
-				{
-					"type": Game.ENEMY_TYPE_LIST.BEETLE,
-					"position": _spawnPositionLeft2,
-					"offset": Vector2(-5, 0)
-				},
-				{"type": Game.ENEMY_TYPE_LIST.ANT, "position": _spawnPositionRight}
-			],
-			[
-				{"type": Game.ENEMY_TYPE_LIST.BEETLE, "position": _spawnPositionLeft2},
-				{"type": Game.ENEMY_TYPE_LIST.ANT, "position": _spawnPositionRight},
-				{"type": Game.ENEMY_TYPE_LIST.SPIDER, "position": _spawnPositionRight2}
-			]
-		]
-		
 	build_level()
 
 	# La vie est conservée d'un niveau à l'autre (fioles du niveau bonus comprises)
@@ -200,9 +139,6 @@ func _ready() -> void:
 			BarrierLoop.opened.connect(_on_barrier_opened)
 			_total_barrier_count += 1
 
-	#_active_barrier_list.append(get_node("ElectricalBarriers/01/ElectricalBarrier"))
-	process_spawn()
-	process_spawn()
 
 func _input(event: InputEvent) -> void:
 	if Game.isInputPauseButton(event) and GlobalPlayer.life > 0 and not _pause_menu.is_open():
@@ -211,8 +147,8 @@ func _input(event: InputEvent) -> void:
 
 
 func _notification(what: int) -> void:
-	# Android back button / window focus lost: pause instead of losing the run
-	if (what == NOTIFICATION_WM_GO_BACK_REQUEST or what == NOTIFICATION_APPLICATION_FOCUS_OUT) and is_inside_tree() and _pause_menu and GlobalPlayer.life > 0:
+	# window / browser tab focus lost: pause instead of losing the run
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and is_inside_tree() and _pause_menu and GlobalPlayer.life > 0:
 		_pause_menu.open()
 
 
@@ -287,13 +223,21 @@ func _on_barrier_is_visible(barrier):
 
 	var is_new_group = false
 	if false == _active_barrier_list.has(barrier):
-		_active_barrier_list.append(barrier)
+		# tout le groupe s'active dès qu'une de ses barrières est visible :
+		# les vagues mélangent ainsi tous les types du groupe
+		for sibling in barrier.get_parent().get_children():
+			if not _active_barrier_list.has(sibling):
+				_active_barrier_list.append(sibling)
 
 		is_new_group = barrier.get_parent() != _current_barrier_group
 		_current_barrier_group = barrier.get_parent()
 
+	refresh_enemy_markers()
+
 	if is_first_barrier:
-		process_spawn()
+		# différé : les barrières du groupe deviennent visibles dans la même image,
+		# la première vague doit connaître tous leurs types
+		process_spawn.call_deferred()
 		start_spawn_timer()
 	elif is_new_group:
 		# Répit à l'arrivée sur un nouveau groupe de barrières : le rythme repart du début
@@ -304,6 +248,7 @@ func _on_barrier_is_visible(barrier):
 func _on_barrier_opened(barrier) -> void:
 	_opened_barrier_count += 1
 	_player.shake_camera(3.0, 0.3)
+	refresh_enemy_markers()
 
 	var is_group_open = true
 	for sibling in barrier.get_parent().get_children():
@@ -348,22 +293,27 @@ func manage_combo_for_actor(actor):
 
 	var combo_count = actor.get_combo_count()
 
+	# Le « +1 » se place sur le côté opposé au joueur : la colonne au-dessus de l'ennemi
+	# reste libre pour le « +10 » du kill (Fx.floating_text, de y -24 à -40)
+	var side = 1.0 if actor.global_position.x >= _player.global_position.x else -1.0
+
 	var delta_position = Vector2.ZERO
 	if combo_count == 0:
-		delta_position.x = -5
+		delta_position.x = 14 * side
 		delta_position.y = 5
 	elif combo_count == 1:
 		new_combo_plus_one.scale = Vector2(1.2, 1.2)
-		#delta_position.x=5
+		delta_position.x = 16 * side
 		delta_position.y = -5
 
 	elif combo_count == 2:
 		new_combo_plus_one.scale = Vector2(2.6, 2.6)
-		#delta_position.x=25
-		delta_position.y = -25
+		delta_position.x = 22 * side
+		delta_position.y = -12
 
+		# « COMBO! » au-dessus du « +10 » (qui monte jusqu'à y -46 environ)
 		var new_combo_bonus = ComboBonus.instantiate()
-		new_combo_bonus.global_position = actor.global_position + Vector2(0, -50)
+		new_combo_bonus.global_position = (actor.global_position + Vector2(0, -62)).round()
 		new_combo_bonus.connect("combo_arrived", Callable(self, "_on_combo_bonus_finished"))
 		new_combo_bonus.set_target(_hudScore)
 		new_combo_bonus.set_as_top_level(true)
@@ -371,7 +321,7 @@ func manage_combo_for_actor(actor):
 
 		_specialEffects.add_child(new_combo_bonus)
 
-	new_combo_plus_one.global_position += delta_position
+	new_combo_plus_one.global_position = (new_combo_plus_one.global_position + delta_position).round()
 
 	new_combo_plus_one.set_as_top_level(true)
 	_specialEffects.add_child(new_combo_plus_one)
@@ -391,57 +341,90 @@ func _on_actor_healt_changed(actor: CharacterBody2D, previous_value: float, new_
 	if new_value <= 0.0:
 		var multiplier = GlobalPlayer.register_kill()
 		var points = 10 * multiplier
-		increment_score(points)
+		# la tempête ne se recharge pas avec ses propres victimes
+		increment_score(points, not _player.is_storming())
 		_hud.update_streak(GlobalPlayer.kill_streak, multiplier)
 
 		var text_color = Color.WHITE if multiplier == 1 else Color("ffd34d")
-		Fx.floating_text(_specialEffects, "+" + str(points), actor.global_position + Vector2(0, -24), text_color)
+		Fx.floating_text(_specialEffects, "+" + str(points), kill_text_position(actor.global_position + Vector2(0, -24)), text_color)
+		_kill_texts.append(_specialEffects.get_child(-1))
 		Fx.burst(_specialEffects, actor.global_position + Vector2(0, -6), Fx.enemy_color(actor.get_type()))
 		Sound.play("enemy_die")
 
 		Game.hit_stop(0.06)
 		_player.shake_camera(2.0, 0.1)
 
-		var new_energy = Energie.instantiate()
-		new_energy.global_position = actor.global_position
-		add_child(new_energy)
+		# barrière de ce type déjà ouverte : pas d'énergie
 		var barrier_target = find_barrier_for_actor(actor)
 		if barrier_target:
+			var new_energy = Energie.instantiate()
+			new_energy.global_position = actor.global_position
+			add_child(new_energy)
 			new_energy.set_target(barrier_target)
-		else:
-			print_debug("Error to find active barrier")
 
 
-func increment_score(points: int):
+# Deux ennemis qui meurent au même endroit : le « +10 » suivant monte au-dessus
+# de ceux encore visibles tout près (Fx.floating_text centre un label de 60×12)
+func kill_text_position(text_position: Vector2) -> Vector2:
+	_kill_texts = _kill_texts.filter(func(label): return is_instance_valid(label) and not label.is_queued_for_deletion())
+	var moved := true
+	var tries := 0
+	while moved and tries < 4:
+		moved = false
+		tries += 1
+		for label in _kill_texts:
+			var center: Vector2 = label.global_position + Vector2(30, 6)
+			if abs(center.x - text_position.x) < 18 and abs(center.y - text_position.y) < 8:
+				text_position.y = center.y - 8
+				moved = true
+				break
+	return text_position.round()
+
+
+func increment_score(points: int, give_mana := true):
 	var new_score: int
 	new_score = GlobalPlayer.get_score() + points
 	GlobalPlayer.save_score(new_score)
 	_hud.update_score(new_score)
 
-	increment_mana()
+	if give_mana:
+		increment_mana()
 
 
 func _on_combo_bonus_finished():
 	increment_score(10)
 
 
+# Barrière encore fermée du type de l'ennemi, la plus proche du joueur (null si aucune)
 func find_barrier_for_actor(actor: CharacterBody2D):
-	var near_x = 0
-	var nearer_barrier = null
+	var nearest_barrier = null
+	var nearest_distance := INF
 
 	for barrier_loop in _active_barrier_list:
-		if actor.get_type() == barrier_loop.get_type():
-			var barrier_x = barrier_loop.global_position.x
+		if barrier_loop.is_open() or actor.get_type() != barrier_loop.get_type():
+			continue
+		var distance: float = abs(barrier_loop.global_position.x - _player.global_position.x)
+		if distance < nearest_distance:
+			nearest_barrier = barrier_loop
+			nearest_distance = distance
 
-			if nearer_barrier == null:
-				nearer_barrier = barrier_loop
-				near_x = barrier_x
-			else:
-				if near_x < barrier_x:
-					nearer_barrier = barrier_loop
-					near_x = barrier_x
+	return nearest_barrier
 
-	return nearer_barrier
+
+# Types d'ennemis qui chargent encore une barrière
+func get_wanted_types() -> Array:
+	var types := []
+	for barrier_loop in _active_barrier_list:
+		if not barrier_loop.is_open() and not types.has(barrier_loop.get_type()):
+			types.append(barrier_loop.get_type())
+	return types
+
+
+# Marqueur au-dessus des ennemis utiles (leur barrière est encore fermée)
+func refresh_enemy_markers() -> void:
+	var types := get_wanted_types()
+	for enemy in get_tree().get_nodes_in_group(Game.GROUP_ENEMY):
+		enemy.set_wanted(types.has(enemy.get_type()))
 
 
 func _on_actor_took_damage(actor, damage):
@@ -476,6 +459,7 @@ func spawn_enemy_on_position(enemy_to_spawn, spawn_position, offset = Vector2.ZE
 	enemy_spawn.set_global_position(spawn_position.global_position + offset)
 
 	_ysort.add_child(enemy_spawn)
+	enemy_spawn.set_wanted(true)
 
 
 func has_too_much_enemy(enemy_to_spawn_type):
@@ -503,25 +487,42 @@ func get_enemy_by_type(type):
 
 
 func process_spawn():
-	if _wave_number >= _wave_array.size():
-		return
 	# Porte ouverte : plus de nouveaux ennemis
 	if _total_barrier_count > 0 and _opened_barrier_count >= _total_barrier_count:
 		return
 
-	for wave_loop in _wave_array[_wave_number]:
-		var offset = Vector2.ZERO
-		if wave_loop.has("offset"):
-			offset = wave_loop["offset"]
+	for wave_loop in build_wave():
 		if !has_too_much_enemy(wave_loop["type"]):
 			spawn_enemy_on_position(
-				get_enemy_by_type(wave_loop["type"]), wave_loop["position"], offset
+				get_enemy_by_type(wave_loop["type"]), wave_loop["position"], wave_loop["offset"]
 			)
 
-	_wave_number += 1
 	_total_wave_number += 1
-	if _wave_number >= _wave_array.size():
-		_wave_number = 0
+
+
+# Vague tirée au hasard parmi les types des barrières encore fermées :
+# chaque type utile au moins une fois, sur des points d'apparition mélangés
+func build_wave() -> Array:
+	var types := get_wanted_types()
+	if types.is_empty():
+		return []
+	types.shuffle()
+
+	var size: int = clampi(GlobalPlayer.get_level() + GlobalPlayer.get_difficulty() / 2, 2, WAVE_SIZE_MAX - 1)
+	size = mini(size + randi_range(0, 1), WAVE_SIZE_MAX)
+	size = maxi(size, types.size())
+
+	var spots := [_spawnPositionLeft, _spawnPositionLeft2, _spawnPositionRight, _spawnPositionRight2]
+	spots.shuffle()
+
+	var wave := []
+	for i in range(size):
+		var type = types[i] if i < types.size() else types.pick_random()
+		var spot: Node2D = spots[i % spots.size()]
+		var outward := -1.0 if spot == _spawnPositionLeft or spot == _spawnPositionLeft2 else 1.0
+		var offset := Vector2(outward * WAVE_SPOT_SPACING * (i / spots.size()) + randf_range(-6, 6), 0)
+		wave.append({"type": type, "position": spot, "offset": offset})
+	return wave
 
 
 func _on_SpawnTimer_timeout() -> void:

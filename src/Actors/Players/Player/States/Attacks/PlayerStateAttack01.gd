@@ -22,7 +22,7 @@ func update(delta):
 
 
 func _on_animation_finished(anim_name):
-	if _event_count > 1:
+	if _event_count >= 1:
 		emit_signal("finished",STATE_ATTACK02)
 	else:
 		emit_signal("finished", STATE_WALK)

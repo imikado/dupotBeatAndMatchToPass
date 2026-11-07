@@ -1,7 +1,7 @@
 title: Beat and Match to Pass
 name: dupot-beat-match-to-pass # you probably want to 'snapcraft register <name>'
 base: core24
-version: "1.10.0"
+version: "1.11.0"
 summary: Beat match to pass
 description: |
   This Game was made with Godot 4.7.2

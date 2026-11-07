@@ -48,6 +48,11 @@ func get_type():
 
 func update_enemy_life(start_value:float, end_value:float)->void:
 
+	# Plus de vie : la barre (vide) disparaît tout de suite
+	if end_value <= 0.0:
+		hide_progressbar()
+		return
+
 	_enemy_progress_bar.visible=true
 
 	var health = float(clamp(end_value, _enemy_progress_bar.min_value, _enemy_progress_bar.max_value))
@@ -122,7 +127,7 @@ func hide_progressbar():
 
 
 func _update_enemy_health_bar(health_target: float) -> void:
-	_enemy_progress_bar.value = health_target
+	_enemy_progress_bar.value = Enemy.snap_life_bar_value(_enemy_progress_bar, health_target)
 	
 
 func set_look_direction(value):
@@ -144,6 +149,7 @@ func _ready() -> void:
 
 	Fx.shadow(self, 14).position = Vector2(0, -1)
 	Fx.character_material(get_node("BodyPivot/AnimatedSprite2D"))
+	Enemy.style_life_bar(_enemy_progress_bar, Fx.enemy_color(_type))
 
 	
 func get_life():

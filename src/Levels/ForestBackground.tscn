@@ -1,0 +1,152 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/Levels/ForestBackground/ForestBackground.gd" id="1"]
+[ext_resource type="Texture2D" path="res://src/Levels/LevelTemplate/background-trees-up.png" id="2"]
+[ext_resource type="Texture2D" path="res://src/Levels/LevelTemplate/background-brushes-down.png" id="3"]
+[ext_resource type="Shader" path="res://src/Levels/ForestBackground/forest_layer.gdshader" id="4"]
+[ext_resource type="Shader" path="res://src/Levels/ForestBackground/wind.gdshader" id="5"]
+[ext_resource type="Texture2D" path="res://src/Levels/LevelTemplate/ground_edge.png" id="6"]
+
+[sub_resource type="Gradient" id="Gradient_sky"]
+interpolation_mode = 1
+offsets = PackedFloat32Array(0, 0.16, 0.3, 0.42, 0.53, 0.63, 0.72, 0.82)
+colors = PackedColorArray(0.016, 0.047, 0.11, 1, 0.024, 0.071, 0.149, 1, 0.031, 0.098, 0.188, 1, 0.039, 0.125, 0.227, 1, 0.051, 0.157, 0.263, 1, 0.067, 0.188, 0.298, 1, 0.086, 0.22, 0.329, 1, 0.11, 0.251, 0.353, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_sky"]
+gradient = SubResource("Gradient_sky")
+width = 620
+height = 128
+fill_to = Vector2(0, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_far"]
+shader = ExtResource("4")
+shader_parameter/fog_color = Color(0.03, 0.08, 0.125, 1)
+shader_parameter/fog = 0.72
+shader_parameter/brightness = 0.6
+shader_parameter/contrast = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mid"]
+shader = ExtResource("4")
+shader_parameter/fog_color = Color(0.04, 0.1, 0.15, 1)
+shader_parameter/fog = 0.38
+shader_parameter/brightness = 0.7
+shader_parameter/contrast = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_near"]
+shader = ExtResource("4")
+shader_parameter/fog_color = Color(0.04, 0.1, 0.15, 1)
+shader_parameter/fog = 0.12
+shader_parameter/brightness = 0.85
+shader_parameter/contrast = 1.35
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wind"]
+shader = ExtResource("5")
+shader_parameter/amplitude = 1.0
+shader_parameter/speed = 1.7
+shader_parameter/wavelength = 46.0
+
+[sub_resource type="Gradient" id="Gradient_shade"]
+interpolation_mode = 1
+offsets = PackedFloat32Array(0, 0.114, 0.25, 0.386, 0.545, 0.727, 0.909)
+colors = PackedColorArray(0, 0.01, 0.03, 0.12, 0, 0.01, 0.03, 0.32, 0, 0.01, 0.03, 0.24, 0, 0.01, 0.03, 0.17, 0, 0.01, 0.03, 0.11, 0, 0.01, 0.03, 0.06, 0, 0, 0, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_shade"]
+gradient = SubResource("Gradient_shade")
+width = 1
+height = 44
+fill_to = Vector2(0, 1)
+
+[node name="ForestBackground" type="Node2D"]
+script = ExtResource("1")
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+
+[node name="Sky" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.3, 1)
+motion_mirroring = Vector2(620, 0)
+
+[node name="sky" type="Sprite2D" parent="ParallaxBackground/Sky"]
+position = Vector2(-230, -6)
+texture = SubResource("GradientTexture2D_sky")
+centered = false
+
+[node name="Stars" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.05, 1)
+motion_mirroring = Vector2(620, 0)
+
+[node name="Moon" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0, 1)
+
+[node name="moon" type="Sprite2D" parent="ParallaxBackground/Moon"]
+position = Vector2(207, 44)
+
+[node name="Clouds" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.15, 1)
+motion_mirroring = Vector2(620, 0)
+
+[node name="clouds" type="Sprite2D" parent="ParallaxBackground/Clouds"]
+position = Vector2(-230, 24)
+centered = false
+
+[node name="TreesFar" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.8, 1)
+motion_offset = Vector2(-15, 0)
+motion_mirroring = Vector2(620, 0)
+
+[node name="trees" type="Sprite2D" parent="ParallaxBackground/TreesFar"]
+material = SubResource("ShaderMaterial_far")
+position = Vector2(-230, 53)
+texture = ExtResource("2")
+centered = false
+
+[node name="TreesMid" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.9, 1)
+motion_offset = Vector2(-10, 0)
+motion_mirroring = Vector2(620, 0)
+
+[node name="trees" type="Sprite2D" parent="ParallaxBackground/TreesMid"]
+material = SubResource("ShaderMaterial_mid")
+position = Vector2(-232, 53)
+texture = ExtResource("2")
+centered = false
+flip_h = true
+
+[node name="TreesNear" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_mirroring = Vector2(620, 0)
+
+[node name="trees" type="Sprite2D" parent="ParallaxBackground/TreesNear"]
+material = SubResource("ShaderMaterial_near")
+position = Vector2(-229, 53)
+texture = ExtResource("2")
+centered = false
+
+[node name="ParallaxBackground2" type="ParallaxBackground" parent="."]
+layer = 100
+
+[node name="Brushes" type="ParallaxLayer" parent="ParallaxBackground2"]
+position = Vector2(1, 193)
+motion_scale = Vector2(1.2, 1)
+motion_offset = Vector2(-10, 0)
+motion_mirroring = Vector2(620, 0)
+
+[node name="brushes" type="Sprite2D" parent="ParallaxBackground2/Brushes"]
+material = SubResource("ShaderMaterial_wind")
+position = Vector2(-233, -9)
+texture = ExtResource("3")
+centered = false
+
+[node name="GroundShade" type="Node2D" parent="."]
+
+[node name="edge" type="Sprite2D" parent="GroundShade"]
+texture_repeat = 2
+position = Vector2(-400, 107)
+texture = ExtResource("6")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 4896, 8)
+
+[node name="shade" type="Sprite2D" parent="GroundShade"]
+position = Vector2(-400, 104)
+scale = Vector2(4896, 1)
+texture = SubResource("GradientTexture2D_shade")
+centered = false

@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Arrow.png" id="8"]
 [ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Attack01.png" id="9"]
 [ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Attack02.png" id="10"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Dash.png" id="11"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_1"]
 texture = ExtResource("1")
@@ -128,6 +129,10 @@ texture_normal = ExtResource("9")
 position = Vector2(216, 137)
 texture_normal = ExtResource("10")
 
+[node name="dash" type="TouchScreenButton" parent="controlsMap" unique_id=1873440561]
+position = Vector2(203, 117)
+texture_normal = ExtResource("11")
+
 [node name="Label" type="Label" parent="controlsMap" unique_id=1560934321]
 offset_left = 88.0
 offset_top = 79.0
@@ -165,3 +170,4 @@ uppercase = true
 [connection signal="pressed" from="controlsMap/down" to="." method="_on_down_pressed"]
 [connection signal="pressed" from="controlsMap/attack" to="." method="_on_attack_pressed"]
 [connection signal="pressed" from="controlsMap/manaAttack" to="." method="_on_manaAttack_pressed"]
+[connection signal="pressed" from="controlsMap/dash" to="." method="_on_dash_pressed"]

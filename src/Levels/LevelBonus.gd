@@ -128,7 +128,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _notification(what: int) -> void:
-	if (what == NOTIFICATION_WM_GO_BACK_REQUEST or what == NOTIFICATION_APPLICATION_FOCUS_OUT) and is_inside_tree() and _pause_menu and GlobalPlayer.life > 0:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and is_inside_tree() and _pause_menu and GlobalPlayer.life > 0:
 		_pause_menu.open()
 
 
@@ -164,29 +164,33 @@ func manage_combo_for_actor(actor):
 
 	var combo_count = actor.get_combo_count()
 
+	# mêmes décalages que LevelTemplate.manage_combo_for_actor : le « +1 » du côté
+	# opposé au joueur, « COMBO! » au-dessus de la colonne de l'ennemi
+	var side = 1.0 if actor.global_position.x >= _player.global_position.x else -1.0
+
 	var delta_position = Vector2.ZERO
 	if combo_count == 0:
-		delta_position.x = -5
+		delta_position.x = 14 * side
 		delta_position.y = 5
 	elif combo_count == 1:
 		new_combo_plus_one.scale = Vector2(1.2, 1.2)
-		#delta_position.x=5
+		delta_position.x = 16 * side
 		delta_position.y = -5
 
 	elif combo_count == 2:
 		new_combo_plus_one.scale = Vector2(2.6, 2.6)
-		#delta_position.x=25
-		delta_position.y = -25
+		delta_position.x = 22 * side
+		delta_position.y = -12
 
 		var new_combo_bonus = ComboBonus.instantiate()
-		new_combo_bonus.global_position = actor.global_position + Vector2(0, -50)
+		new_combo_bonus.global_position = (actor.global_position + Vector2(0, -62)).round()
 		new_combo_bonus.connect("combo_arrived", Callable(self, "_on_combo_bonus_finished"))
 		new_combo_bonus.set_target(_hudScore)
 		new_combo_bonus.set_as_top_level(true)
 
 		_specialEffects.add_child(new_combo_bonus)
 
-	new_combo_plus_one.global_position += delta_position
+	new_combo_plus_one.global_position = (new_combo_plus_one.global_position + delta_position).round()
 
 	new_combo_plus_one.set_as_top_level(true)
 	_specialEffects.add_child(new_combo_plus_one)
@@ -269,9 +273,16 @@ func _on_actor_let_item(actor):
 	var target = actor.global_position + Vector2(side * BOTTLE_DROP_DISTANCE, randf_range(-4, 4))
 	target.y = clamp(target.y, min_y, max_y)
 
+	# appelé depuis un signal de collision (HitBox du joueur) : ajouter l'Area2D de la
+	# bouteille pendant le flush de la physique provoque « Can't change this state while
+	# flushing queries », on l'ajoute donc juste après
+	_drop_life_bottle.call_deferred(actor.global_position, target)
+
+
+func _drop_life_bottle(from_position: Vector2, target: Vector2) -> void:
 	var newLifeBottle = LifeBottle.instantiate()
 	_ysort.add_child(newLifeBottle)
-	newLifeBottle.global_position = actor.global_position
+	newLifeBottle.global_position = from_position
 	newLifeBottle.pop_to(target)
 
 

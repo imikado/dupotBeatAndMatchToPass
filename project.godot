@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="BeatAndMatchToPass"
-config/version="1.10.0"
+config/version="1.11.0"
 run/main_scene="res://src/UI/boot.tscn"
 config/features=PackedStringArray("4.7")
 boot_splash/bg_color=Color(0.933333, 0.372549, 0, 1)
@@ -75,6 +75,12 @@ attack_mana={
 , Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":0,"button_index":1,"pressure":0.0,"pressed":false,"script":null)
 ]
 }
+dash={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":4194325,"physical_keycode":0,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+, Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":0,"button_index":2,"pressure":0.0,"pressed":false,"script":null)
+]
+}
 
 [input_devices]
 
@@ -89,6 +95,7 @@ pointing/emulate_touch_from_mouse=true
 
 textures/canvas_textures/default_texture_filter=0
 textures/vram_compression/import_etc2_astc=true
+viewport/hdr_2d=true
 environment/defaults/default_environment="res://default_env.tres"
 
 [world]

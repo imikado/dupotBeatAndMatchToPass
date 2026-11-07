@@ -13,6 +13,9 @@ const GAIN_TRAIL_COLOR := Color("a8f0a0")
 const TRAIL_DELAY := 0.35
 const TRAIL_DURATION := 0.4
 const FLASH_DURATION := 0.15
+# Reflet qui parcourt la jauge (en pixels par seconde, largeur en pixels)
+const SHIMMER_SPEED := 160.0
+const SHIMMER_WIDTH := 3
 
 @export var max_value := 100.0
 @export var fill_color := Color("44a840")
@@ -30,6 +33,10 @@ var _blink_color := Color.WHITE
 var _trail_tween: Tween
 var _flash_tween: Tween
 var _blink_tween: Tween
+var _shimmer_tween: Tween
+var _shimmer_period := 0.0
+# Position du reflet en pixels depuis le bord gauche (-SHIMMER_WIDTH = pas de reflet)
+var _shimmer_x := -SHIMMER_WIDTH
 
 
 func set_value(new_value: float, animate := true) -> void:
@@ -100,6 +107,37 @@ func stop_blink() -> void:
 	queue_redraw()
 
 
+# Reflet clair qui balaie la partie remplie, pixel par pixel, toutes les `period` secondes
+func start_shimmer(period := 2.0) -> void:
+	if _shimmer_tween and _shimmer_tween.is_valid() and is_equal_approx(period, _shimmer_period):
+		return
+	if _shimmer_tween:
+		_shimmer_tween.kill()
+	_shimmer_period = period
+	var end_x := int(size.x + size.y)
+	var sweep := (end_x + SHIMMER_WIDTH) / SHIMMER_SPEED
+	_shimmer_tween = create_tween().set_loops()
+	_shimmer_tween.tween_method(_set_shimmer_x, -SHIMMER_WIDTH, end_x, sweep)
+	_shimmer_tween.tween_callback(_set_shimmer_x.bind(-SHIMMER_WIDTH))
+	_shimmer_tween.tween_interval(max(period - sweep, 0.05))
+
+
+func stop_shimmer() -> void:
+	if _shimmer_tween:
+		_shimmer_tween.kill()
+		_shimmer_tween = null
+	_shimmer_period = 0.0
+	_shimmer_x = -SHIMMER_WIDTH
+	queue_redraw()
+
+
+func _set_shimmer_x(x: int) -> void:
+	if x == _shimmer_x:
+		return
+	_shimmer_x = x
+	queue_redraw()
+
+
 func _toggle_blink() -> void:
 	_blink_on = not _blink_on
 	queue_redraw()
@@ -146,6 +184,15 @@ func _draw() -> void:
 		draw_rect(Rect2(1, 1, fill_w, 1), color.lightened(0.4))
 		if inner_h > 2:
 			draw_rect(Rect2(1, h - 2, fill_w, 1), color.darkened(0.35))
+
+		# Reflet en biais (1 px de décalage par ligne), limité à la partie remplie
+		if _shimmer_x > -SHIMMER_WIDTH:
+			var shine := color.lightened(0.55)
+			for row in range(inner_h):
+				var start: int = max(_shimmer_x - row, 0)
+				var end: int = min(_shimmer_x - row + SHIMMER_WIDTH, fill_w)
+				if end > start:
+					draw_rect(Rect2(1 + start, 1 + row, end - start, 1), shine)
 
 	if segment > 0.0:
 		var tick := segment

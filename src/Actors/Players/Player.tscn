@@ -24,6 +24,7 @@
 [ext_resource type="Script" path="res://src/Actors/Players/Player/States/OnGround/GetLifeBottle.gd" id="23"]
 [ext_resource type="Texture2D" path="res://src/Actors/Players/Player/player-gameover.png" id="24"]
 [ext_resource type="Script" path="res://src/Actors/Players/Player/States/OnGround/Gameover.gd" id="25"]
+[ext_resource type="Script" path="res://src/Actors/Players/Player/States/OnGround/PlayerStateDash.gd" id="26"]
 
 [sub_resource type="Animation" id="46"]
 resource_name = "attacking_01_right"
@@ -254,10 +255,10 @@ tracks/4/path = NodePath("ManaFalling:visible")
 tracks/4/interp = 1
 tracks/4/loop_wrap = true
 tracks/4/keys = {
-"times": PackedFloat32Array(0.1, 0.2, 2.2),
-"transitions": PackedFloat32Array(1, 1, 1),
+"times": PackedFloat32Array(0.1, 0.2),
+"transitions": PackedFloat32Array(1, 1),
 "update": 1,
-"values": [false, true, false]
+"values": [false, true]
 }
 
 [sub_resource type="Animation" id="47"]
@@ -834,6 +835,9 @@ script = ExtResource("23")
 [node name="Gameover" type="Node" parent="StateMachine" unique_id=1461491262]
 script = ExtResource("25")
 
+[node name="Dash" type="Node" parent="StateMachine"]
+script = ExtResource("26")
+
 [node name="stateDisplay" type="Label" parent="." unique_id=1391894534]
 offset_left = -20.0
 offset_top = -48.0
@@ -846,34 +850,34 @@ script = ExtResource("9")
 visible = false
 
 [node name="ManaFall" parent="ManaFalling" unique_id=1357890014 instance=ExtResource("21")]
-position = Vector2(-101, -93)
+position = Vector2(-101, -2)
 
 [node name="ManaFall2" parent="ManaFalling" unique_id=187544660 instance=ExtResource("21")]
-position = Vector2(-72, -64)
+position = Vector2(-72, 27)
 
 [node name="ManaFall3" parent="ManaFalling" unique_id=635827066 instance=ExtResource("21")]
-position = Vector2(-22, -38)
+position = Vector2(-22, 53)
 
 [node name="ManaFall4" parent="ManaFalling" unique_id=1915840978 instance=ExtResource("21")]
-position = Vector2(40, -53)
+position = Vector2(40, 38)
 
 [node name="ManaFall5" parent="ManaFalling" unique_id=493775299 instance=ExtResource("21")]
-position = Vector2(69, -74)
+position = Vector2(69, 17)
 
 [node name="ManaFall6" parent="ManaFalling" unique_id=1913269887 instance=ExtResource("21")]
-position = Vector2(108, -96)
+position = Vector2(108, -5)
 
 [node name="ManaFall7" parent="ManaFalling" unique_id=1781452024 instance=ExtResource("21")]
-position = Vector2(-54, -108)
+position = Vector2(-54, -17)
 
 [node name="ManaFall8" parent="ManaFalling" unique_id=323668365 instance=ExtResource("21")]
-position = Vector2(-14, -120)
+position = Vector2(-14, -29)
 
 [node name="ManaFall9" parent="ManaFalling" unique_id=1790506789 instance=ExtResource("21")]
-position = Vector2(42, -107)
+position = Vector2(42, -16)
 
 [node name="ManaFall10" parent="ManaFalling" unique_id=422984233 instance=ExtResource("21")]
-position = Vector2(88, -118)
+position = Vector2(88, -27)
 
 [connection signal="animation_finished" from="BodyPivot/AnimationPlayer" to="StateMachine" method="_on_animation_finished"]
 [connection signal="body_entered" from="BodyPivot/HitBox" to="." method="_on_HitBox_body_entered"]

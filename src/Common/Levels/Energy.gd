@@ -8,6 +8,10 @@ func _ready() -> void:
 
 func set_target(target):
 	_target=target
+	# teinte et traînée de la couleur de la barrière visée
+	var color := Fx.enemy_color(target.get_type())
+	$AnimatedSprite2D.self_modulate = color.lightened(0.45)
+	Fx.trail(self, Color(color, 0.8), 8)
 	
 func _process(delta: float) -> void:
 	
