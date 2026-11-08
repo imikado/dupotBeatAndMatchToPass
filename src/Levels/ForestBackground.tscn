@@ -4,7 +4,6 @@
 [ext_resource type="Texture2D" path="res://src/Levels/LevelTemplate/background-trees-up.png" id="2"]
 [ext_resource type="Texture2D" path="res://src/Levels/LevelTemplate/background-brushes-down.png" id="3"]
 [ext_resource type="Shader" path="res://src/Levels/ForestBackground/forest_layer.gdshader" id="4"]
-[ext_resource type="Shader" path="res://src/Levels/ForestBackground/wind.gdshader" id="5"]
 [ext_resource type="Texture2D" path="res://src/Levels/LevelTemplate/ground_edge.png" id="6"]
 
 [sub_resource type="Gradient" id="Gradient_sky"]
@@ -38,12 +37,6 @@ shader_parameter/fog_color = Color(0.04, 0.1, 0.15, 1)
 shader_parameter/fog = 0.12
 shader_parameter/brightness = 0.85
 shader_parameter/contrast = 1.35
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_wind"]
-shader = ExtResource("5")
-shader_parameter/amplitude = 1.0
-shader_parameter/speed = 1.7
-shader_parameter/wavelength = 46.0
 
 [sub_resource type="Gradient" id="Gradient_shade"]
 interpolation_mode = 1
@@ -130,7 +123,6 @@ motion_offset = Vector2(-10, 0)
 motion_mirroring = Vector2(620, 0)
 
 [node name="brushes" type="Sprite2D" parent="ParallaxBackground2/Brushes"]
-material = SubResource("ShaderMaterial_wind")
 position = Vector2(-233, -9)
 texture = ExtResource("3")
 centered = false

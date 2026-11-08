@@ -11,6 +11,9 @@
 [ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Attack01.png" id="9"]
 [ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Attack02.png" id="10"]
 [ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Dash.png" id="11"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/ArrowLeft.png" id="12"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/ArrowUp.png" id="13"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/ArrowDown.png" id="14"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_1"]
 texture = ExtResource("1")
@@ -107,19 +110,16 @@ position = Vector2(126, 137)
 texture_normal = ExtResource("8")
 
 [node name="left" type="TouchScreenButton" parent="controlsMap" unique_id=19129457]
-position = Vector2(92, 153)
-rotation = -3.14159
-texture_normal = ExtResource("8")
+position = Vector2(76, 137)
+texture_normal = ExtResource("12")
 
 [node name="up" type="TouchScreenButton" parent="controlsMap" unique_id=1252097550]
-position = Vector2(101, 129)
-rotation = -1.5708
-texture_normal = ExtResource("8")
+position = Vector2(101, 113)
+texture_normal = ExtResource("13")
 
 [node name="down" type="TouchScreenButton" parent="controlsMap" unique_id=1748974819]
-position = Vector2(117, 137)
-rotation = 1.5708
-texture_normal = ExtResource("8")
+position = Vector2(101, 137)
+texture_normal = ExtResource("14")
 
 [node name="attack" type="TouchScreenButton" parent="controlsMap" unique_id=1439278884]
 position = Vector2(191, 136)

@@ -10,16 +10,21 @@
 [ext_resource type="PackedScene" path="res://src/Common/UI/joystick-big.tscn" id="8"]
 [ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Dash.png" id="9"]
 [ext_resource type="Texture2D" path="res://src/Common/UI/Controls/DashPressed.png" id="10"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/ArrowLeft.png" id="11"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/ArrowLeftPressed.png" id="12"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/ArrowUp.png" id="13"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/ArrowUpPressed.png" id="14"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/ArrowDown.png" id="15"]
+[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/ArrowDownPressed.png" id="16"]
 
 [node name="Controls" type="CanvasLayer" unique_id=995688000]
 script = ExtResource("4")
 
 [node name="left" type="TouchScreenButton" parent="." unique_id=518661993]
 visible = false
-position = Vector2(24, 176)
-rotation = 3.14159
-texture_normal = ExtResource("1")
-texture_pressed = ExtResource("5")
+position = Vector2(8, 160)
+texture_normal = ExtResource("11")
+texture_pressed = ExtResource("12")
 action = "move_left"
 
 [node name="right" type="TouchScreenButton" parent="." unique_id=812539652]
@@ -31,18 +36,16 @@ action = "move_right"
 
 [node name="up" type="TouchScreenButton" parent="." unique_id=1117812866]
 visible = false
-position = Vector2(32, 152)
-rotation = -1.5708
-texture_normal = ExtResource("1")
-texture_pressed = ExtResource("5")
+position = Vector2(32, 136)
+texture_normal = ExtResource("13")
+texture_pressed = ExtResource("14")
 action = "move_up"
 
 [node name="down" type="TouchScreenButton" parent="." unique_id=2044028295]
 visible = false
-position = Vector2(48, 160)
-rotation = 1.5708
-texture_normal = ExtResource("1")
-texture_pressed = ExtResource("5")
+position = Vector2(32, 160)
+texture_normal = ExtResource("15")
+texture_pressed = ExtResource("16")
 action = "move_down"
 
 [node name="attack1" type="TouchScreenButton" parent="." unique_id=863766938]

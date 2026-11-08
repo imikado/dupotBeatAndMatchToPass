@@ -15,10 +15,26 @@ const WAVE_SPOT_SPACING = 25.0
 const BARRIER_ENERGY = 6
 const MAX_BARRIER_ENERGY = 10
 
+# Groupes de barrières : 2 + niveau, au plus 5 ; un tous les BARRIER_GROUP_SPACING pixels
+const BARRIER_GROUP_MIN = 2
+const BARRIER_GROUP_MAX = 5
+const BARRIER_GROUP_START_X = 400.0
+const BARRIER_GROUP_SPACING = 510.0
+const BARRIER_GROUP_Y = 115.0
+# Écart horizontal entre deux barrières d'un même groupe
+const BARRIER_SPACING_IN_GROUP = 20.0
+
+const ElectricalBarrierScene := preload("res://src/Common/Levels/ElectricalBarrier.tscn")
+
 # Délai entre deux vagues : lent à l'arrivée sur un groupe de barrières, puis de plus en plus rapide
-const SPAWN_DELAY_START = 15.0
-const SPAWN_DELAY_MID = 10.0
-const SPAWN_DELAY_FAST = 5.0
+const SPAWN_DELAY_START = 8.0
+const SPAWN_DELAY_MID = 6.0
+const SPAWN_DELAY_FAST = 4.0
+# Vague suivante avancée quand il ne reste presque plus personne à combattre
+const SPAWN_LOW_ENEMIES = 1
+const SPAWN_DELAY_WHEN_LOW = 1.5
+# Les ennemis d'une vague arrivent l'un après l'autre plutôt qu'en bloc
+const WAVE_STAGGER = 0.35
 
 @onready var _ysort = get_node("Node2D")
 @onready var _player = get_node("Node2D/Player")
@@ -51,13 +67,12 @@ const SPAWN_DELAY_FAST = 5.0
 
 @onready var _gate := get_node("Gate")
 
-@onready var _electricBarrierItem:=preload("res://src/Common/Levels/ElectricalBarrier.tscn")
-
 @onready var _lifeBottle := preload("res://src/Common/Items/LifeBottle.tscn")
 
 @onready var _lifeBottles:=get_node("lifeBottles")
 
-var _active_barrier_list := []
+# Barrières des groupes déjà apparus à l'écran (les seules qui comptent pour les vagues)
+var _active_barrier_list: Array[Node2D] = []
 
 var _opened_barrier_count := 0
 var _total_barrier_count := 0
@@ -70,12 +85,7 @@ var _pause_menu: PauseMenu
 var _total_wave_number = 0
 var _random_combo_count = 0
 
-var _current_barrier_group: Node = null
-
-
-
-var _spaceBetweenBarrier=510
-var _spaceStartBarrier=400
+var _current_barrier_group: Node2D = null
 
 
 func debug():
@@ -133,12 +143,6 @@ func _ready() -> void:
 
 	_manaTimer.start()
 
-	for GroupLoop in _electricalBarriers.get_children():
-		for BarrierLoop in GroupLoop.get_children():
-			BarrierLoop.connect("is_visible", Callable(self, "_on_barrier_is_visible").bind(BarrierLoop))
-			BarrierLoop.opened.connect(_on_barrier_opened)
-			_total_barrier_count += 1
-
 
 func _input(event: InputEvent) -> void:
 	if Game.isInputPauseButton(event) and GlobalPlayer.life > 0 and not _pause_menu.is_open():
@@ -153,56 +157,68 @@ func _notification(what: int) -> void:
 
 
 func build_level():
-	#_electricalBarriers
-	var maxLoop=2
-	
-	maxLoop+=GlobalPlayer.get_level()
-	if maxLoop >5:
-		maxLoop=5
-	
-	var maxX=1000
+	var group_count := get_barrier_group_count()
+	var types := get_barrier_types()
+	var energy := get_barrier_energy()
 
-	var barrierEnergy=min(BARRIER_ENERGY + ceili(GlobalPlayer.get_difficulty() / 2.0), MAX_BARRIER_ENERGY)
-	
-	for i in range(maxLoop):
-		var nodeBarrier=Node2D.new()
-		var barrierItemAnt=_electricBarrierItem.instantiate()
-		
-		
-		
-		nodeBarrier.add_child(barrierItemAnt)
+	for i in range(group_count):
+		var group := create_barrier_group(Vector2(BARRIER_GROUP_START_X + BARRIER_GROUP_SPACING * i, BARRIER_GROUP_Y), types, energy)
+
 		if GlobalPlayer.get_level() > 1:
-			var barrierItemBeatle=_electricBarrierItem.instantiate()
-			barrierItemBeatle.set_type(Game.ENEMY_TYPE_LIST.BEETLE)
-			nodeBarrier.add_child(barrierItemBeatle)
-			
-			barrierItemBeatle.global_position.x+=20
-		if GlobalPlayer.get_level() > 2:
-			var barrierItemSpider=_electricBarrierItem.instantiate()
-			barrierItemSpider.set_type(Game.ENEMY_TYPE_LIST.SPIDER)
-			nodeBarrier.add_child(barrierItemSpider)
-			
-			barrierItemSpider.global_position.x+=20*2
-		
-		for barrierLoop in nodeBarrier.get_children():
-			barrierLoop.set_max_energy(barrierEnergy)
-
-		_electricalBarriers.add_child(nodeBarrier)
-		
-		nodeBarrier.global_position.x=_spaceBetweenBarrier*i+_spaceStartBarrier
-		nodeBarrier.global_position.y=115
-		
-		maxX=_spaceBetweenBarrier*i+_spaceStartBarrier+_spaceBetweenBarrier
-		
-		if GlobalPlayer.get_level()>1:
-			var newLifeBottle=_lifeBottle.instantiate()
+			var newLifeBottle = _lifeBottle.instantiate()
 			_lifeBottles.add_child(newLifeBottle)
-			
-			newLifeBottle.global_position.x=nodeBarrier.global_position.x+70
-			newLifeBottle.global_position.y=150
-		
-	_gate.global_position.x=maxX
-	 
+			newLifeBottle.global_position = Vector2(group.global_position.x + 70, 150)
+
+	# la porte se place un intervalle après le dernier groupe
+	_gate.global_position.x = BARRIER_GROUP_START_X + BARRIER_GROUP_SPACING * group_count
+
+
+func get_barrier_group_count() -> int:
+	return mini(BARRIER_GROUP_MIN + GlobalPlayer.get_level(), BARRIER_GROUP_MAX)
+
+
+# Types de barrière d'un groupe, de gauche à droite : fourmi, puis scarabée (niveau 2+), puis araignée (niveau 3+)
+func get_barrier_types() -> Array[int]:
+	var types: Array[int] = [Game.ENEMY_TYPE_LIST.ANT]
+	if GlobalPlayer.get_level() > 1:
+		types.append(Game.ENEMY_TYPE_LIST.BEETLE)
+	if GlobalPlayer.get_level() > 2:
+		types.append(Game.ENEMY_TYPE_LIST.SPIDER)
+	return types
+
+
+func get_barrier_energy() -> int:
+	return mini(BARRIER_ENERGY + ceili(GlobalPlayer.get_difficulty() / 2.0), MAX_BARRIER_ENERGY)
+
+
+# Crée un groupe de barrières sous ElectricalBarriers, à la position globale donnée
+func create_barrier_group(group_position: Vector2, types: Array[int], energy: int) -> Node2D:
+	var group := Node2D.new()
+	group.name = "BarrierGroup%02d" % (_electricalBarriers.get_child_count() + 1)
+	_electricalBarriers.add_child(group)
+	group.global_position = group_position
+
+	for i in range(types.size()):
+		create_barrier(group, types[i], energy, Vector2(BARRIER_SPACING_IN_GROUP * i, 0))
+	return group
+
+
+# Crée, configure et enregistre une barrière (position relative à son groupe)
+func create_barrier(group: Node2D, type: int, energy: int, local_position: Vector2) -> Node2D:
+	var barrier: Node2D = ElectricalBarrierScene.instantiate()
+	barrier.setup(type, energy)
+	barrier.position = local_position
+	group.add_child(barrier)
+	register_barrier(barrier)
+	return barrier
+
+
+# Branche les signaux d'une barrière et la compte pour l'ouverture de la porte
+func register_barrier(barrier: Node2D) -> void:
+	barrier.revealed.connect(_on_barrier_revealed)
+	barrier.opened.connect(_on_barrier_opened)
+	_total_barrier_count += 1
+
 
 #life bottles
 func _on_player_took_lifebottle(bottle) -> void:
@@ -216,21 +232,21 @@ func _on_player_tookadvantage_of_lifebottle() -> void:
 	_player.heal(LIFE_BOTTLE_HEAL)
 
 
-func _on_barrier_is_visible(barrier):
-	var is_first_barrier = false
-	if _active_barrier_list.size() == 0:
-		is_first_barrier = true
+# Première apparition d'une barrière : tout son groupe devient actif
+func _on_barrier_revealed(barrier: Node2D) -> void:
+	var is_first_barrier := _active_barrier_list.is_empty()
 
-	var is_new_group = false
-	if false == _active_barrier_list.has(barrier):
+	var is_new_group := false
+	if not _active_barrier_list.has(barrier):
 		# tout le groupe s'active dès qu'une de ses barrières est visible :
 		# les vagues mélangent ainsi tous les types du groupe
-		for sibling in barrier.get_parent().get_children():
+		var group: Node2D = barrier.get_parent()
+		for sibling: Node2D in group.get_children():
 			if not _active_barrier_list.has(sibling):
 				_active_barrier_list.append(sibling)
 
-		is_new_group = barrier.get_parent() != _current_barrier_group
-		_current_barrier_group = barrier.get_parent()
+		is_new_group = group != _current_barrier_group
+		_current_barrier_group = group
 
 	refresh_enemy_markers()
 
@@ -245,15 +261,16 @@ func _on_barrier_is_visible(barrier):
 		start_spawn_timer()
 
 
-func _on_barrier_opened(barrier) -> void:
+func _on_barrier_opened(barrier: Node2D) -> void:
 	_opened_barrier_count += 1
 	_player.shake_camera(3.0, 0.3)
 	refresh_enemy_markers()
 
-	var is_group_open = true
+	var is_group_open := true
 	for sibling in barrier.get_parent().get_children():
 		if not sibling.is_open():
 			is_group_open = false
+			break
 
 	if _opened_barrier_count >= _total_barrier_count:
 		_spawnTimer.stop()
@@ -354,6 +371,8 @@ func _on_actor_healt_changed(actor: CharacterBody2D, previous_value: float, new_
 		Game.hit_stop(0.06)
 		_player.shake_camera(2.0, 0.1)
 
+		hurry_next_wave.call_deferred()
+
 		# barrière de ce type déjà ouverte : pas d'énergie
 		var barrier_target = find_barrier_for_actor(actor)
 		if barrier_target:
@@ -396,8 +415,8 @@ func _on_combo_bonus_finished():
 
 
 # Barrière encore fermée du type de l'ennemi, la plus proche du joueur (null si aucune)
-func find_barrier_for_actor(actor: CharacterBody2D):
-	var nearest_barrier = null
+func find_barrier_for_actor(actor: CharacterBody2D) -> Node2D:
+	var nearest_barrier: Node2D = null
 	var nearest_distance := INF
 
 	for barrier_loop in _active_barrier_list:
@@ -491,13 +510,34 @@ func process_spawn():
 	if _total_barrier_count > 0 and _opened_barrier_count >= _total_barrier_count:
 		return
 
-	for wave_loop in build_wave():
-		if !has_too_much_enemy(wave_loop["type"]):
-			spawn_enemy_on_position(
-				get_enemy_by_type(wave_loop["type"]), wave_loop["position"], wave_loop["offset"]
-			)
+	var wave := build_wave()
+	for i in range(wave.size()):
+		if i == 0:
+			spawn_wave_enemy(wave[i])
+		else:
+			get_tree().create_timer(WAVE_STAGGER * i, false).timeout.connect(spawn_wave_enemy.bind(wave[i]))
 
 	_total_wave_number += 1
+
+
+func spawn_wave_enemy(wave_entry: Dictionary) -> void:
+	if _total_barrier_count > 0 and _opened_barrier_count >= _total_barrier_count:
+		return
+	if has_too_much_enemy(wave_entry["type"]):
+		return
+	spawn_enemy_on_position(get_enemy_by_type(wave_entry["type"]), wave_entry["position"], wave_entry["offset"])
+
+
+# Plus (presque) personne à combattre : la vague suivante arrive vite
+func hurry_next_wave() -> void:
+	if _active_barrier_list.is_empty() or _spawnTimer.is_stopped():
+		return
+	var alive := 0
+	for enemy in get_tree().get_nodes_in_group(Game.GROUP_ENEMY):
+		if not enemy.get("_is_dying") and enemy.get_life() > 0:
+			alive += 1
+	if alive <= SPAWN_LOW_ENEMIES and _spawnTimer.time_left > SPAWN_DELAY_WHEN_LOW:
+		_spawnTimer.start(SPAWN_DELAY_WHEN_LOW)
 
 
 # Vague tirée au hasard parmi les types des barrières encore fermées :

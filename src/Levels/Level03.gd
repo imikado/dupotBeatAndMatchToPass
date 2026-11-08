@@ -1,5 +1,8 @@
 extends Node2D
 
+# ANCIEN NIVEAU (barrières placées à la main dans la scène) : la scène n'est plus
+# référencée, le jeu utilise LevelTemplate.gd qui génère les groupes de barrières.
+
 const MIN_SPAWN_Y = 127
 const MAX_ENEMY = 4
 
@@ -108,7 +111,7 @@ func _ready() -> void:
 
 	for GroupLoop in _electricalBarriers.get_children():
 		for BarrierLoop in GroupLoop.get_children():
-			BarrierLoop.connect("is_visible", Callable(self, "_on_barrier_is_visible").bind(BarrierLoop))
+			BarrierLoop.revealed.connect(_on_barrier_revealed)
 
 	#_active_barrier_list.append(get_node("ElectricalBarriers/01/ElectricalBarrier"))
 	process_spawn()
@@ -126,7 +129,7 @@ func _on_player_tookadvantage_of_lifebottle() -> void:
 	_hud.update_player_life(GlobalPlayer.life)
 
 
-func _on_barrier_is_visible(barrier):
+func _on_barrier_revealed(barrier: Node2D) -> void:
 	var is_first_barrier = false
 	if _active_barrier_list.size() == 0:
 		is_first_barrier = true

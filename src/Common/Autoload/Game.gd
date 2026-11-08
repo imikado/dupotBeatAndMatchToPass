@@ -4,6 +4,7 @@ const DEBUG_ENABLED = false
 
 const GROUP_ENEMY := "enemy"
 const GROUP_BONUSACTOR := "bonusactor"
+const GROUP_BARRIER := "electrical_barrier"
 
 const PATH_HIGHSCORE := "user://highscore.dat"
 

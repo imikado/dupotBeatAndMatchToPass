@@ -18,6 +18,13 @@ const STORM_HALF_WIDTH = 130.0
 const STORM_GROUND_TOP = 104.0
 const STORM_MIN_SPACING = 20.0
 const STORM_MAX_DELAY = 0.25
+# éclair qui monte de la pointe de l'épée levée vers les nuages, avant que les
+# éclairs ne redescendent (pointe : image 3 de attacking_mana01, en local du BodyPivot)
+const SWORD_TIP = Vector2(-1, -44)
+const SWORD_BEAM_COLOR = Color(0.6, 0.85, 1.0)
+const SWORD_BEAM_SKY = 16.0
+const SWORD_BEAM_RISE = 0.08
+const SWORD_BEAM_FADE = 0.25
 # bolts used per salvo (out of the ManaFall nodes), picked at random
 const STORM_BOLTS_PER_SALVO = 8
 
@@ -357,7 +364,33 @@ func storm_impact() -> void:
 
 func mana_attack_start() -> void:
 	_salvo_discharges = 0
+	sword_beam()
 	fall()
+
+
+func sword_beam() -> void:
+	var tip: Vector2 = global_position + SWORD_TIP * Vector2(signf(_bodyPivot.scale.x), 1)
+	var sky_y: float = (get_viewport().get_canvas_transform().affine_inverse() * Vector2.ZERO).y + SWORD_BEAM_SKY
+	var beam := Bolt.new()
+	beam.color = SWORD_BEAM_COLOR
+	beam.jaggedness = 0.18
+	beam.branch_count = 1
+	beam.top_level = true
+	add_child(beam)
+	beam.global_position = tip.round()
+	beam.set_ends(Vector2.ZERO, Vector2(randf_range(-8, 8), sky_y - tip.y).round())
+	beam.set_intensity(2.5)
+	beam.reveal(0.0)
+	Fx.burst(get_parent(), tip, SWORD_BEAM_COLOR.lightened(0.4), 8)
+
+	var tween := beam.create_tween()
+	tween.tween_method(beam.reveal, 0.0, 1.0, SWORD_BEAM_RISE)
+	# les nuages s'illuminent quand l'éclair les atteint
+	tween.tween_callback(func():
+		if is_instance_valid(_storm_sky):
+			_storm_sky.flash(beam.global_position.x + beam._to.x))
+	tween.tween_method(beam.set_intensity, 2.5, 0.0, SWORD_BEAM_FADE).set_ease(Tween.EASE_IN)
+	tween.tween_callback(beam.queue_free)
 
 
 func mana_attack_end() -> void:
@@ -412,7 +445,8 @@ func fall() -> void:
 
 	for i in range(bolts.size()):
 		bolts[i].global_position = points[i]
-		bolts[i].start_fall(randf_range(0.0, STORM_MAX_DELAY))
+		# les éclairs redescendent une fois l'éclair de l'épée arrivé aux nuages
+		bolts[i].start_fall(SWORD_BEAM_RISE + randf_range(0.0, STORM_MAX_DELAY))
 
 
 func _far_from(point: Vector2, points: Array[Vector2]) -> bool:

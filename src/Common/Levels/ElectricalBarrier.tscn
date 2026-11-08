@@ -118,22 +118,20 @@ shape = SubResource("1")
 [node name="icons" type="Node2D" parent="." unique_id=668402195]
 
 [node name="ant" type="Sprite2D" parent="icons" unique_id=1298911171]
-visible = false
-position = Vector2(-1, -11)
+position = Vector2(-1, -10)
 texture = ExtResource("4")
 
 [node name="spider" type="Sprite2D" parent="icons" unique_id=1662305055]
-position = Vector2(-1, -11)
+visible = false
+position = Vector2(-1, -10)
 texture = ExtResource("7")
 
 [node name="beetle" type="Sprite2D" parent="icons" unique_id=1019823311]
 visible = false
-position = Vector2(-1, -11)
+position = Vector2(-1, -10)
 texture = ExtResource("6")
 
 [node name="barrier" parent="." unique_id=2100760868 instance=ExtResource("5")]
 position = Vector2(0, -1)
 
 [node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=2118119276]
-
-[connection signal="screen_entered" from="VisibleOnScreenNotifier2D" to="." method="_on_VisibilityNotifier2D_screen_entered"]

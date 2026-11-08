@@ -18,6 +18,11 @@ const KNOCKBACK_FINISHER:=8.0
 # Assombri quand un autre personnage passe devant (plus bas à l'écran) en le chevauchant
 const DEPTH_SHADE:=0.7
 const DEPTH_SHADE_SPEED:=5.0
+# Teinte selon la profondeur (y des pieds entre le fond et le premier plan de la zone de marche)
+const DEPTH_Y_FAR:=120.0
+const DEPTH_Y_NEAR:=200.0
+const DEPTH_FAR_BRIGHTNESS:=0.62
+const DEPTH_FAR_BLUE:=0.1
 const OVERLAP_DISTANCE_X:=22.0
 const OVERLAP_DISTANCE_Y:=16.0
 # En dessous de cet écart, les deux personnages sont sur la même ligne (ex. ennemi qui attaque)
@@ -56,6 +61,50 @@ var _hit_tween:Tween
 
 var _combo_count=0
 
+# Calques physiques (noms dans project.godot > layer_names)
+# 1 « player » : joueur, murs de marche, barrières électriques (StaticBody2D)
+# 2 « enemies » : corps des ennemis
+# 3 : calque réservé aux barrières si leur StaticBody2D quitte le calque 1
+const PHYSICS_LAYER_PLAYER:=1
+const PHYSICS_LAYER_ENEMIES:=2
+const PHYSICS_LAYER_BARRIERS:=3
+# Les ennemis se poussent entre eux mais ignorent joueur, murs et barrières :
+# ils traversent une barrière fermée (le joueur, lui, reste bloqué)
+const BODY_LAYER:=1 << (PHYSICS_LAYER_ENEMIES - 1)
+const BODY_MASK:=1 << (PHYSICS_LAYER_ENEMIES - 1)
+# Obstacles du joueur : sert à savoir si un poste d'attaque lui est accessible
+# et à repérer les barrières que l'ennemi traverse
+const OBSTACLE_MASK:=(1 << (PHYSICS_LAYER_PLAYER - 1)) | (1 << (PHYSICS_LAYER_BARRIERS - 1))
+
+# Poste d'attaque derrière une barrière fermée (ou dans son arc) : l'ennemi la traverse
+# et se place de l'autre côté du joueur, au lieu de rester planté dans l'arc
+# (ou, pour l'araignée, de tirer de derrière la barrière, hors d'atteinte)
+const ATTACK_SPOT_CLEARANCE:=6.0
+# Hauteur du rayon de test : milieu du corps, loin des murs haut et bas
+const ATTACK_SPOT_RAY_HEIGHT:=-6.0
+var _attack_side:=1.0
+var _attack_side_frame:=-1
+
+# Traversée d'une barrière fermée : étincelles et flash à la couleur de la barrière
+# quand le centre de l'ennemi passe l'arc
+const CROSS_SPARK_AMOUNT:=6
+const CROSS_SPARK_HEIGHT:=8.0
+const CROSS_FLASH:=0.7
+const CROSS_FLASH_DURATION:=0.15
+# Dash de traversée : près d'une barrière fermée, l'ennemi file à travers l'arc
+const BARRIER_DASH_ZONE:=18.0
+const BARRIER_DASH_SPEED_MULT:=5.0
+const BARRIER_DASH_GHOST_EVERY:=3
+const BARRIER_DASH_GHOST_DURATION:=0.22
+# Teinte du flash de l'éclair (valeur par défaut de flash_color dans character.gdshader)
+const LIGHTNING_FLASH_TINT:=Color(0.75, 0.88, 1.0)
+# forme de barrière chevauchée -> {"barrier": nœud, "side": côté de l'ennemi par rapport à l'arc}
+# côté (-1/1) de chaque barrière où se trouvait l'ennemi à l'image précédente
+var _barrier_sides:={}
+# barrière fermée traversée en dash (null hors dash)
+var _dash_barrier:Node=null
+var _dash_frames:=0
+
 # Marqueur « à battre » au-dessus de la tête : l'ennemi charge encore une barrière
 const MARKER_HEIGHT:=30.0
 const MARKER_BOB:=1.0
@@ -68,6 +117,7 @@ var _marker:Sprite2D
 
 @onready var _hitBox:=get_node("BodyPivot/HitBox")
 @onready var _bodyPivot:=get_node("BodyPivot")
+@onready var _sprite:AnimatedSprite2D=get_node("BodyPivot/AnimatedSprite2D")
 
 var look_direction = Vector2(1, 0): set = set_look_direction
 
@@ -123,6 +173,8 @@ static func marker_texture()->ImageTexture:
 	return _marker_texture
 
 func get_walk_speed():
+	if _dash_barrier:
+		return _walk_speed * BARRIER_DASH_SPEED_MULT
 	return _walk_speed
 
 # Plus rapide et plus fort à chaque niveau après le niveau 3
@@ -208,13 +260,98 @@ func _ready() -> void:
 	style_life_bar(_enemy_progress_bar, Fx.enemy_color(_type))
 	Events.actor_struck_by_lightning.connect(_on_struck_by_lightning)
 
+	collision_layer=BODY_LAYER
+	collision_mask=BODY_MASK
+
+
+func _physics_process(_delta: float) -> void:
+	_check_barrier_crossing()
+
+
+# Le centre de l'ennemi change de côté de l'arc d'une barrière encore fermée.
+# Test géométrique (pas d'Area2D) : la forme de la barrière couvre toute la
+# hauteur de la zone de marche, seule l'abscisse compte.
+func _check_barrier_crossing() -> void:
+	var dash_barrier:Node=null
+	for barrier in get_tree().get_nodes_in_group(Game.GROUP_BARRIER):
+		var arc_x:float=barrier.get_arc_x()
+		if absf(global_position.x - arc_x) < BARRIER_DASH_ZONE and not barrier.is_open():
+			dash_barrier=barrier
+		var side:=signf(global_position.x - arc_x)
+		# pile sur l'arc (déplacements par pas de 0,25 px) : on garde le dernier côté connu
+		if side == 0.0:
+			continue
+		var previous:float=_barrier_sides.get(barrier, side)
+		_barrier_sides[barrier]=side
+		if side != previous and not barrier.is_open():
+			barrier_crossing_feedback(barrier, arc_x)
+	_update_barrier_dash(dash_barrier)
+
+
+# Entrée dans la zone d'une barrière fermée : accélération, écrasement, poussière,
+# puis images fantômes à la couleur de la barrière tant que l'ennemi avance
+func _update_barrier_dash(barrier: Node) -> void:
+	if barrier == null:
+		_dash_barrier=null
+		return
+	var moving:=absf(velocity.x) > 1.0
+	if _dash_barrier != barrier:
+		_dash_barrier=barrier
+		_dash_frames=0
+		Fx.squash(_bodyPivot, Vector2(1.35, 0.75))
+		Fx.dust(get_parent(), global_position, signf(velocity.x) if moving else look_direction.x)
+	_dash_frames+=1
+	if moving and _dash_frames % BARRIER_DASH_GHOST_EVERY == 0:
+		_spawn_dash_ghost(Fx.enemy_color(barrier.get_type()))
+
+
+func _spawn_dash_ghost(color: Color) -> void:
+	var sprite:AnimatedSprite2D=get_node("BodyPivot/AnimatedSprite2D")
+	var ghost:=Sprite2D.new()
+	ghost.texture=sprite.sprite_frames.get_frame_texture(sprite.animation, sprite.frame)
+	ghost.centered=sprite.centered
+	ghost.offset=sprite.offset
+	ghost.flip_h=sprite.flip_h
+	ghost.modulate=Color(color.lightened(0.3), 0.55)
+	get_parent().add_child(ghost)
+	ghost.global_transform=sprite.global_transform
+	var tween:=ghost.create_tween()
+	tween.tween_property(ghost, "modulate:a", 0.0, BARRIER_DASH_GHOST_DURATION)
+	tween.tween_callback(ghost.queue_free)
+
+
+# Petites étincelles sur l'arc et bref flash du corps, à la couleur de la barrière
+func barrier_crossing_feedback(barrier: Node, arc_x: float) -> void:
+	var barrier_type=barrier.get_type() if barrier.has_method("get_type") else _type
+	var color:=Fx.enemy_color(barrier_type)
+	Fx.burst(get_parent(), Vector2(arc_x, global_position.y - CROSS_SPARK_HEIGHT).round(), color.lightened(0.4), CROSS_SPARK_AMOUNT)
+
+	if _flash_tween:
+		_flash_tween.kill()
+	_material.set_shader_parameter("flash_color", color.lightened(0.5))
+	_material.set_shader_parameter("flash", CROSS_FLASH)
+	_flash_tween=create_tween()
+	_flash_tween.tween_method(func(value: float):
+		_material.set_shader_parameter("flash", value)
+	, CROSS_FLASH, 0.0, CROSS_FLASH_DURATION)
+
 
 func _process(delta: float) -> void:
+	_update_depth_tint()
 	var target:=DEPTH_SHADE if is_behind_someone() else 0.0
 	if _depth_shade == target:
 		return
 	_depth_shade=move_toward(_depth_shade, target, delta * DEPTH_SHADE_SPEED)
 	_material.set_shader_parameter("depth_shade", _depth_shade)
+
+
+# Profondeur de champ : normal au premier plan (bas de la zone de marche), de plus
+# en plus sombre et bleuté vers le fond (haut). self_modulate du sprite : le
+# modulate du nœud reste libre pour le flash rouge des coups
+func _update_depth_tint() -> void:
+	var t:=clampf(inverse_lerp(DEPTH_Y_NEAR, DEPTH_Y_FAR, global_position.y), 0.0, 1.0)
+	var brightness:=lerpf(1.0, DEPTH_FAR_BRIGHTNESS, t)
+	_sprite.self_modulate=Color(brightness, brightness, minf(1.0, brightness + DEPTH_FAR_BLUE * t))
 
 
 func is_behind_someone() -> bool:
@@ -275,6 +412,7 @@ func _on_struck_by_lightning(actor) -> void:
 func lightning_feedback() -> void:
 	if _flash_tween:
 		_flash_tween.kill()
+	_material.set_shader_parameter("flash_color", LIGHTNING_FLASH_TINT)
 	_material.set_shader_parameter("flash", 1.0)
 	_flash_tween=create_tween()
 	_flash_tween.tween_method(func(value: float):
@@ -363,6 +501,8 @@ func start_death():
 	collision_layer=0
 	collision_mask=0
 	_hitBox.set_deferred("monitoring", false)
+	_barrier_sides.clear()
+	_dash_barrier=null
 
 	hide_progressbar()
 	_timer.stop()
@@ -383,31 +523,125 @@ func start_death():
 func get_target_position()->Vector2:
 	return _player.global_position
 	
+# Poste d'attaque : à côté du joueur, du côté où se trouve l'ennemi,
+# sauf si ce poste est derrière une barrière fermée (ou dedans)
 func get_target_offset_position()->Vector2:
-	
-	var target_offset=Vector2(_near_distance/2,0)
-	
-	if global_position.x < _player.global_position.x:
-		target_offset.x*=-1
-	
-	return _player.global_position + target_offset
-			
-	
+	var side:=get_attack_side()
+	return _player.global_position + Vector2(_near_distance/2 * side, 0) + get_attack_slot_offset(side)
+
+
+# Places autour du joueur pour ne pas s'entasser : les premières au contact (elles
+# attaquent), les suivantes en retrait (elles attendent). x est compté vers l'extérieur.
+const ATTACK_SLOTS:=[Vector2(0, 0), Vector2(0, -8), Vector2(0, 8),
+	Vector2(12, -4), Vector2(12, 4), Vector2(24, 0), Vector2(24, -8), Vector2(24, 8)]
+const ATTACK_FRONT_SLOTS:=3
+const RANGED_NEAR_DISTANCE:=100
+const SPOT_REACHED_DISTANCE:=1.5
+var _slot_index:=0
+var _slot_frame:=-1
+
+
+# Rang stable (identifiant d'instance) parmi les ennemis du même côté et de même portée,
+# en sautant les places qui tombent dans un mur ou une barrière fermée
+func get_attack_slot_offset(side: float)->Vector2:
+	var frame:=Engine.get_physics_frames()
+	if frame != _slot_frame and Engine.is_in_physics_frame():
+		_slot_frame=frame
+		var rank:=0
+		for other in get_tree().get_nodes_in_group(Game.GROUP_ENEMY):
+			if other == self or other._is_dying or other.is_ranged() != is_ranged() or other._player == null:
+				continue
+			if other.get_attack_side() == side and other.get_instance_id() < get_instance_id():
+				rank+=1
+		_slot_index=_free_slot(rank, side)
+	return ATTACK_SLOTS[_slot_index] * Vector2(side, 1)
+
+
+func _free_slot(rank: int, side: float)->int:
+	var base:Vector2=_player.global_position + Vector2(_near_distance/2 * side, ATTACK_SPOT_RAY_HEIGHT)
+	var query:=PhysicsPointQueryParameters2D.new()
+	query.collision_mask=OBSTACLE_MASK
+	query.exclude=[_player.get_rid()]
+	var space:=get_world_2d().direct_space_state
+	var free:=-1
+	for i in range(ATTACK_SLOTS.size()):
+		query.position=base + ATTACK_SLOTS[i] * Vector2(side, 1)
+		var blocked:=false
+		for hit in space.intersect_point(query, 4):
+			if hit["collider"] is StaticBody2D:
+				blocked=true
+		if blocked:
+			continue
+		free+=1
+		if free == rank:
+			return i
+	return ATTACK_SLOTS.size() - 1
+
+
+# Tireur à distance (araignée) : ses places ne se mêlent pas à celles du corps à corps
+func is_ranged()->bool:
+	return _near_distance > RANGED_NEAR_DISTANCE
+
+
+func is_in_front_slot()->bool:
+	return _slot_index < ATTACK_FRONT_SLOTS
+
+
+# -1 : poste à gauche du joueur, 1 : à droite. Calculé une fois par image physique
+# (plusieurs appels par image dans les états de marche et d'attaque)
+func get_attack_side()->float:
+	var natural_side:=-1.0 if global_position.x < _player.global_position.x else 1.0
+	var frame:=Engine.get_physics_frames()
+	if frame == _attack_side_frame:
+		return _attack_side
+	# requêtes physiques sûres seulement pendant l'image physique : hors de celle-ci
+	# (fin d'animation), on garde le côté de l'image physique précédente
+	if not Engine.is_in_physics_frame():
+		return _attack_side if _attack_side_frame >= 0 and frame - _attack_side_frame <= 1 else natural_side
+	_attack_side_frame=frame
+	_attack_side=natural_side
+	# Une fois de l'autre côté du joueur, le côté naturel redevient le bon : pas d'aller-retour
+	if not is_attack_spot_reachable(natural_side) and is_attack_spot_reachable(-natural_side):
+		_attack_side=-natural_side
+	return _attack_side
+
+
+# Aucun obstacle fixe (barrière fermée, mur) entre le joueur et le poste d'attaque,
+# en gardant la place du corps de l'ennemi au bout
+func is_attack_spot_reachable(side: float)->bool:
+	var from:Vector2=_player.global_position + Vector2(0, ATTACK_SPOT_RAY_HEIGHT)
+	var to:=from + Vector2((_near_distance/2 + ATTACK_SPOT_CLEARANCE) * side, 0)
+	var excluded:Array[RID]=[_player.get_rid()]
+	var query:=PhysicsRayQueryParameters2D.create(from, to, OBSTACLE_MASK, excluded)
+	var space:=get_world_2d().direct_space_state
+	# les corps mobiles éventuels sur ces calques (orbes d'énergie…) ne comptent pas
+	for i in range(4):
+		var hit:=space.intersect_ray(query)
+		if hit.is_empty():
+			return true
+		if hit["collider"] is StaticBody2D:
+			return false
+		excluded.append(hit["rid"])
+		query.exclude=excluded
+	return true
+
+
+# Au poste : face au joueur (le reste de trajet peut pointer à l'opposé
+# quand l'ennemi arrive de l'autre côté après avoir traversé une barrière)
 func get_target_direction()->Vector2:
-	var direction := Vector2.ZERO
+	if is_near_player():
+		return Vector2(signf(_player.global_position.x - global_position.x), 0) if _player.global_position.x != global_position.x else Vector2.ZERO
+
 	var target_offset:=get_target_offset_position()
-	
-	var distance_to_player:= global_position.distance_to(target_offset) # _player.global_position-position
-
-	if distance_to_player > 0:
-		direction=position.direction_to(target_offset)
-
-	return direction
+	# arrivé à sa place (d'attente) : on s'arrête plutôt que de marcher sur place
+	if global_position.distance_to(target_offset) > SPOT_REACHED_DISTANCE:
+		return position.direction_to(target_offset)
+	return Vector2.ZERO
 	
 func is_near_player()->bool:
 	var distance_to_player:= global_position.distance_to(get_target_offset_position())
 
-	return distance_to_player < 4 and abs(global_position.y - get_target_offset_position().y) <2
+	return distance_to_player < 4 and abs(global_position.y - get_target_offset_position().y) <2 and is_in_front_slot()
 		
 	
 	

@@ -15,6 +15,12 @@ const STEP_TIMEOUT := 60.0
 const ATTACK_OFFSET_X := 16.0
 const ATTACK_TOLERANCE := Vector2(4, 3)
 const ATTACK_INTERVAL := 0.12
+# portée minimale de l'épée (ennemi trop collé : on recule)
+const MIN_REACH_X := 6.0
+# distance à laquelle le bot se retourne pour accueillir un ennemi en dash
+const DASH_WELCOME_DISTANCE := 34.0
+# le joueur est arrêté par la barrière à environ 15 px de l'arc
+const BARRIER_STOP_DISTANCE := 20.0
 const CROWD_DISTANCE := 90.0
 # L'attaque mana couvre tout l'écran ; capture quand les éclairs touchent le sol
 const STORM_DISTANCE := 150.0
@@ -152,6 +158,28 @@ func count_enemies_near(distance: float) -> int:
 	return count
 
 
+func is_blocked_by_barrier(player: Player, direction_x: float) -> bool:
+	for barrier in get_tree().get_nodes_in_group(Game.GROUP_BARRIER):
+		if barrier.is_open():
+			continue
+		var dx: float = barrier.get_arc_x() - player.global_position.x
+		if signf(dx) == signf(direction_x) and absf(dx) < BARRIER_STOP_DISTANCE:
+			return true
+	return false
+
+
+# Ennemi en dash de traversée de barrière qui arrive sur le joueur
+func find_dashing_enemy(player: Player) -> Node2D:
+	for enemy in get_tree().get_nodes_in_group(Game.GROUP_ENEMY):
+		if enemy._is_dying or enemy.get("_dash_barrier") == null:
+			continue
+		var offset: Vector2 = enemy.global_position - player.global_position
+		if absf(offset.x) < DASH_WELCOME_DISTANCE and absf(offset.y) <= ATTACK_TOLERANCE.y * 2 \
+				and signf(enemy.velocity.x) == -signf(offset.x):
+			return enemy
+	return null
+
+
 func find_target(player: Player) -> Node2D:
 	var nearest: Node2D = null
 	for actor in get_tree().get_nodes_in_group(_bot_group):
@@ -181,14 +209,27 @@ func _physics_process(delta: float) -> void:
 
 	var direction := Vector2.ZERO
 	var target := find_target(player)
-	if target == null:
+	var dasher := find_dashing_enemy(player)
+	if dasher:
+		# ennemi qui traverse une barrière en dash : on l'accueille à l'épée
+		var dash_side := -1.0 if dasher.global_position.x < player.global_position.x else 1.0
+		if sign(player.get_node("BodyPivot").scale.x) != dash_side:
+			direction.x = dash_side
+		elif _attack_cooldown <= 0.0:
+			_attack_cooldown = ATTACK_INTERVAL
+			press_action(PlayerStateMachine.INPUT_ATTACK)
+	elif target == null:
 		if _bot_group == Game.GROUP_ENEMY:
 			direction.x = 1
 	else:
 		var side := -1.0 if target.global_position.x < player.global_position.x else 1.0
 		var gap: Vector2 = target.global_position - Vector2(side * ATTACK_OFFSET_X, 0) - player.global_position
 		var facing: float = player.get_node("BodyPivot").scale.x
-		if abs(gap.x) > ATTACK_TOLERANCE.x:
+		# déjà à portée d'épée (ex. joueur collé à une barrière, ennemi venu de l'autre
+		# côté) : inutile de reculer à ATTACK_OFFSET_X, on frappe sur place
+		var dx: float = absf(target.global_position.x - player.global_position.x)
+		var in_reach := dx >= MIN_REACH_X and dx <= ATTACK_OFFSET_X + ATTACK_TOLERANCE.x
+		if abs(gap.x) > ATTACK_TOLERANCE.x and not in_reach:
 			direction.x = sign(gap.x)
 		if abs(gap.y) > ATTACK_TOLERANCE.y:
 			direction.y = sign(gap.y)
@@ -197,6 +238,12 @@ func _physics_process(delta: float) -> void:
 		elif direction == Vector2.ZERO and _attack_cooldown <= 0.0:
 			_attack_cooldown = ATTACK_INTERVAL
 			press_action(PlayerStateMachine.INPUT_ATTACK)
+
+	# Barrière fermée juste devant : courir sur place ne sert à rien, on attend
+	# (seul un demi-tour, pour faire face, reste permis)
+	var facing_now: float = signf(player.get_node("BodyPivot").scale.x)
+	if direction.x != 0 and signf(direction.x) == facing_now and is_blocked_by_barrier(player, direction.x):
+		direction.x = 0
 
 	set_action(PlayerAbstractState.INPUT_RIGHT, direction.x > 0)
 	set_action(PlayerAbstractState.INPUT_LEFT, direction.x < 0)

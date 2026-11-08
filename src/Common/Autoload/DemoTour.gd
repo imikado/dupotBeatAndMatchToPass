@@ -6,6 +6,8 @@ extends "res://src/Common/Autoload/ScreenshotTour.gd"
 #   launch   : logo de boot, écran titre puis menu       -> docs/media/launch.gif
 #   gameplay : combo, kills et orage d'éclairs (niveau 1) -> docs/media/gameplay.gif
 #              + capture de l'orage                       -> docs/media/lightning.png
+#   video    : lancement, niveau 1 + orage, bonus, niveau 3 + orage, avec le son
+#              (export_video.sh)                          -> export/demo.mp4
 
 const MENU_SCENE := "res://src/UI/menu.tscn"
 
@@ -20,6 +22,12 @@ const STORM_WAIT_MAX := 3.0
 # Le clip de gameplay commence quand un ennemi atteignable est à cette distance
 const TARGET_CLOSE_DISTANCE := 40.0
 const AFTER_STORM_DURATION := 2.0
+# Vidéo YouTube : durées des séquences (temps de jeu)
+const VIDEO_TITLE_DURATION := 2.0
+const VIDEO_FIGHT_DURATION := 8.0
+const VIDEO_BONUS_DURATION := 7.0
+const VIDEO_CROWD_MIN_ENEMIES := 3
+const VIDEO_END_DURATION := 3.0
 
 var _clip := ""
 var _clip_start := 0
@@ -35,6 +43,8 @@ func run() -> void:
 			await run_launch()
 		"gameplay":
 			await run_gameplay()
+		"video":
+			await run_video()
 		_:
 			push_error("Démo inconnue : " + _clip)
 	get_tree().quit()
@@ -59,14 +69,49 @@ func run_gameplay() -> void:
 	clip_start()
 	await wait(FIGHT_DURATION)
 	await wait_at_most(is_storm_ready, STORM_WAIT_MAX)
+	await storm("lightning.png")
+	await wait(AFTER_STORM_DURATION)
+	clip_end()
+
+
+func run_video() -> void:
+	# ScreenshotTour coupe le son : la vidéo le garde (enregistré en WAV par le Movie Maker)
+	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), false)
+	clip_start()
+	await wait_scene(TITLE_SCENE)
+	await wait_until(func(): return get_tree().current_scene.get("_can_continue") == true)
+	await wait(VIDEO_TITLE_DURATION)
+	press_key(KEY_ENTER)
+	await wait_scene(MENU_SCENE)
+	await wait(MENU_DURATION)
+
+	await start_level(1)
+	await wait(VIDEO_FIGHT_DURATION)
+	await wait_at_most(is_storm_ready, STORM_WAIT_MAX)
+	await storm()
+	await wait(AFTER_STORM_DURATION)
+
+	await start_bonus()
+	await wait(VIDEO_BONUS_DURATION)
+
+	await start_level(3)
+	await wait(VIDEO_FIGHT_DURATION)
+	await wait_at_most(func(): return count_enemies_near(STORM_DISTANCE) >= VIDEO_CROWD_MIN_ENEMIES, STORM_WAIT_MAX * 3)
+	await storm()
+	await wait(VIDEO_END_DURATION)
+	clip_end()
+
+
+# Orage d'éclairs (attaque mana), avec capture facultative à l'impact
+func storm(screenshot := "") -> void:
+	var group := _bot_group
 	release_all()
 	_bot_group = ""
 	press_action(PlayerStateMachine.INPUT_ATTACK_MANA)
 	await wait(STORM_IMPACT_DELAY)
-	Game.takeScreenshot("lightning.png")
-	_bot_group = Game.GROUP_ENEMY
-	await wait(AFTER_STORM_DURATION)
-	clip_end()
+	if screenshot != "":
+		Game.takeScreenshot(screenshot)
+	_bot_group = group
 
 
 # Avec --write-movie, le jeu tourne plus lentement que le temps réel : les délais

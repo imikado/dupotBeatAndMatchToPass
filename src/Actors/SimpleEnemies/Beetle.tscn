@@ -343,8 +343,8 @@ border_width_bottom = 1
 border_color = Color(0, 0, 0, 1)
 
 [sub_resource type="CapsuleShape2D" id="54"]
-radius = 2.99999
-height = 1.99998
+radius = 3.0
+height = 10.0
 
 [node name="Beetle" type="CharacterBody2D" unique_id=1679937594]
 collision_layer = 2

@@ -1,7 +1,7 @@
 extends Node2D
 
 # Shared forest decor of LevelTemplate and LevelBonus: stepped sky, moon, twinkling stars,
-# drifting clouds, 3 tree layers, bushes in the wind and the ground shading.
+# drifting clouds, 3 tree layers, bushes and the ground shading.
 # Everything that scrolls stays a ParallaxLayer: Player.tint_world() darkens them during the storm.
 # Instance it right after the ground TileMap: GroundShade is drawn over the ground, under the actors.
 
