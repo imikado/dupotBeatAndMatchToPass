@@ -13,7 +13,7 @@ func enter():
 	_event_count=0
 	
 func handle_input(event):
-	if(event.is_action_pressed(INPUT_ATTACK)):
+	if(event.is_action_pressed(owner.action(INPUT_ATTACK))):
 		_event_count+=1
 	return super.handle_input(event)
 

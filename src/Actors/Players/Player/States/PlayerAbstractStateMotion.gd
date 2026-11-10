@@ -6,8 +6,8 @@ extends PlayerAbstractState
 
 func get_input_direction():
 	var input_direction = Vector2()
-	input_direction.x = int(Input.is_action_pressed(INPUT_RIGHT)) - int(Input.is_action_pressed(INPUT_LEFT))
-	input_direction.y = int(Input.is_action_pressed(INPUT_DOWN)) - int(Input.is_action_pressed(INPUT_UP))
+	input_direction.x = int(Input.is_action_pressed(owner.action(INPUT_RIGHT))) - int(Input.is_action_pressed(owner.action(INPUT_LEFT)))
+	input_direction.y = int(Input.is_action_pressed(owner.action(INPUT_DOWN))) - int(Input.is_action_pressed(owner.action(INPUT_UP)))
 	return input_direction
 
 func update_look_direction(direction):

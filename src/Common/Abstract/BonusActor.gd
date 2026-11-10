@@ -3,6 +3,8 @@ extends Actor
 
 
 var _player : Marker2D
+# Coop : joueur qui a porté le dernier coup
+var last_attacker : CharacterBody2D
 var _near_distance:=10
 var _damage:=10
 const MAX_LIFE=50.0

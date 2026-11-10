@@ -12,8 +12,14 @@ const MAX_MULTIPLIER = 4
 # Les niveaux 1 à 3 introduisent les ennemis, la difficulté augmente ensuite
 const DIFFICULTY_START_LEVEL = 3
 
+# Mode 2 joueurs sur le même écran (score, mana et combo partagés, une vie chacun)
+const REVIVE_LIFE = 50
+
+var two_players := false
+
 var _score = 0
 var life = START_LIFE
+var life2 = START_LIFE
 var mana = START_MANA
 var _level = 1
 
@@ -39,6 +45,7 @@ func reset_game():
 	_level = 1
 	_score = START_SCORE
 	life = START_LIFE
+	life2 = START_LIFE
 	mana = START_MANA
 	kill_streak = 0
 
@@ -86,3 +93,30 @@ func get_multiplier() -> int:
 
 func reset_streak():
 	kill_streak = 0
+
+
+func get_player_life(index: int) -> float:
+	return life2 if index == 1 else life
+
+
+func set_player_life(index: int, value: float) -> void:
+	if index == 1:
+		life2 = value
+	else:
+		life = value
+
+
+func is_anyone_alive() -> bool:
+	if two_players:
+		return life > 0 or life2 > 0
+	return life > 0
+
+
+# Fin de niveau en coop : le joueur tombé revient au suivant avec la moitié de sa vie
+func revive_downed() -> void:
+	if not two_players:
+		return
+	if life <= 0:
+		life = REVIVE_LIFE
+	if life2 <= 0:
+		life2 = REVIVE_LIFE

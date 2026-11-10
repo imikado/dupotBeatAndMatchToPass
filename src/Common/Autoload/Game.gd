@@ -46,6 +46,29 @@ func _ready():
 		add_child(preload("res://src/Common/Autoload/ScreenshotTour.gd").new())
 
 
+# Bouton Retour Android (télécommande Fire TV, manette) : pause en jeu, retour au menu
+# ailleurs, quitte depuis le menu / l'écran titre (quit_on_go_back désactivé)
+const SCENES_QUIT_ON_BACK := ["res://src/UI/boot.tscn", "res://src/UI/title.tscn", "res://src/UI/menu.tscn"]
+
+func _notification(what):
+	if what != NOTIFICATION_WM_GO_BACK_REQUEST:
+		return
+	var scene := get_tree().current_scene
+	var path: String = scene.scene_file_path if scene else ""
+	if path in SCENES_QUIT_ON_BACK:
+		get_tree().quit()
+	elif scene and "_pause_menu" in scene and GlobalPlayer.is_anyone_alive():
+		var escape := InputEventKey.new()
+		escape.keycode = KEY_ESCAPE
+		escape.pressed = true
+		Input.parse_input_event(escape)
+		var release := escape.duplicate()
+		release.pressed = false
+		Input.parse_input_event(release)
+	elif not Transition.is_busy():
+		Transition.goto("res://src/UI/menu.tscn")
+
+
 func _input(event):
 	if _screenshot_dir == "":
 		return
@@ -179,11 +202,11 @@ func isInputValidateButton(event: InputEvent)->bool:
 		return true
 	return false
 
-# Escape / gamepad Start / Home: deliberately not ui_cancel, which is also gamepad B (mana attack)
+# Escape / gamepad Start, Select / Home: deliberately not ui_cancel, which is also gamepad B (mana attack)
 func isInputPauseButton(event: InputEvent)->bool:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
 		return true
-	if event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_START:
+	if event is InputEventJoypadButton and event.pressed and (event.button_index == JOY_BUTTON_START or event.button_index == JOY_BUTTON_BACK):
 		return true
 	return event.is_action_pressed("ui_home")
 

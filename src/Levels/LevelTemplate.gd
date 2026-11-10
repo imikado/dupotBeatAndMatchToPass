@@ -87,6 +87,9 @@ var _random_combo_count = 0
 
 var _current_barrier_group: Node2D = null
 
+# Mode 2 joueurs : _player reste le joueur 1
+var _players: Array = []
+
 
 func debug():
 	#_player.global_position.x +=3500
@@ -119,6 +122,10 @@ func _ready() -> void:
 
 	_player.set_camera_limit_rect(_cameraLimitRect)
 
+	_players = [_player]
+	if GlobalPlayer.two_players:
+		setup_coop()
+
 	_pause_menu = PauseMenu.new()
 	add_child(_pause_menu)
 
@@ -126,7 +133,8 @@ func _ready() -> void:
 	Sound.play("go", 0.0)
 	_hud.show_banner("LEVEL " + ("%02d" % GlobalPlayer.get_level()), "MATCH THE ENEMIES TO OPEN THE BARRIERS", Color("ffd34d"), 1.8)
 
-	Events.connect("player_health_changed", Callable(self, "_on_player_healt_changed"))
+	if not GlobalPlayer.two_players:
+		Events.connect("player_health_changed", Callable(self, "_on_player_healt_changed"))
 	Events.connect("actor_health_changed", Callable(self, "_on_actor_healt_changed"))
 
 	Events.connect("actor_took_damage", Callable(self, "_on_actor_took_damage"))
@@ -144,15 +152,67 @@ func _ready() -> void:
 	_manaTimer.start()
 
 
+func setup_coop() -> void:
+	var result := Coop.setup_level(self, _player, _ysort, _cameraLimitRect,
+		[_spawnPositionLeft, _spawnPositionLeft2, _spawnPositionRight, _spawnPositionRight2])
+	_players.append(result[0])
+	for player in _players:
+		player.life_changed.connect(_on_coop_life_changed)
+	_hud.enable_second_player()
+	_hud.update_player_life(GlobalPlayer.life2, 1)
+	_controls.visible = false
+
+
+# Joueur debout le plus proche d'une position (le joueur 1 si personne n'est debout)
+func nearest_player(from: Vector2) -> Player:
+	var best: Player = null
+	for player in _players:
+		if player.is_alive() and (best == null or player.global_position.distance_to(from) < best.global_position.distance_to(from)):
+			best = player
+	return best if best else _player
+
+
+func is_anyone_storming() -> bool:
+	for player in _players:
+		if player.is_storming():
+			return true
+	return false
+
+
+func _on_coop_life_changed(player: Player, newLife: float) -> void:
+	var index: int = player.player_index
+	if newLife < GlobalPlayer.get_player_life(index) and GlobalPlayer.kill_streak > 0:
+		if GlobalPlayer.get_multiplier() > 1:
+			Fx.floating_text(_specialEffects, "COMBO LOST", player.global_position + Vector2(0, -30), Color("ff4d4d"))
+		GlobalPlayer.reset_streak()
+		_hud.update_streak(GlobalPlayer.kill_streak, GlobalPlayer.get_multiplier())
+
+	GlobalPlayer.set_player_life(index, newLife)
+	_hud.update_player_life(newLife, index)
+
+	if newLife > 0:
+		return
+	player.down()
+	if GlobalPlayer.is_anyone_alive():
+		_hud.show_banner("PLAYER %d DOWN" % (index + 1), "BACK AT THE NEXT LEVEL", Player.COOP_COLORS[index], 1.4)
+		player.gameover()
+		return
+
+	Game.saveHighScore(GlobalPlayer.get_score())
+	get_tree().paused = true
+	player.process_mode = Node.PROCESS_MODE_ALWAYS
+	player.gameover()
+
+
 func _input(event: InputEvent) -> void:
-	if Game.isInputPauseButton(event) and GlobalPlayer.life > 0 and not _pause_menu.is_open():
+	if Game.isInputPauseButton(event) and GlobalPlayer.is_anyone_alive() and not _pause_menu.is_open():
 		_pause_menu.open()
 		get_viewport().set_input_as_handled()
 
 
 func _notification(what: int) -> void:
 	# window / browser tab focus lost: pause instead of losing the run
-	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and is_inside_tree() and _pause_menu and GlobalPlayer.life > 0:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and is_inside_tree() and _pause_menu and GlobalPlayer.is_anyone_alive():
 		_pause_menu.open()
 
 
@@ -221,15 +281,15 @@ func register_barrier(barrier: Node2D) -> void:
 
 
 #life bottles
-func _on_player_took_lifebottle(bottle) -> void:
+func _on_player_took_lifebottle(bottle, player: Player) -> void:
 	Sound.play("bottle", 0.0)
-	Fx.floating_text(_specialEffects, "+" + str(LIFE_BOTTLE_HEAL) + " HP", _player.global_position + Vector2(0, -30), Color("7bed9f"))
-	_player.get_life_bottle()
+	Fx.floating_text(_specialEffects, "+" + str(LIFE_BOTTLE_HEAL) + " HP", player.global_position + Vector2(0, -30), Color("7bed9f"))
+	player.get_life_bottle()
 	bottle.queue_free()
 
 
-func _on_player_tookadvantage_of_lifebottle() -> void:
-	_player.heal(LIFE_BOTTLE_HEAL)
+func _on_player_tookadvantage_of_lifebottle(player: Player) -> void:
+	player.heal(LIFE_BOTTLE_HEAL)
 
 
 # Première apparition d'une barrière : tout son groupe devient actif
@@ -300,6 +360,9 @@ func _on_player_healt_changed(newLife: float):
 
 
 func gameover():
+	# coop : le premier joueur tombé finit son animation, la partie continue
+	if GlobalPlayer.two_players and GlobalPlayer.is_anyone_alive():
+		return
 	get_tree().paused = false
 	Transition.goto("res://src/UI/GameOver.tscn")
 
@@ -312,7 +375,7 @@ func manage_combo_for_actor(actor):
 
 	# Le « +1 » se place sur le côté opposé au joueur : la colonne au-dessus de l'ennemi
 	# reste libre pour le « +10 » du kill (Fx.floating_text, de y -24 à -40)
-	var side = 1.0 if actor.global_position.x >= _player.global_position.x else -1.0
+	var side = 1.0 if actor.global_position.x >= actor.get_attacker().global_position.x else -1.0
 
 	var delta_position = Vector2.ZERO
 	if combo_count == 0:
@@ -349,7 +412,7 @@ func manage_combo_for_actor(actor):
 func _on_actor_healt_changed(actor: CharacterBody2D, previous_value: float, new_value: float):
 	actor.update_enemy_life(previous_value, new_value)
 
-	if _player.is_combo():
+	if actor.get_attacker().is_combo():
 		manage_combo_for_actor(actor)
 
 	else:
@@ -359,7 +422,7 @@ func _on_actor_healt_changed(actor: CharacterBody2D, previous_value: float, new_
 		var multiplier = GlobalPlayer.register_kill()
 		var points = 10 * multiplier
 		# la tempête ne se recharge pas avec ses propres victimes
-		increment_score(points, not _player.is_storming())
+		increment_score(points, not is_anyone_storming())
 		_hud.update_streak(GlobalPlayer.kill_streak, multiplier)
 
 		var text_color = Color.WHITE if multiplier == 1 else Color("ffd34d")
@@ -422,7 +485,7 @@ func find_barrier_for_actor(actor: CharacterBody2D) -> Node2D:
 	for barrier_loop in _active_barrier_list:
 		if barrier_loop.is_open() or actor.get_type() != barrier_loop.get_type():
 			continue
-		var distance: float = abs(barrier_loop.global_position.x - _player.global_position.x)
+		var distance: float = abs(barrier_loop.global_position.x - nearest_player(actor.global_position).global_position.x)
 		if distance < nearest_distance:
 			nearest_barrier = barrier_loop
 			nearest_distance = distance
@@ -469,7 +532,7 @@ func spawn_enemy_on_position(enemy_to_spawn, spawn_position, offset = Vector2.ZE
 		return
 
 	enemy_spawn.add_to_group(Game.GROUP_ENEMY)
-	enemy_spawn.setPlayer(_player)
+	enemy_spawn.setPlayer(nearest_player(spawn_position.global_position + offset))
 	enemy_spawn.apply_difficulty(GlobalPlayer.get_difficulty())
 
 	if spawn_position.global_position.y < MIN_SPAWN_Y:
@@ -616,11 +679,14 @@ func update_mana_button():
 
 	if is_mana_ready and not _was_mana_ready:
 		Sound.play("mana_ready", 0.0)
-		Fx.floating_text(_specialEffects, "MANA READY", _player.global_position + Vector2(0, -36), Color("74b9ff"))
+		for player in _players:
+			if player.is_alive():
+				Fx.floating_text(_specialEffects, "MANA READY", player.global_position + Vector2(0, -36), Color("74b9ff"))
 	_was_mana_ready = is_mana_ready
 
 
 func _on_Gate_player_entered_gate() -> void:
-	
+	GlobalPlayer.revive_downed()
+
 	Transition.goto("res://src/UI/LevelCompleted.tscn")
 	pass  # Replace with function body.

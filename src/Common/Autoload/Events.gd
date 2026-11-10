@@ -12,9 +12,9 @@ signal actor_health_changed(actor, previous_value, new_value)
 
 signal player_launch_mana_attack
 
-signal player_took_lifebottle(bottle)
+signal player_took_lifebottle(bottle, player)
 
-signal player_tookadvantage_of_lifebottle
+signal player_tookadvantage_of_lifebottle(player)
 
 signal player_gameover
 

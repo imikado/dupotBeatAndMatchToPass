@@ -60,6 +60,9 @@ var levelCompleted = 0
 
 var _pause_menu: PauseMenu
 
+# Mode 2 joueurs : _player reste le joueur 1
+var _players: Array = []
+
 
 func debug():
 	_player.global_position.x += 300
@@ -94,7 +97,18 @@ func _ready() -> void:
 
 	_player.set_camera_limit_rect(_cameraLimitRect)
 
-	Events.connect("player_health_changed", Callable(self, "_on_player_healt_changed"))
+	_players = [_player]
+	if GlobalPlayer.two_players:
+		var result := Coop.setup_level(self, _player, _ysort, _cameraLimitRect,
+			[_spawnPositionLeft, _spawnPositionLeft2, _spawnPositionRight, _spawnPositionRight2])
+		_players.append(result[0])
+		for player in _players:
+			player.life_changed.connect(_on_coop_life_changed)
+		_hud.enable_second_player()
+		_hud.update_player_life(GlobalPlayer.life2, 1)
+		_controls.visible = false
+	else:
+		Events.connect("player_health_changed", Callable(self, "_on_player_healt_changed"))
 	Events.connect("actor_health_changed", Callable(self, "_on_actor_healt_changed"))
 
 	Events.connect("actor_took_damage", Callable(self, "_on_actor_took_damage"))
@@ -122,13 +136,13 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if Game.isInputPauseButton(event) and GlobalPlayer.life > 0 and not _pause_menu.is_open():
+	if Game.isInputPauseButton(event) and GlobalPlayer.is_anyone_alive() and not _pause_menu.is_open():
 		_pause_menu.open()
 		get_viewport().set_input_as_handled()
 
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and is_inside_tree() and _pause_menu and GlobalPlayer.life > 0:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and is_inside_tree() and _pause_menu and GlobalPlayer.is_anyone_alive():
 		_pause_menu.open()
 
 
@@ -158,6 +172,21 @@ func _on_player_healt_changed(newLife: float):
 		Transition.goto("res://src/UI/GameOver.tscn")
 
 
+func _on_coop_life_changed(player: Player, newLife: float) -> void:
+	GlobalPlayer.set_player_life(player.player_index, newLife)
+	_hud.update_player_life(newLife, player.player_index)
+	if newLife <= 0:
+		player.down()
+		if not GlobalPlayer.is_anyone_alive():
+			Game.saveHighScore(GlobalPlayer.get_score())
+			Transition.goto("res://src/UI/GameOver.tscn")
+
+
+func attacker_of(actor) -> Node2D:
+	var attacker = actor.get("last_attacker")
+	return attacker if is_instance_valid(attacker) else _player
+
+
 func manage_combo_for_actor(actor):
 	var new_combo_plus_one = ComboPlusOne.instantiate()
 	new_combo_plus_one.global_position = actor.global_position + Vector2(0, -20)
@@ -166,7 +195,7 @@ func manage_combo_for_actor(actor):
 
 	# mêmes décalages que LevelTemplate.manage_combo_for_actor : le « +1 » du côté
 	# opposé au joueur, « COMBO! » au-dessus de la colonne de l'ennemi
-	var side = 1.0 if actor.global_position.x >= _player.global_position.x else -1.0
+	var side = 1.0 if actor.global_position.x >= attacker_of(actor).global_position.x else -1.0
 
 	var delta_position = Vector2.ZERO
 	if combo_count == 0:
@@ -201,7 +230,7 @@ func manage_combo_for_actor(actor):
 func _on_actor_healt_changed(actor: CharacterBody2D, previous_value: float, new_value: float):
 	actor.update_enemy_life(previous_value, new_value)
 
-	if _player.is_combo():
+	if attacker_of(actor).is_combo():
 		manage_combo_for_actor(actor)
 
 	else:
@@ -267,7 +296,7 @@ func _on_actor_let_item(actor):
 	Game.hit_stop(0.05)
 
 	# La bouteille part du côté opposé au joueur et reste dans la zone jouable
-	var side = 1.0 if actor.global_position.x >= _player.global_position.x else -1.0
+	var side = 1.0 if actor.global_position.x >= attacker_of(actor).global_position.x else -1.0
 	var min_y = min(_positionLeftTop.global_position.y, _positionRightTop.global_position.y)
 	var max_y = max(_positionLeftBottom.global_position.y, _positionRightBottom.global_position.y)
 	var target = actor.global_position + Vector2(side * BOTTLE_DROP_DISTANCE, randf_range(-4, 4))
@@ -361,15 +390,15 @@ func update_mana_button():
 		_controls.disable_mana_button()
 
 
-func _on_player_took_lifebottle(bottle) -> void:
+func _on_player_took_lifebottle(bottle, player: Player) -> void:
 	Sound.play("bottle", 0.0)
-	Fx.floating_text(_specialEffects, "+" + str(LIFE_BOTTLE_HEAL) + " HP", _player.global_position + Vector2(0, -30), Color("7bed9f"))
-	_player.get_life_bottle()
+	Fx.floating_text(_specialEffects, "+" + str(LIFE_BOTTLE_HEAL) + " HP", player.global_position + Vector2(0, -30), Color("7bed9f"))
+	player.get_life_bottle()
 	bottle.queue_free()
 
 
-func _on_player_tookadvantage_of_lifebottle() -> void:
-	_player.heal(LIFE_BOTTLE_HEAL)
+func _on_player_tookadvantage_of_lifebottle(player: Player) -> void:
+	player.heal(LIFE_BOTTLE_HEAL)
 
 
 func _on_timeLeft_timeout() -> void:

@@ -1,6 +1,14 @@
 class_name Player
 extends Actor
 
+signal life_changed(player, value)
+
+const GROUP_PLAYER := "player"
+
+# Mode 2 joueurs : contour et étiquette au-dessus de la tête (le joueur 2 a ses propres planches, Player2.tscn)
+const COOP_COLORS := [Color("7fdbff"), Color("ff9f43")]
+const COOP_OUTLINES := [Color(0.05, 0.08, 0.22), Color(0.25, 0.06, 0.04)]
+
 const MAX_LIFE = 100.0
 var _life := 100.0
 
@@ -72,8 +80,14 @@ var _storm_sky: StormSky
 var _storm_active := false
 var _salvo_discharges := 0
 
+# 0 : joueur 1, 1 : joueur 2 ; préfixe "" en solo (actions d'origine), "p1_" / "p2_" en coop
+var player_index := 0
+var _input_prefix := ""
+var _is_coop := false
+
 
 func _ready() -> void:
+	add_to_group(GROUP_PLAYER)
 	updateLife(_life)
 
 	_stateDisplay.visible = Game.is_debug()
@@ -91,10 +105,64 @@ func _ready() -> void:
 	Fx.character_material(get_node("BodyPivot/AnimatedSprite2D"))
 
 
+# Nom de l'action pour ce joueur (« attack » en solo, « p2_attack » pour le joueur 2)
+func action(base: String) -> String:
+	return _input_prefix + base
+
+
+func is_coop() -> bool:
+	return _is_coop
+
+
+func is_alive() -> bool:
+	return _life > 0
+
+
+func setup_coop(index: int, shared_camera: Camera2D) -> void:
+	_is_coop = true
+	player_index = index
+	_input_prefix = PlayerInput.prefix(index)
+	_camera.enabled = false
+	_camera = shared_camera
+
+	var sprite: AnimatedSprite2D = get_node("BodyPivot/AnimatedSprite2D")
+	if sprite.material is ShaderMaterial:
+		sprite.material.set_shader_parameter("outline_color", COOP_OUTLINES[index])
+
+	var tag := Label.new()
+	tag.text = "P%d" % (index + 1)
+	tag.add_theme_font_override("font", Fx.FONT)
+	tag.add_theme_font_size_override("font_size", 5)
+	tag.add_theme_color_override("font_color", COOP_COLORS[index])
+	tag.add_theme_color_override("font_outline_color", Color.BLACK)
+	tag.add_theme_constant_override("outline_size", 2)
+	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tag.size = Vector2(20, 8)
+	tag.position = Vector2(-10, -46)
+	tag.modulate.a = 0.85
+	tag.name = "CoopTag"
+	add_child(tag)
+
+
+# Coop : joueur tombé, les ennemis l'ignorent et les autres le traversent
+func down() -> void:
+	remove_from_group(GROUP_PLAYER)
+	collision_layer = 0
+	var tag := get_node_or_null("CoopTag")
+	if tag:
+		tag.visible = false
+
+
 func build_storm_effects() -> void:
-	_canvas_modulate = CanvasModulate.new()
-	_canvas_modulate.color = Color.WHITE
-	add_child(_canvas_modulate)
+	# un seul CanvasModulate par canvas : partagé entre les joueurs en coop
+	for node in get_tree().get_nodes_in_group("storm_canvas_modulate"):
+		if node.is_inside_tree() and node.get_parent() != self:
+			_canvas_modulate = node
+	if _canvas_modulate == null:
+		_canvas_modulate = CanvasModulate.new()
+		_canvas_modulate.color = Color.WHITE
+		_canvas_modulate.add_to_group("storm_canvas_modulate")
+		add_child(_canvas_modulate)
 
 	_aura_light = Fx.light(self, AURA_COLOR, 0.9)
 	_aura_light.position = Vector2(0, -12)
@@ -138,7 +206,9 @@ func set_look_direction(value):
 
 func updateLife(newLife: float):
 	_life = clamp(newLife, 0.0, MAX_LIFE)
-	Events.emit_signal("player_health_changed", (_life / MAX_LIFE) * 100)
+	life_changed.emit(self, (_life / MAX_LIFE) * 100)
+	if not _is_coop:
+		Events.emit_signal("player_health_changed", (_life / MAX_LIFE) * 100)
 
 
 func set_life(newLife: float):
@@ -278,8 +348,10 @@ func set_camera_limit_rect(referenceRect: ReferenceRect):
 
 func _on_HitBox_body_entered(body: Node) -> void:
 	if body.is_in_group(Game.GROUP_ENEMY):
+		body.last_attacker = self
 		Events.emit_signal("actor_took_damage", body, _damage)
 	elif body.is_in_group(Game.GROUP_BONUSACTOR):
+		body.last_attacker = self
 		if body.can_let_item():
 			body.let_item(global_position)
 			Events.emit_signal("actor_let_item", body)
@@ -491,4 +563,4 @@ func _on_StateMachine_state_changed(current_state) -> void:
 
 
 func emit_player_tookadvantage_of_lifebottle() -> void:
-	Events.emit_signal("player_tookadvantage_of_lifebottle")
+	Events.emit_signal("player_tookadvantage_of_lifebottle", self)

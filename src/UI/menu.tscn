@@ -97,11 +97,15 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="playButton" parent="Control" unique_id=1187914007 instance=ExtResource("9")]
-position = Vector2(220, 67)
-title = "PLAY"
+position = Vector2(220, 56)
+title = "1 PLAYER"
+
+[node name="twoPlayersButton" parent="Control" unique_id=1187914008 instance=ExtResource("9")]
+position = Vector2(220, 76)
+title = "2 PLAYERS"
 
 [node name="hightScoresButton" parent="Control" unique_id=645514756 instance=ExtResource("9")]
-position = Vector2(220, 92)
+position = Vector2(220, 96)
 title = "SCORES"
 
 [node name="settingsButton" parent="Control" unique_id=1305510745 instance=ExtResource("9")]

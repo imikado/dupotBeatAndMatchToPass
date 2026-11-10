@@ -51,7 +51,10 @@ func _fit_label() -> void:
 		tight.spacing_glyph = -1
 		font = tight
 		_label.add_theme_font_override("font", font)
+		# encore trop long (« 2 PLAYERS ») : marges internes réduites à 2 px
+		if font.get_string_size(_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_FONT_SIZE).x > inner_width:
+			inner_width += LABEL_MARGIN_X
 	_label.add_theme_font_size_override("font_size", LABEL_FONT_SIZE)
 	var line_height: float = font.get_height(LABEL_FONT_SIZE)
 	_label.size = Vector2(inner_width, line_height)
-	_label.position = Vector2(LABEL_MARGIN_X, round((texture_normal.get_height() - line_height) / 2.0) + LABEL_OFFSET_Y)
+	_label.position = Vector2((texture_normal.get_width() - inner_width) / 2.0, round((texture_normal.get_height() - line_height) / 2.0) + LABEL_OFFSET_Y)

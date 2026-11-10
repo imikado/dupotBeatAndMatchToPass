@@ -36,6 +36,12 @@ const SHAKE_OFFSETS=[Vector2(-2, 0), Vector2(2, 1), Vector2(-1, -1), Vector2(1, 
 const SHAKE_STEP=0.04
 
 var _life_target:=0.0
+
+# Mode 2 joueurs : jauge de vie du joueur 2 en haut à droite (LEVEL xx passe dessous)
+const P2_BAR_POSITION=Vector2(215, 3)
+const P2_HUD_SHIFT_Y=10
+var _p2_life_bar:PixelBar
+var _p2_life_target:=0.0
 var _mana_cells:=0
 
 var _shake_tween:Tween
@@ -224,7 +230,37 @@ func refresh_mana_color(value:float) -> void:
 		_player_mana_progress_bar.stop_shimmer()
 
 
-func update_player_life(value:float)->void:
+func enable_second_player() -> void:
+	if _p2_life_bar:
+		return
+	_p2_life_bar=_player_life_progress_bar.duplicate()
+	add_child(_p2_life_bar)
+	_p2_life_bar.position=P2_BAR_POSITION
+	_p2_life_bar.size=_player_life_progress_bar.size
+	_p2_life_target=GlobalPlayer.life2
+	_p2_life_bar.set_value(_p2_life_target, false)
+	refresh_life_color(_p2_life_target, _p2_life_bar)
+
+	var tag:=build_label(5, HORIZONTAL_ALIGNMENT_RIGHT)
+	tag.text="P2"
+	tag.add_theme_color_override("font_color", Player.COOP_COLORS[1])
+	tag.position=P2_BAR_POSITION + Vector2(-16, -2)
+	tag.size=Vector2(14, 10)
+
+	var p1_tag:=build_label(5, HORIZONTAL_ALIGNMENT_LEFT)
+	p1_tag.text="P1"
+	p1_tag.add_theme_color_override("font_color", Player.COOP_COLORS[0])
+	p1_tag.position=Vector2(3, 22)
+	p1_tag.size=Vector2(14, 10)
+
+	_level.position.y+=P2_HUD_SHIFT_Y
+	_streak_label.position.y+=P2_HUD_SHIFT_Y
+
+
+func update_player_life(value:float, index:=0)->void:
+	if index == 1:
+		update_second_player_life(value)
+		return
 	var previous:=_life_target
 	_life_target=clamp(value, 0.0, _player_life_progress_bar.max_value)
 	if is_equal_approx(previous, _life_target):
@@ -241,18 +277,34 @@ func update_player_life(value:float)->void:
 		flash_portrait(Color(0.5, 1.0, 0.5))
 
 
-func refresh_life_color(value:float) -> void:
+func update_second_player_life(value:float)->void:
+	if _p2_life_bar == null:
+		return
+	var previous:=_p2_life_target
+	_p2_life_target=clamp(value, 0.0, _p2_life_bar.max_value)
+	if is_equal_approx(previous, _p2_life_target):
+		return
+	_p2_life_bar.set_value(_p2_life_target)
+	refresh_life_color(_p2_life_target, _p2_life_bar)
+	if _p2_life_target < previous:
+		_p2_life_bar.flash()
+		shake_hud()
+
+
+func refresh_life_color(value:float, bar:PixelBar = null) -> void:
+	if bar == null:
+		bar=_player_life_progress_bar
 	if value > MID_LIFE_THRESHOLD:
-		_player_life_progress_bar.set_fill_color(LIFE_COLOR_HIGH)
+		bar.set_fill_color(LIFE_COLOR_HIGH)
 	elif value > LOW_LIFE_THRESHOLD:
-		_player_life_progress_bar.set_fill_color(LIFE_COLOR_MID)
+		bar.set_fill_color(LIFE_COLOR_MID)
 	else:
-		_player_life_progress_bar.set_fill_color(LIFE_COLOR_LOW)
+		bar.set_fill_color(LIFE_COLOR_LOW)
 
 	if value <= LOW_LIFE_THRESHOLD and value > 0:
-		_player_life_progress_bar.start_blink(LIFE_COLOR_BLINK)
+		bar.start_blink(LIFE_COLOR_BLINK)
 	else:
-		_player_life_progress_bar.stop_blink()
+		bar.stop_blink()
 
 
 func shake_hud() -> void:

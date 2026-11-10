@@ -3,6 +3,13 @@ extends Actor
 
 
 var _player : CharacterBody2D
+# Coop : joueur qui a porté le dernier coup (recul, combo)
+var last_attacker : CharacterBody2D
+# Coop : on vise le joueur vivant le plus proche, réévalué régulièrement
+const RETARGET_INTERVAL_MS:=400
+# Changement de cible seulement si l'autre joueur est nettement plus près
+const RETARGET_MARGIN:=16.0
+var _last_retarget_ms:=0
 var _near_distance:=10
 var _damage:=10
 const MAX_LIFE=50.0
@@ -265,7 +272,32 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
+	_retarget()
 	_check_barrier_crossing()
+
+
+func _retarget() -> void:
+	var now:=Time.get_ticks_msec()
+	var current_ok:=is_instance_valid(_player) and _player.is_in_group(Player.GROUP_PLAYER)
+	if current_ok and now - _last_retarget_ms < RETARGET_INTERVAL_MS:
+		return
+	_last_retarget_ms=now
+	var best:CharacterBody2D=_player if current_ok else null
+	var best_distance:=global_position.distance_to(best.global_position) - RETARGET_MARGIN if best else INF
+	for candidate in get_tree().get_nodes_in_group(Player.GROUP_PLAYER):
+		if candidate == best:
+			continue
+		var distance:=global_position.distance_to(candidate.global_position)
+		if distance < best_distance:
+			best=candidate
+			best_distance=distance
+	if best and best != _player:
+		_player=best
+		_attack_side_frame=-1
+
+
+func get_attacker() -> CharacterBody2D:
+	return last_attacker if is_instance_valid(last_attacker) else _player
 
 
 # Le centre de l'ennemi change de côté de l'arc d'une barrière encore fermée.
@@ -356,8 +388,7 @@ func _update_depth_tint() -> void:
 
 func is_behind_someone() -> bool:
 	var others:Array=get_tree().get_nodes_in_group(Game.GROUP_ENEMY)
-	if _player:
-		others.append(_player)
+	others.append_array(get_tree().get_nodes_in_group(Player.GROUP_PLAYER))
 	for other in others:
 		if other == self:
 			continue
@@ -461,7 +492,8 @@ func char_body() -> void:
 
 # Flash blanc, écrasement, étincelles et recul à l'opposé du joueur
 func hit_feedback():
-	var away:=1.0 if global_position.x >= _player.global_position.x else -1.0
+	var attacker:=get_attacker()
+	var away:=1.0 if global_position.x >= attacker.global_position.x else -1.0
 
 	if _hit_tween:
 		_hit_tween.kill()
@@ -476,7 +508,7 @@ func hit_feedback():
 	Fx.hit_spark(get_parent(), global_position + Vector2(-away * 5, -10))
 
 	var distance:=KNOCKBACK
-	if _player.has_method("get_state") and _player.get_state() == "Attack04":
+	if attacker.has_method("get_state") and attacker.get_state() == "Attack04":
 		distance=KNOCKBACK_FINISHER
 
 	if _knockback_tween:
@@ -549,7 +581,7 @@ func get_attack_slot_offset(side: float)->Vector2:
 		_slot_frame=frame
 		var rank:=0
 		for other in get_tree().get_nodes_in_group(Game.GROUP_ENEMY):
-			if other == self or other._is_dying or other.is_ranged() != is_ranged() or other._player == null:
+			if other == self or other._is_dying or other.is_ranged() != is_ranged() or other._player != _player:
 				continue
 			if other.get_attack_side() == side and other.get_instance_id() < get_instance_id():
 				rank+=1

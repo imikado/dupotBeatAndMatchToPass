@@ -12,7 +12,8 @@ func _ready():
 	var keyboardOsList=["HTML5","Web","X11","Linux", "FreeBSD", "NetBSD", "OpenBSD", "BSD","Windows"]
 
 	var osName= OS.get_name()
-	if(keyboardOsList.find(osName)!=-1):
+	# Fire TV : télécommande ou manette, pas d'écran tactile
+	if(keyboardOsList.find(osName)!=-1 or OS.has_feature("firetv")):
 		Game.setControlsEnabled(false)
 
 	Fx.fireflies(self)

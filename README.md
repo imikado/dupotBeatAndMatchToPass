@@ -6,8 +6,8 @@
 
 **Beat them all… or not. Beat the *right* enemies to open the way!**
 
-A fast pixel-art beat 'em up where every swing counts.
-Free · Linux · Web · Made with Godot 4
+A fast pixel-art beat 'em up where every swing counts, **solo or with a friend on the same screen**.
+Free · 1–2 players · Linux · Web · Made with Godot 4
 
 [![Flathub](https://img.shields.io/flathub/v/org.dupot.beatmatchtopass?logo=flathub&logoColor=white&label=Flathub&color=4a90d9)](https://flathub.org/apps/org.dupot.beatmatchtopass)
 [![Snap Store](https://img.shields.io/badge/Snap%20Store-dupot--beat--match--to--pass-82BEA0?logo=snapcraft&logoColor=white)](https://snapcraft.io/dupot-beat-match-to-pass)
@@ -35,8 +35,27 @@ So you don't just mash buttons: you pick your targets, keep your combo going and
 
 </div>
 
+## 👥 Play together on one screen
+
+Grab a friend: pick **2 PLAYERS** in the menu and fight side by side through the whole adventure, bonus stages included.
+
+<div align="center">
+
+<img src="docs/media/coop.gif" alt="Two players menu, key setup and a fight with both heroes" width="640" />
+
+</div>
+
+- 🎮 **Any setup**: two players on **one keyboard**, a **keyboard + a gamepad**, or **two gamepads**.
+- ⌨️ **Your keys, your way**: AZERTY and QWERTY presets out of the box, and every key (and every gamepad action button) can be remapped before the game starts. The setup is remembered for next time.
+- 🎥 **One shared camera** keeps both heroes in view: nobody gets left off-screen.
+- 🐜 **Smart enemies** go after the closest hero, so you can split the crowd or bait them for your partner.
+- 🤝 **Team play**: score, mana and kill streak are shared, each hero has their own life bar, and any life bottle heals whoever grabs it.
+- 💫 **Never out for long**: a fallen partner gets back up at the next level with half their life. It's game over only when both heroes are down.
+- 🐺 **Two heroes**: player 2 is Gordon's blue-grey twin, with *P1* / *P2* tags above their heads.
+
 ## ✨ Features
 
+- 👥 **Solo or two players on the same screen**: see [Play together on one screen](#-play-together-on-one-screen).
 - 🗡️ **Four-hit sword combo**: keep pressing attack to chain slashes, and land three combo hits on the same enemy for a score bonus.
 - 💨 **Dash**: a quick dodge in any direction that makes you untouchable for an instant, and cancels a sword swing.
 - 🔥 **Kill streaks**: every 5 kills in a row raise your score multiplier, up to **x4**. Get hit and the streak is gone.
@@ -82,11 +101,22 @@ A loading screen that really preloads the game, an animated title, a lively menu
 
 ⌨️ Keys can be remapped from the **Settings** menu, and on-screen touch controls can be turned on for touch screens.
 
+**Two players** — default keys when you share one keyboard (changeable in the 2 PLAYERS screen):
+
+| Action | Player 1 (QWERTY / AZERTY) | Player 2 | Gamepad |
+|---|---|---|---|
+| Move | `W A S D` / `Z Q S D` | ← ↑ → ↓ arrow keys | D-pad / left stick |
+| Sword attack | `F` | `L` | Button A |
+| Lightning storm | `G` | `K` | Button B |
+| Dash | `H` | `J` | Button X |
+| Pause | `Esc` | `Esc` | Start |
+
 ## 💡 Tips
 
 - **Look at the barrier icon** before you fight: defeating the wrong species won't charge the barrier. Enemies that still charge a barrier carry a small arrow of its colour above their head.
 - **Protect your streak.** Backing off for a second is often worth more than trading hits.
 - **Mana refills on its own** and with every kill. The bar turns blue and *MANA READY* pops up when you can cast again.
+- **Playing as two?** Split up to take enemies from both sides, and agree on who casts the storm: the mana bar is shared.
 - **Keep the storm for crowds**, or for when a spider has you in its sights: you're untouchable while casting.
 
 ## 📦 Install

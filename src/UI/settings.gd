@@ -19,6 +19,9 @@ func _ready() -> void:
 	_menuButton.select()
 	
 	update_controlsEnabled_toggle(Game.isControlsEnabled())
+	# Fire TV : télévision sans écran tactile, le choix « Controls tactil » n'a pas de sens
+	if OS.has_feature("firetv"):
+		_controlsBoxEnabled.get_parent().visible = false
 	
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("attack"):

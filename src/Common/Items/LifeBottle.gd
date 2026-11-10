@@ -7,8 +7,8 @@ func _ready() -> void:
 	$AnimatedSprite2D.play()
 
 func _on_Area2D_body_entered(body: Node) -> void:
-	if body is Player:
-		Events.emit_signal("player_took_lifebottle",self)
+	if body is Player and body.is_alive():
+		Events.emit_signal("player_took_lifebottle", self, body)
 		
 	pass # Replace with function body.
 

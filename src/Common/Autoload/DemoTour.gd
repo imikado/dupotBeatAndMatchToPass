@@ -6,10 +6,14 @@ extends "res://src/Common/Autoload/ScreenshotTour.gd"
 #   launch   : logo de boot, écran titre puis menu       -> docs/media/launch.gif
 #   gameplay : combo, kills et orage d'éclairs (niveau 1) -> docs/media/gameplay.gif
 #              + capture de l'orage                       -> docs/media/lightning.png
-#   video    : lancement, niveau 1 + orage, bonus, niveau 3 + orage, avec le son
+#   coop     : menu « 2 PLAYERS », choix des touches, puis combat à deux et orage
+#              (niveau 1)                                 -> docs/media/coop.gif
+#   video    : lancement, niveau 1 + orage, bonus, niveau 3 + orage, puis mode
+#              2 joueurs (menu, touches, combat à deux + orage), avec le son
 #              (export_video.sh)                          -> export/demo.mp4
 
 const MENU_SCENE := "res://src/UI/menu.tscn"
+const COOP_SETUP_SCENE := "res://src/UI/coop_setup.tscn"
 
 const MENU_DURATION := 2.5
 const FIGHT_DURATION := 3.0
@@ -29,6 +33,10 @@ const VIDEO_BONUS_DURATION := 7.0
 const VIDEO_CROWD_MIN_ENEMIES := 3
 const VIDEO_END_DURATION := 3.0
 
+# Démo 2 joueurs : délai entre deux appuis dans les menus, durée du combat
+const MENU_STEP := 0.35
+const COOP_FIGHT_DURATION := 5.0
+
 var _clip := ""
 var _clip_start := 0
 
@@ -43,6 +51,8 @@ func run() -> void:
 			await run_launch()
 		"gameplay":
 			await run_gameplay()
+		"coop":
+			await run_coop()
 		"video":
 			await run_video()
 		_:
@@ -74,6 +84,59 @@ func run_gameplay() -> void:
 	clip_end()
 
 
+func run_coop() -> void:
+	await wait_scene(TITLE_SCENE)
+	await wait_until(func(): return get_tree().current_scene.get("_can_continue") == true)
+	press_key(KEY_ENTER)
+	await wait_scene(MENU_SCENE)
+	clip_start()
+	await coop_sequence(COOP_FIGHT_DURATION)
+	clip_end()
+
+
+# Depuis le menu : « 2 PLAYERS », redéfinition de l'attaque du joueur 1 sur Espace,
+# START, combat à deux puis orage du joueur 2 (clips coop et video)
+func coop_sequence(fight_duration: float) -> void:
+	# config du joueur intacte, et la même config à chaque enregistrement
+	PlayerInput.save_enabled = false
+	PlayerInput.set_layout("qwerty")
+	PlayerInput.set_device(0, PlayerInput.Device.KEYBOARD)
+	PlayerInput.set_device(1, PlayerInput.Device.KEYBOARD)
+
+	await wait(1.0)
+	await menu_press("ui_down")
+	await menu_press("ui_accept")
+
+	await wait_scene(COOP_SETUP_SCENE)
+	await wait(1.2)
+	for i in range(5):
+		await menu_press("ui_down")
+	await menu_press("ui_accept")
+	await wait(0.5)
+	press_key(KEY_SPACE)
+	await wait(0.8)
+	for i in range(3):
+		await menu_press("ui_down")
+	await menu_press("ui_accept")
+
+	await wait_scene(LEVEL_SCENE)
+	GlobalPlayer.mana = GlobalPlayer.MAX_MANA
+	var level := get_tree().current_scene
+	level._hud.update_player_mana(GlobalPlayer.mana)
+	level.update_mana_button()
+	_bot_group = Game.GROUP_ENEMY
+	await wait_at_most(is_target_close, STEP_TIMEOUT)
+	await wait(fight_duration)
+	await wait_at_most(is_storm_ready, STORM_WAIT_MAX)
+	await storm("", level._players[1])
+	await wait(AFTER_STORM_DURATION)
+
+
+func menu_press(action: String) -> void:
+	press_action(action)
+	await wait(MENU_STEP)
+
+
 func run_video() -> void:
 	# ScreenshotTour coupe le son : la vidéo le garde (enregistré en WAV par le Movie Maker)
 	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), false)
@@ -98,16 +161,27 @@ func run_video() -> void:
 	await wait(VIDEO_FIGHT_DURATION)
 	await wait_at_most(func(): return count_enemies_near(STORM_DISTANCE) >= VIDEO_CROWD_MIN_ENEMIES, STORM_WAIT_MAX * 3)
 	await storm()
-	await wait(VIDEO_END_DURATION)
+	await wait(AFTER_STORM_DURATION)
+
+	# mode 2 joueurs : retour au menu, choix des touches, combat à deux
+	_bot_group = ""
+	release_all()
+	Transition.goto(MENU_SCENE)
+	await wait_scene(MENU_SCENE)
+	await coop_sequence(VIDEO_FIGHT_DURATION)
+	await wait(VIDEO_END_DURATION - AFTER_STORM_DURATION)
 	clip_end()
 
 
-# Orage d'éclairs (attaque mana), avec capture facultative à l'impact
-func storm(screenshot := "") -> void:
+# Orage d'éclairs (attaque mana) lancé par le joueur 1 (ou celui donné),
+# avec capture facultative à l'impact
+func storm(screenshot := "", player: Player = null) -> void:
+	if player == null:
+		player = get_player()
 	var group := _bot_group
 	release_all()
 	_bot_group = ""
-	press_action(PlayerStateMachine.INPUT_ATTACK_MANA)
+	press_action(player.action(PlayerStateMachine.INPUT_ATTACK_MANA))
 	await wait(STORM_IMPACT_DELAY)
 	if screenshot != "":
 		Game.takeScreenshot(screenshot)
@@ -142,7 +216,7 @@ func is_target_close() -> bool:
 
 # Le bot ne vise que les ennemis de son côté de la prochaine barrière fermée :
 # sinon il reste collé à la barrière sans rien toucher
-func find_target(player: Player) -> Node2D:
+func find_target(player: Player, excluded: Array = []) -> Node2D:
 	var limit_x := INF
 	var barriers = get_tree().current_scene.get("_electricalBarriers")
 	if barriers:
@@ -153,7 +227,7 @@ func find_target(player: Player) -> Node2D:
 
 	var nearest: Node2D = null
 	for actor in get_tree().get_nodes_in_group(_bot_group):
-		if actor.get("_is_dying") == true or actor.global_position.x >= limit_x:
+		if actor.get("_is_dying") == true or actor.global_position.x >= limit_x or excluded.has(actor):
 			continue
 		if nearest == null or actor.global_position.distance_to(player.global_position) < nearest.global_position.distance_to(player.global_position):
 			nearest = actor

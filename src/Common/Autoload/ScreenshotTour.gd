@@ -29,7 +29,8 @@ const STORM_IMPACT_DELAY := 0.8
 const MIN_LIFE := 40.0
 
 var _bot_group := ""
-var _attack_cooldown := 0.0
+# temps avant le prochain coup d'épée, par joueur piloté (deux en mode 2 joueurs)
+var _attack_cooldowns := {}
 var _pressed := {}
 
 var _crowd_kill := false
@@ -84,6 +85,7 @@ func start_level(level: int) -> void:
 	_bot_group = ""
 	release_all()
 	GlobalPlayer.reset_game()
+	GlobalPlayer.two_players = false
 	GlobalPlayer.set_level(level)
 	GlobalPlayer.mana = GlobalPlayer.MAX_MANA
 	Transition.goto(LEVEL_SCENE)
@@ -180,21 +182,36 @@ func find_dashing_enemy(player: Player) -> Node2D:
 	return null
 
 
-func find_target(player: Player) -> Node2D:
+# excluded : cibles déjà prises par l'autre joueur (mode 2 joueurs)
+func find_target(player: Player, excluded: Array = []) -> Node2D:
 	var nearest: Node2D = null
 	for actor in get_tree().get_nodes_in_group(_bot_group):
-		if actor.get("_is_dying") == true:
+		if actor.get("_is_dying") == true or excluded.has(actor):
 			continue
 		if nearest == null or actor.global_position.distance_to(player.global_position) < nearest.global_position.distance_to(player.global_position):
 			nearest = actor
 	return nearest
 
 
-# Bot : va se placer à côté de la cible la plus proche et enchaîne les coups d'épée,
-# avance vers la droite quand il n'y a personne
-func _physics_process(delta: float) -> void:
+# Joueurs pilotés : les deux joueurs debout en mode 2 joueurs, sinon le joueur seul
+func get_bot_players() -> Array:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return []
+	var players = scene.get("_players")
+	if players is Array and players.size() > 1:
+		return players.filter(func(player): return is_instance_valid(player) and player.is_alive())
 	var player := get_player()
-	if _bot_group == "" or player == null or Transition.is_busy():
+	return [player] if player else []
+
+
+# Bot : va se placer à côté de la cible la plus proche et enchaîne les coups d'épée,
+# avance vers la droite quand il n'y a personne ; à deux, chacun prend une cible différente
+func _physics_process(delta: float) -> void:
+	if _bot_group == "" or Transition.is_busy():
+		return
+	var players := get_bot_players()
+	if players.is_empty():
 		return
 
 	# Fenêtre qui perd le focus : le niveau se met en pause, on reprend
@@ -202,22 +219,32 @@ func _physics_process(delta: float) -> void:
 	if pause_menu and pause_menu.is_open():
 		pause_menu.close()
 
+	var claimed := []
+	for player in players:
+		bot_step(player, delta, claimed)
+
+
+func bot_step(player: Player, delta: float, claimed: Array) -> void:
 	if player._life < MIN_LIFE:
 		player.heal(Player.MAX_LIFE)
 
-	_attack_cooldown -= delta
+	var cooldown: float = _attack_cooldowns.get(player, 0.0) - delta
 
 	var direction := Vector2.ZERO
-	var target := find_target(player)
+	var target := find_target(player, claimed)
+	if target == null:
+		target = find_target(player)
+	if target:
+		claimed.append(target)
 	var dasher := find_dashing_enemy(player)
 	if dasher:
 		# ennemi qui traverse une barrière en dash : on l'accueille à l'épée
 		var dash_side := -1.0 if dasher.global_position.x < player.global_position.x else 1.0
 		if sign(player.get_node("BodyPivot").scale.x) != dash_side:
 			direction.x = dash_side
-		elif _attack_cooldown <= 0.0:
-			_attack_cooldown = ATTACK_INTERVAL
-			press_action(PlayerStateMachine.INPUT_ATTACK)
+		elif cooldown <= 0.0:
+			cooldown = ATTACK_INTERVAL
+			press_action(player.action(PlayerStateMachine.INPUT_ATTACK))
 	elif target == null:
 		if _bot_group == Game.GROUP_ENEMY:
 			direction.x = 1
@@ -235,9 +262,11 @@ func _physics_process(delta: float) -> void:
 			direction.y = sign(gap.y)
 		if direction == Vector2.ZERO and sign(facing) != side:
 			direction.x = side
-		elif direction == Vector2.ZERO and _attack_cooldown <= 0.0:
-			_attack_cooldown = ATTACK_INTERVAL
-			press_action(PlayerStateMachine.INPUT_ATTACK)
+		elif direction == Vector2.ZERO and cooldown <= 0.0:
+			cooldown = ATTACK_INTERVAL
+			press_action(player.action(PlayerStateMachine.INPUT_ATTACK))
+
+	_attack_cooldowns[player] = cooldown
 
 	# Barrière fermée juste devant : courir sur place ne sert à rien, on attend
 	# (seul un demi-tour, pour faire face, reste permis)
@@ -245,10 +274,10 @@ func _physics_process(delta: float) -> void:
 	if direction.x != 0 and signf(direction.x) == facing_now and is_blocked_by_barrier(player, direction.x):
 		direction.x = 0
 
-	set_action(PlayerAbstractState.INPUT_RIGHT, direction.x > 0)
-	set_action(PlayerAbstractState.INPUT_LEFT, direction.x < 0)
-	set_action(PlayerAbstractState.INPUT_DOWN, direction.y > 0)
-	set_action(PlayerAbstractState.INPUT_UP, direction.y < 0)
+	set_action(player.action(PlayerAbstractState.INPUT_RIGHT), direction.x > 0)
+	set_action(player.action(PlayerAbstractState.INPUT_LEFT), direction.x < 0)
+	set_action(player.action(PlayerAbstractState.INPUT_DOWN), direction.y > 0)
+	set_action(player.action(PlayerAbstractState.INPUT_UP), direction.y < 0)
 
 
 func set_action(action: String, pressed: bool) -> void:

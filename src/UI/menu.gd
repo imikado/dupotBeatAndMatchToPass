@@ -3,6 +3,7 @@ extends Node2D
 const SELECTED_OFFSET_X = -6.0
 
 @onready var _playButton:=get_node("Control/playButton")
+@onready var _twoPlayersButton:=get_node("Control/twoPlayersButton")
 @onready var _highScoresButton:=get_node("Control/hightScoresButton")
 @onready var _settingsButton:=get_node("Control/settingsButton")
 
@@ -17,12 +18,14 @@ var _music_label: Label
 
 @onready var _buttonList=[
 	_playButton,
+	_twoPlayersButton,
 	_highScoresButton,
 	_settingsButton
 ]
 
 func _ready() -> void:
 	_playButton.connect("released", Callable(self, "goto_game"))
+	_twoPlayersButton.connect("released", Callable(self, "goto_two_players"))
 
 	_highScoresButton.connect("released", Callable(self, "goto_scores"))
 	_settingsButton.connect("released", Callable(self, "goto_settings"))
@@ -112,7 +115,12 @@ func leave(path: String) -> void:
 func goto_game():
 	# Nouvelle partie : la vie, le score et le niveau ne sont plus repris de la précédente
 	GlobalPlayer.reset_game()
+	GlobalPlayer.two_players = false
 	leave("res://src/Levels/LevelTemplate.tscn")
+
+# Mode 2 joueurs : choix des manettes / touches avant de lancer la partie
+func goto_two_players():
+	leave("res://src/UI/coop_setup.tscn")
 
 func goto_scores():
 	leave("res://src/UI/scores.tscn")

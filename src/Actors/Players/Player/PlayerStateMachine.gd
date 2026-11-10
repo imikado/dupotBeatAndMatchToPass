@@ -77,7 +77,7 @@ func _handle_interrupt_input(event) -> bool:
 	Here we only handle input that can interrupt states, attacking in this case
 	otherwise we let the state node handle it
 	"""
-	if event.is_action_pressed(INPUT_DASH):
+	if event.is_action_pressed(owner.action(INPUT_DASH)):
 		if current_state == get_node(STATE_DASH) or not owner.can_dash():
 			return false
 		if not current_state.name in DASH_FROM:
@@ -85,7 +85,7 @@ func _handle_interrupt_input(event) -> bool:
 		_change_state(STATE_DASH)
 		return true
 
-	if event.is_action_pressed(INPUT_ATTACK):
+	if event.is_action_pressed(owner.action(INPUT_ATTACK)):
 		if [get_node(STATE_ATTACK01), get_node(STATE_ATTACK02), get_node(STATE_ATTACK03), get_node(STATE_ATTACK04), get_node(STATE_DASH)].has(
 			current_state
 		):
@@ -94,7 +94,7 @@ func _handle_interrupt_input(event) -> bool:
 		return true
 
 	if (
-		event.is_action_pressed(INPUT_ATTACK_MANA)
+		event.is_action_pressed(owner.action(INPUT_ATTACK_MANA))
 		and GlobalPlayer.can_use_amount_mana(GlobalPlayer.attack_amount_mana)
 	):
 		if [get_node(STATE_ATTACK_MANA01)].has(current_state):
