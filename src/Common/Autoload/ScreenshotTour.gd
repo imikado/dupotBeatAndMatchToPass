@@ -6,6 +6,13 @@ extends Node
 
 const TITLE_SCENE := "res://src/UI/title.tscn"
 const MENU_SCENE := "res://src/UI/menu.tscn"
+const SOLO_SETUP_SCENE := "res://src/UI/solo_setup.tscn"
+const COOP_SETUP_SCENE := "res://src/UI/coop_setup.tscn"
+# Essai des contrôles (zone de test en bas des écrans de contrôles)
+const CONTROLS_WALK := 0.6
+const CONTROLS_TURN := 0.08
+const CONTROLS_STEP := 0.35
+const CONTROLS_COMBO_GAP := 0.3
 const LEVEL_SCENE := "res://src/Levels/LevelTemplate.tscn"
 const BONUS_SCENE := "res://src/Levels/LevelBonus.tscn"
 
@@ -60,6 +67,16 @@ func run() -> void:
 	await wait(1.0)
 	shoot(8)
 
+	# écran des contrôles 2 joueurs : les héros essaient leurs touches en bas
+	use_demo_controls()
+	Transition.goto(COOP_SETUP_SCENE)
+	await wait_scene(COOP_SETUP_SCENE)
+	var setup := get_tree().current_scene
+	setup._row = setup.ROW_TEST
+	setup.start_test()
+	await controls_test(setup._test_area.players, func(): shoot(9))
+	setup.stop_test()
+
 	await start_level(1)
 	await wait_crowd_kill(2)
 	await wait(0.3)
@@ -71,7 +88,7 @@ func run() -> void:
 
 	await start_bonus()
 	await wait(5.0)
-	await wait_until(func(): return get_player().get_state().begins_with("Attack"))
+	await wait_until(func(): return get_player() != null and get_player().get_state().begins_with("Attack"))
 	await wait(0.1)
 	shoot(5)
 
@@ -89,11 +106,52 @@ func run() -> void:
 	await wait_until(func(): return count_enemies_near(STORM_DISTANCE) >= 3)
 	release_all()
 	_bot_group = ""
-	press_action(PlayerStateMachine.INPUT_ATTACK_MANA)
+	press_action(get_player().action(PlayerStateMachine.INPUT_ATTACK_MANA))
 	await wait(STORM_IMPACT_DELAY)
 	shoot(1)
 
 	get_tree().quit()
+
+
+# Configuration des touches identique à chaque capture / enregistrement, sans écraser
+# celle du joueur (préréglages QWERTY, tout le monde au clavier)
+func use_demo_controls() -> void:
+	PlayerInput.save_enabled = false
+	PlayerInput.set_layout("qwerty")
+	for i in [0, 1, PlayerInput.SOLO]:
+		PlayerInput.set_device(i, PlayerInput.Device.KEYBOARD)
+	PlayerInput.apply()
+
+
+# Héros de la zone d'essai (mode TEST déjà lancé) : marche, haut / bas, demi-tour,
+# combo d'épée puis esquive. À deux, ils s'écartent puis se font face (sans se
+# rentrer dedans). on_combo : appelé au troisième coup d'épée (capture)
+func controls_test(players: Array, on_combo := Callable()) -> void:
+	var left := PlayerAbstractState.INPUT_LEFT
+	var right := PlayerAbstractState.INPUT_RIGHT
+	for i in range(players.size()):
+		set_action(players[i].action(right if i == 1 or players.size() == 1 else left), true)
+	await wait(CONTROLS_WALK)
+	release_all()
+	for direction in [PlayerAbstractState.INPUT_UP, PlayerAbstractState.INPUT_DOWN]:
+		for player in players:
+			set_action(player.action(direction), true)
+		await wait(CONTROLS_STEP)
+		release_all()
+	for i in range(players.size()):
+		set_action(players[i].action(left if i == 1 or players.size() == 1 else right), true)
+	await wait(CONTROLS_TURN)
+	release_all()
+	for hit in range(3):
+		for player in players:
+			press_action(player.action(PlayerStateMachine.INPUT_ATTACK))
+		await wait(CONTROLS_COMBO_GAP if hit < 2 else 0.12)
+	if on_combo.is_valid():
+		on_combo.call()
+	await wait(CONTROLS_COMBO_GAP)
+	for player in players:
+		press_action(player.action(PlayerStateMachine.INPUT_DASH))
+	await wait(CONTROLS_WALK)
 
 
 func start_level(level: int, two_players := false) -> void:

@@ -3,8 +3,9 @@
 # Godot enregistre chaque image (Movie Maker) puis ffmpeg en fait des gifs.
 #   launch.gif    : logo de boot, écran titre puis menu
 #   gameplay.gif  : combo, kills et orage d'éclairs
-#   coop.gif      : mode 2 joueurs (menu, choix des touches, combat à deux,
-#                   orage de chaque joueur avec sa propre jauge de mana)
+#   coop.gif      : mode 2 joueurs (menu, choix des touches, essai des héros en bas
+#                   de l'écran des contrôles, combat à deux, orage de chaque joueur
+#                   avec sa propre jauge de mana)
 #   lightning.png : capture de l'orage
 #
 # Usage :
@@ -92,7 +93,7 @@ for clip in "${clips[@]}"; do
 	case "$clip" in
 		launch|gameplay|coop) record "$clip" ;;
 		*)
-			sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+			sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'
 			exit 1
 			;;
 	esac

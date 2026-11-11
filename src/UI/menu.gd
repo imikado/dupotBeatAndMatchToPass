@@ -112,11 +112,9 @@ func leave(path: String) -> void:
 	Transition.goto(path)
 
 
+# Mode 1 joueur : écran des contrôles (essai du héros) avant de lancer la partie
 func goto_game():
-	# Nouvelle partie : la vie, le score et le niveau ne sont plus repris de la précédente
-	GlobalPlayer.reset_game()
-	GlobalPlayer.two_players = false
-	leave("res://src/Levels/LevelTemplate.tscn")
+	leave("res://src/UI/solo_setup.tscn")
 
 # Mode 2 joueurs : choix des manettes / touches avant de lancer la partie
 func goto_two_players():

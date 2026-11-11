@@ -1,12 +1,12 @@
 #!/bin/bash
 # Génère la vidéo de démo pour YouTube (MP4 H.264 + son AAC) : le jeu joue tout
-# seul (DemoTour.gd, clip « video » : lancement, niveau 1 + orage, bonus,
-# niveau 3 + orage, puis mode 2 joueurs : menu, choix des touches, combat à
-# deux + orage). Godot enregistre images et son (Movie Maker, PNG + WAV),
+# seul (DemoTour.gd, clip « video » : lancement, écran des contrôles 1 joueur
+# avec essai du héros, niveau 1 + orage, bonus, niveau 3 + orage, puis mode
+# 2 joueurs : menu, choix des touches, essai des deux héros, combat à deux + orage). Godot enregistre images et son (Movie Maker, PNG + WAV),
 # puis ffmpeg assemble la vidéo sans lissage des pixels, avec un fondu au début
 # et à la fin. Ouvre une fenêtre du jeu pendant l'enregistrement.
 #
-# Usage : ./export_video.sh [fichier.mp4]   (export/demo.mp4 par défaut)
+# Usage : ./export_video.sh [fichier.mp4]   (docs/media/demo.mp4 par défaut, avec les gifs de update_demo.sh)
 # Variables : FPS (60), FADE (0.5 s), SCALE (3), DEMO_TIMEOUT (1800 s)
 # Enregistré en 1280x720 (une fenêtre 1920x1080 ne tient pas sur un écran
 # 1080p : Godot la réduirait), puis agrandi xSCALE sans lissage : 3840x2160
@@ -16,7 +16,7 @@ set -e
 cd "$(dirname "$0")"
 
 GODOT="${GODOT:-$(command -v godot || echo "$HOME/apps/Godot_v4.7.2-stable_linux.x86_64")}"
-OUTPUT="${1:-export/demo.mp4}"
+OUTPUT="${1:-docs/media/demo.mp4}"
 FPS="${FPS:-60}"
 SCALE="${SCALE:-3}"
 FADE="${FADE:-0.5}"

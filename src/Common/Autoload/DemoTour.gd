@@ -6,13 +6,14 @@ extends "res://src/Common/Autoload/ScreenshotTour.gd"
 #   launch   : logo de boot, écran titre puis menu       -> docs/media/launch.gif
 #   gameplay : combo, kills et orage d'éclairs (niveau 1) -> docs/media/gameplay.gif
 #              + capture de l'orage                       -> docs/media/lightning.png
-#   coop     : menu « 2 PLAYERS », choix des touches, puis combat à deux et orage
-#              de chaque joueur, chacun avec sa mana (niveau 1) -> docs/media/coop.gif
-#   video    : lancement, niveau 1 + orage, bonus, niveau 3 + orage, puis mode
-#              2 joueurs (menu, touches, combat à deux + orages), avec le son
-#              (export_video.sh)                          -> export/demo.mp4
+#   coop     : menu « 2 PLAYERS », choix des touches, essai des deux héros (TEST),
+#              puis combat à deux et orage de chaque joueur, chacun avec sa mana
+#              (niveau 1)                                 -> docs/media/coop.gif
+#   video    : lancement, « 1 PLAYER » + essai du héros (TEST), niveau 1 + orage, bonus,
+#              niveau 3 + orage, puis mode 2 joueurs (menu, touches, essai, combat
+#              à deux + orages), avec le son
+#              (export_video.sh)                          -> docs/media/demo.mp4
 
-const COOP_SETUP_SCENE := "res://src/UI/coop_setup.tscn"
 
 const MENU_DURATION := 2.5
 const FIGHT_DURATION := 3.0
@@ -99,10 +100,7 @@ func run_coop() -> void:
 # reste pleine (une mana par joueur)
 func coop_sequence(fight_duration: float) -> void:
 	# config du joueur intacte, et la même config à chaque enregistrement
-	PlayerInput.save_enabled = false
-	PlayerInput.set_layout("qwerty")
-	PlayerInput.set_device(0, PlayerInput.Device.KEYBOARD)
-	PlayerInput.set_device(1, PlayerInput.Device.KEYBOARD)
+	use_demo_controls()
 
 	await wait(1.0)
 	await menu_press("ui_down")
@@ -116,8 +114,14 @@ func coop_sequence(fight_duration: float) -> void:
 	await wait(0.5)
 	press_key(KEY_SPACE)
 	await wait(0.8)
-	for i in range(3):
+	# TEST (sous DASH : STORM, DASH, START, TEST), essai des deux héros, Échap, puis START
+	for i in range(4):
 		await menu_press("ui_down")
+	await menu_press("ui_accept")
+	await controls_test(get_tree().current_scene._test_area.players)
+	press_key(KEY_ESCAPE)
+	await wait(MENU_STEP)
+	await menu_press("ui_left")
 	await menu_press("ui_accept")
 
 	await wait_scene(LEVEL_SCENE)
@@ -138,6 +142,31 @@ func coop_sequence(fight_duration: float) -> void:
 	await wait(AFTER_STORM_DURATION)
 
 
+# Depuis le menu : « 1 PLAYER », essai du héros sur l'écran des contrôles, puis START
+# (niveau 1, orage disponible)
+func solo_controls_sequence() -> void:
+	use_demo_controls()
+	await menu_press("ui_accept")
+	await wait_scene(SOLO_SETUP_SCENE)
+	await wait(0.6)
+	# TEST : trois lignes au-dessus de CONTROL (KEYBOARD, puis BACK, TEST en bas)
+	for i in range(3):
+		await menu_press("ui_up")
+	await menu_press("ui_accept")
+	await controls_test(get_tree().current_scene._test_area.players)
+	press_key(KEY_ESCAPE)
+	await wait(MENU_STEP)
+	await menu_press("ui_left")
+	await menu_press("ui_accept")
+
+	await wait_scene(LEVEL_SCENE)
+	GlobalPlayer.mana = GlobalPlayer.MAX_MANA
+	var level := get_tree().current_scene
+	level._hud.update_player_mana(GlobalPlayer.mana)
+	level.update_mana_button()
+	_bot_group = Game.GROUP_ENEMY
+
+
 func menu_press(action: String) -> void:
 	press_action(action)
 	await wait(MENU_STEP)
@@ -154,7 +183,7 @@ func run_video() -> void:
 	await wait_scene(MENU_SCENE)
 	await wait(MENU_DURATION)
 
-	await start_level(1)
+	await solo_controls_sequence()
 	await wait(VIDEO_FIGHT_DURATION)
 	await wait_at_most(is_storm_ready, STORM_WAIT_MAX)
 	await storm()

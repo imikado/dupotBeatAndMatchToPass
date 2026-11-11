@@ -80,7 +80,7 @@ var _storm_sky: StormSky
 var _storm_active := false
 var _salvo_discharges := 0
 
-# 0 : joueur 1, 1 : joueur 2 ; préfixe "" en solo (actions d'origine), "p1_" / "p2_" en coop
+# 0 : joueur 1, 1 : joueur 2 ; préfixe "solo_" en solo, "p1_" / "p2_" en coop
 var player_index := 0
 var _input_prefix := ""
 var _is_coop := false
@@ -88,6 +88,8 @@ var _is_coop := false
 
 func _ready() -> void:
 	add_to_group(GROUP_PLAYER)
+	# actions du joueur seul (setup_coop les remplace en mode 2 joueurs)
+	_input_prefix = PlayerInput.prefix(PlayerInput.SOLO)
 	updateLife(_life)
 
 	_stateDisplay.visible = Game.is_debug()
@@ -105,7 +107,7 @@ func _ready() -> void:
 	Fx.character_material(get_node("BodyPivot/AnimatedSprite2D"))
 
 
-# Nom de l'action pour ce joueur (« attack » en solo, « p2_attack » pour le joueur 2)
+# Nom de l'action pour ce joueur (« solo_attack » en solo, « p2_attack » pour le joueur 2)
 func action(base: String) -> String:
 	return _input_prefix + base
 

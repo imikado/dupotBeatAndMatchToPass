@@ -8,6 +8,7 @@ const NEXT_SCENE = "res://src/UI/title.tscn"
 const SCENES_TO_PRELOAD = [
 	"res://src/UI/title.tscn",
 	"res://src/UI/menu.tscn",
+	"res://src/UI/solo_setup.tscn",
 	"res://src/UI/coop_setup.tscn",
 	"res://src/Levels/LevelTemplate.tscn",
 	"res://src/Levels/LevelBonus.tscn",

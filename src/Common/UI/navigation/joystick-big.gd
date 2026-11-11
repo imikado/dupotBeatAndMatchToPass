@@ -16,10 +16,10 @@ func _init():
 	joystick_pos = position;
 
 func reset_move():
-	Input.action_release(PlayerAbstractState.INPUT_RIGHT)
-	Input.action_release(PlayerAbstractState.INPUT_LEFT)
-	Input.action_release(PlayerAbstractState.INPUT_DOWN)
-	Input.action_release(PlayerAbstractState.INPUT_UP)
+	Input.action_release(PlayerInput.prefix(PlayerInput.SOLO) + PlayerAbstractState.INPUT_RIGHT)
+	Input.action_release(PlayerInput.prefix(PlayerInput.SOLO) + PlayerAbstractState.INPUT_LEFT)
+	Input.action_release(PlayerInput.prefix(PlayerInput.SOLO) + PlayerAbstractState.INPUT_DOWN)
+	Input.action_release(PlayerInput.prefix(PlayerInput.SOLO) + PlayerAbstractState.INPUT_UP)
 	
 
 func _input(event_):
@@ -52,15 +52,15 @@ func _input(event_):
 		if abs(joystickVector_.x)>abs(joystickVector_.y) :
 	
 			if(joystickVector_.x > 10):
-				Input.action_press(PlayerAbstractState.INPUT_RIGHT)
+				Input.action_press(PlayerInput.prefix(PlayerInput.SOLO) + PlayerAbstractState.INPUT_RIGHT)
 
 			elif(joystickVector_.x < -10):
-				Input.action_press(PlayerAbstractState.INPUT_LEFT)
+				Input.action_press(PlayerInput.prefix(PlayerInput.SOLO) + PlayerAbstractState.INPUT_LEFT)
 		 
 		else:
 					
 			if(joystickVector_.y > 10):
-				Input.action_press(PlayerAbstractState.INPUT_DOWN)
+				Input.action_press(PlayerInput.prefix(PlayerInput.SOLO) + PlayerAbstractState.INPUT_DOWN)
 			elif(joystickVector_.y < -10):
-				Input.action_press(PlayerAbstractState.INPUT_UP)
+				Input.action_press(PlayerInput.prefix(PlayerInput.SOLO) + PlayerAbstractState.INPUT_UP)
 	

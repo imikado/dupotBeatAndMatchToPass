@@ -1,12 +1,19 @@
 extends Node
 
-# Mode 2 joueurs : chaque joueur a ses propres actions (« p1_attack », « p2_ui_left »…)
-# créées à la volée dans l'InputMap à partir de la configuration choisie dans
-# l'écran coop_setup. En solo, le joueur garde les actions d'origine (préfixe vide).
+# Chaque joueur a ses propres actions (« p1_attack », « p2_ui_left », « solo_dash »…)
+# créées à la volée dans l'InputMap à partir de la configuration choisie dans l'écran
+# des contrôles (coop_setup) : joueurs 1 et 2 en mode 2 joueurs, SOLO en mode 1 joueur.
+# Les actions solo gardent en plus les touches d'origine du projet (manette, télécommande
+# Fire TV, boutons tactiles) tant qu'elles ne servent pas déjà à une autre action.
 
 enum Device { KEYBOARD, GAMEPAD }
 
 const PATH_CONFIG := "user://controls_2p.cfg"
+
+# index de la configuration du mode 1 joueur (0 et 1 : joueurs du mode 2 joueurs)
+const SOLO := 2
+const COOP_INDICES := [0, 1]
+const SOLO_INDICES := [SOLO]
 
 const ACTIONS := ["ui_left", "ui_right", "ui_up", "ui_down", "attack", "attack_mana", "dash"]
 const ACTION_LABELS := {
@@ -23,14 +30,17 @@ const LAYOUTS := ["azerty", "qwerty"]
 
 # P1 : main gauche sur ZQSD / WASD, main droite sur F G H
 # P2 : main droite sur les flèches, main gauche sur J K L
+# Solo : flèches, Espace, Ctrl, Maj (touches d'origine du jeu)
 const PRESETS := {
 	"azerty": [
 		{"ui_left": KEY_Q, "ui_right": KEY_D, "ui_up": KEY_Z, "ui_down": KEY_S, "attack": KEY_F, "attack_mana": KEY_G, "dash": KEY_H},
 		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_L, "attack_mana": KEY_K, "dash": KEY_J},
+		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_SPACE, "attack_mana": KEY_CTRL, "dash": KEY_SHIFT},
 	],
 	"qwerty": [
 		{"ui_left": KEY_A, "ui_right": KEY_D, "ui_up": KEY_W, "ui_down": KEY_S, "attack": KEY_F, "attack_mana": KEY_G, "dash": KEY_H},
 		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_L, "attack_mana": KEY_K, "dash": KEY_J},
+		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_SPACE, "attack_mana": KEY_CTRL, "dash": KEY_SHIFT},
 	],
 }
 
@@ -82,8 +92,11 @@ func _ready() -> void:
 	players = [
 		{"device": Device.KEYBOARD, "keys": PRESETS[layout][0].duplicate(), "buttons": default_buttons()},
 		{"device": Device.GAMEPAD if Input.get_connected_joypads().size() > 0 else Device.KEYBOARD, "keys": PRESETS[layout][1].duplicate(), "buttons": default_buttons()},
+		{"device": Device.KEYBOARD, "keys": PRESETS[layout][SOLO].duplicate(), "buttons": default_buttons()},
 	]
 	load_config()
+	# les héros lisent leurs actions dès le premier niveau
+	apply()
 
 
 func default_buttons() -> Dictionary:
@@ -121,7 +134,11 @@ func button_label(button: int) -> String:
 
 
 static func prefix(index: int) -> String:
-	return "p%d_" % (index + 1)
+	return "solo_" if index == SOLO else "p%d_" % (index + 1)
+
+
+static func indices(two_players: bool) -> Array:
+	return COOP_INDICES if two_players else SOLO_INDICES
 
 
 func detect_layout() -> String:
@@ -163,9 +180,12 @@ func action_label(index: int, action: String) -> String:
 func gamepad_for(index: int) -> int:
 	var pads := Input.get_connected_joypads()
 	var rank := 0
-	for i in range(index):
-		if players[i]["device"] == Device.GAMEPAD:
-			rank += 1
+	# le joueur seul prend la première manette ; en 2 joueurs, le joueur 2 prend la
+	# deuxième si le joueur 1 est aussi à la manette
+	if index != SOLO:
+		for i in range(index):
+			if players[i]["device"] == Device.GAMEPAD:
+				rank += 1
 	if players[index]["device"] != Device.GAMEPAD or rank >= pads.size():
 		return -1
 	return pads[rank]
@@ -178,11 +198,11 @@ func gamepad_name(index: int) -> String:
 	return Input.get_joy_name(pad).to_upper()
 
 
-# Touches en double entre les deux joueurs clavier (et pour un même joueur)
-func conflicting_keys() -> Array:
+# Touches en double entre les joueurs clavier donnés (et pour un même joueur)
+func conflicting_keys(player_indices: Array = COOP_INDICES) -> Array:
 	var seen := {}
 	var conflicts := []
-	for i in range(players.size()):
+	for i in player_indices:
 		if players[i]["device"] != Device.KEYBOARD:
 			continue
 		for action in ACTIONS:
@@ -206,14 +226,14 @@ func conflicting_buttons(index: int) -> Array:
 	return conflicts
 
 
-# "" si la configuration est jouable, sinon le message à afficher
-func validation_error() -> String:
-	for i in range(players.size()):
+# "" si la configuration des joueurs donnés est jouable, sinon le message à afficher
+func validation_error(player_indices: Array = COOP_INDICES) -> String:
+	for i in player_indices:
 		if players[i]["device"] == Device.GAMEPAD and gamepad_for(i) < 0:
-			return "PLUG A GAMEPAD FOR PLAYER %d" % (i + 1)
-	if not conflicting_keys().is_empty():
+			return "PLUG A GAMEPAD" if i == SOLO else "PLUG A GAMEPAD FOR PLAYER %d" % (i + 1)
+	if not conflicting_keys(player_indices).is_empty():
 		return "SAME KEY USED TWICE"
-	for i in range(players.size()):
+	for i in player_indices:
 		if not conflicting_buttons(i).is_empty():
 			return "SAME BUTTON USED TWICE"
 	return ""
@@ -251,6 +271,36 @@ func apply() -> void:
 					motion.axis = GAMEPAD_AXES[action][0]
 					motion.axis_value = GAMEPAD_AXES[action][1]
 					InputMap.action_add_event(action_name, motion)
+		if i == SOLO:
+			add_solo_defaults()
+
+
+# Joueur seul : les touches d'origine restent valables (manette quel que soit le choix,
+# télécommande Fire TV, réglages de SETTINGS) sauf celles déjà prises par une autre action
+func add_solo_defaults() -> void:
+	for action in ACTIONS:
+		# actions d'origine du projet (modifiées par SETTINGS), jamais touchées par apply()
+		for event in InputMap.action_get_events(action):
+			var taken := false
+			for other in ACTIONS:
+				for existing in InputMap.action_get_events(prefix(SOLO) + other):
+					if same_input(event, existing):
+						taken = true
+			if not taken:
+				InputMap.action_add_event(prefix(SOLO) + action, event)
+
+
+# Même touche / même bouton, que l'événement soit par keycode ou par touche physique
+static func same_input(a: InputEvent, b: InputEvent) -> bool:
+	if a is InputEventKey and b is InputEventKey:
+		var key_a: int = a.keycode if a.keycode != KEY_NONE else a.physical_keycode
+		var key_b: int = b.keycode if b.keycode != KEY_NONE else b.physical_keycode
+		return key_a == key_b
+	if a is InputEventJoypadButton and b is InputEventJoypadButton:
+		return a.button_index == b.button_index
+	if a is InputEventJoypadMotion and b is InputEventJoypadMotion:
+		return a.axis == b.axis and signf(a.axis_value) == signf(b.axis_value)
+	return false
 
 
 func save_config() -> void:
