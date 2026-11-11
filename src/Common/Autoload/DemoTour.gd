@@ -12,7 +12,6 @@ extends "res://src/Common/Autoload/ScreenshotTour.gd"
 #              2 joueurs (menu, touches, combat à deux + orages), avec le son
 #              (export_video.sh)                          -> export/demo.mp4
 
-const MENU_SCENE := "res://src/UI/menu.tscn"
 const COOP_SETUP_SCENE := "res://src/UI/coop_setup.tscn"
 
 const MENU_DURATION := 2.5
@@ -239,14 +238,6 @@ func find_target(player: Player, excluded: Array = []) -> Node2D:
 		if nearest == null or actor.global_position.distance_to(player.global_position) < nearest.global_position.distance_to(player.global_position):
 			nearest = actor
 	return nearest
-
-
-func press_key(keycode: Key) -> void:
-	for pressed in [true, false]:
-		var event := InputEventKey.new()
-		event.keycode = keycode
-		event.pressed = pressed
-		Input.parse_input_event(event)
 
 
 func clip_start() -> void:

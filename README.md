@@ -49,7 +49,8 @@ Grab a friend: pick **2 PLAYERS** in the menu and fight side by side through the
 - ⌨️ **Your keys, your way**: AZERTY and QWERTY presets out of the box, and every key (and every gamepad action button) can be remapped before the game starts. The setup is remembered for next time.
 - 🎥 **One shared camera** keeps both heroes in view: nobody gets left off-screen.
 - 🐜 **Smart enemies** go after the closest hero, so you can split the crowd or bait them for your partner.
-- 🤝 **Team play**: score, mana and kill streak are shared, each hero has their own life bar, and any life bottle heals whoever grabs it.
+- 🤝 **Team play**: score and kill streak are shared, each hero has their own life and mana bars (a lightning storm each), and any life bottle heals whoever grabs it.
+- 🔥 **Made for two**: more barriers to open and enemies arriving faster than in solo.
 - 💫 **Never out for long**: a fallen partner gets back up at the next level with half their life. It's game over only when both heroes are down.
 - 🐺 **Two heroes**: player 2 is Gordon's blue-grey twin, with *P1* / *P2* tags above their heads.
 
@@ -85,7 +86,7 @@ A loading screen that really preloads the game, an animated title, a lively menu
 |:---:|:---:|:---:|
 | ![Screenshot 1](export/linux/screenshots/Screenshot_01.png) | ![Screenshot 2](export/linux/screenshots/Screenshot_02.png) | ![Screenshot 3](export/linux/screenshots/Screenshot_03.png) |
 | ![Screenshot 4](export/linux/screenshots/Screenshot_04.png) | ![Screenshot 5](export/linux/screenshots/Screenshot_05.png) | ![Screenshot 6](export/linux/screenshots/Screenshot_06.png) |
-| ![Screenshot 7](export/linux/screenshots/Screenshot_07.png) | | |
+| ![Screenshot 7](export/linux/screenshots/Screenshot_07.png) | ![Screenshot 8](export/linux/screenshots/Screenshot_08.png) | |
 
 </div>
 

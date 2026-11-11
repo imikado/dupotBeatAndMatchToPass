@@ -38,6 +38,10 @@ window/size/window_height_override=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="ignore"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/firetv_export/plugin.cfg")
+
 [input]
 
 move_left={
@@ -97,8 +101,8 @@ pointing/emulate_touch_from_mouse=true
 
 [rendering]
 
-renderer/rendering_method.mobile="gl_compatibility"
 textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
 viewport/hdr_2d=true
 environment/defaults/default_environment="res://default_env.tres"
@@ -106,7 +110,3 @@ environment/defaults/default_environment="res://default_env.tres"
 [world]
 
 2d/cell_size=20
-
-[editor_plugins]
-
-enabled=PackedStringArray("res://addons/firetv_export/plugin.cfg")

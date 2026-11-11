@@ -5,6 +5,7 @@ extends Node
 # puis quitte le jeu
 
 const TITLE_SCENE := "res://src/UI/title.tscn"
+const MENU_SCENE := "res://src/UI/menu.tscn"
 const LEVEL_SCENE := "res://src/Levels/LevelTemplate.tscn"
 const BONUS_SCENE := "res://src/Levels/LevelBonus.tscn"
 
@@ -52,6 +53,12 @@ func run() -> void:
 	await wait_until(func(): return get_tree().current_scene.get("_can_continue") == true)
 	await wait_until(func(): return get_tree().current_scene._press_label.modulate.a > 0.95)
 	shoot(6)
+
+	# menu : modes de jeu (1 joueur, 2 joueurs…) ; l'écran titre attend une vraie touche
+	press_key(KEY_ENTER)
+	await wait_scene(MENU_SCENE)
+	await wait(1.0)
+	shoot(8)
 
 	await start_level(1)
 	await wait_crowd_kill(2)
@@ -315,6 +322,14 @@ func set_action(action: String, pressed: bool) -> void:
 	event.action = action
 	event.pressed = pressed
 	Input.parse_input_event(event)
+
+
+func press_key(keycode: Key) -> void:
+	for pressed in [true, false]:
+		var event := InputEventKey.new()
+		event.keycode = keycode
+		event.pressed = pressed
+		Input.parse_input_event(event)
 
 
 func press_action(action: String) -> void:
