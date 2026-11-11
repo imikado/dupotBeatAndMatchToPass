@@ -7,9 +7,9 @@ extends "res://src/Common/Autoload/ScreenshotTour.gd"
 #   gameplay : combo, kills et orage d'éclairs (niveau 1) -> docs/media/gameplay.gif
 #              + capture de l'orage                       -> docs/media/lightning.png
 #   coop     : menu « 2 PLAYERS », choix des touches, puis combat à deux et orage
-#              (niveau 1)                                 -> docs/media/coop.gif
+#              de chaque joueur, chacun avec sa mana (niveau 1) -> docs/media/coop.gif
 #   video    : lancement, niveau 1 + orage, bonus, niveau 3 + orage, puis mode
-#              2 joueurs (menu, touches, combat à deux + orage), avec le son
+#              2 joueurs (menu, touches, combat à deux + orages), avec le son
 #              (export_video.sh)                          -> export/demo.mp4
 
 const MENU_SCENE := "res://src/UI/menu.tscn"
@@ -95,7 +95,9 @@ func run_coop() -> void:
 
 
 # Depuis le menu : « 2 PLAYERS », redéfinition de l'attaque du joueur 1 sur Espace,
-# START, combat à deux puis orage du joueur 2 (clips coop et video)
+# START, combat à deux puis orage du joueur 2 et du joueur 1 (clips coop et video) :
+# le joueur 2 n'a de mana que pour un orage, sa jauge se vide quand celle du joueur 1
+# reste pleine (une mana par joueur)
 func coop_sequence(fight_duration: float) -> void:
 	# config du joueur intacte, et la même config à chaque enregistrement
 	PlayerInput.save_enabled = false
@@ -121,7 +123,7 @@ func coop_sequence(fight_duration: float) -> void:
 
 	await wait_scene(LEVEL_SCENE)
 	GlobalPlayer.mana = GlobalPlayer.MAX_MANA
-	GlobalPlayer.mana2 = GlobalPlayer.MAX_MANA
+	GlobalPlayer.mana2 = GlobalPlayer.attack_amount_mana
 	var level := get_tree().current_scene
 	level._hud.update_player_mana(GlobalPlayer.mana)
 	level._hud.update_player_mana(GlobalPlayer.mana2, 1)
@@ -131,6 +133,9 @@ func coop_sequence(fight_duration: float) -> void:
 	await wait(fight_duration)
 	await wait_at_most(is_storm_ready, STORM_WAIT_MAX)
 	await storm("", level._players[1])
+	await wait(AFTER_STORM_DURATION)
+	await wait_at_most(is_storm_ready, STORM_WAIT_MAX)
+	await storm("", level._players[0])
 	await wait(AFTER_STORM_DURATION)
 
 

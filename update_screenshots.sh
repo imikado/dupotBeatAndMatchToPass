@@ -4,7 +4,7 @@
 #
 # Usage :
 #   ./update_screenshots.sh capture   # lance le jeu en mode visite : il joue tout seul et
-#                                     # remplace Screenshot_01..06.png (aucune action requise)
+#                                     # remplace Screenshot_01..07.png (aucune action requise)
 #   ./update_screenshots.sh manual    # lance le jeu : F12 = capture, quitter le jeu pour finir,
 #                                     # puis choix des captures qui remplacent Screenshot_NN.png
 #   ./update_screenshots.sh appdata   # après commit + push des captures : pointe les URLs de
@@ -46,8 +46,8 @@ install_screenshots() {
 
 	echo
 	echo "${#files[@]} captures écrites dans $SCREENSHOT_DIR"
-	if [ "${#files[@]}" -ne 6 ]; then
-		echo "Attention : le tableau du README.md affiche 6 captures, l'adapter"
+	if [ "${#files[@]}" -ne 7 ]; then
+		echo "Attention : le tableau du README.md affiche 7 captures, l'adapter"
 	fi
 	echo "Ensuite : commit + push, puis ./update_screenshots.sh appdata"
 }
@@ -63,7 +63,7 @@ capture() {
 	timeout "$TOUR_TIMEOUT" "$GODOT" --path . -- --screenshots="$staging" --tour \
 		| grep --line-buffered "^Capture" || true
 
-	local expected=6
+	local expected=7
 	local shots=("$staging"/Screenshot_*.png)
 	if [ ! -f "${shots[0]}" ] || [ "${#shots[@]}" -ne "$expected" ]; then
 		echo "Visite incomplète : ${#shots[@]}/$expected captures, rien n'est remplacé" >&2
