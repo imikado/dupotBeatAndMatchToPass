@@ -39,12 +39,22 @@
     <screenshot>
       <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/3aeadf6e824489a9c653420ed7bb35d5b90a3d65/export/linux/screenshots/Screenshot_06.png</image>
     </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/3aeadf6e824489a9c653420ed7bb35d5b90a3d65/export/linux/screenshots/Screenshot_07.png</image>
+    </screenshot>
   </screenshots>
   <url type="homepage">https://www.dupot.org/games.html</url>
   <url type="vcs-browser">https://github.com/imikado/dupotBeatAndMatchToPass/</url>
   <update_contact>imikado@gmail.com</update_contact>
   <content_rating type="oars-1.1"/>
   <releases>
+
+
+    <release date="2026-11-10" version="1.12.0">
+      <description>
+        <p>Add 2 player mode</p>
+      </description>
+    </release>
 
     <release date="2026-11-08" version="1.11.1">
       <description>

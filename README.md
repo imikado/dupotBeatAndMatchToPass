@@ -85,6 +85,7 @@ A loading screen that really preloads the game, an animated title, a lively menu
 |:---:|:---:|:---:|
 | ![Screenshot 1](export/linux/screenshots/Screenshot_01.png) | ![Screenshot 2](export/linux/screenshots/Screenshot_02.png) | ![Screenshot 3](export/linux/screenshots/Screenshot_03.png) |
 | ![Screenshot 4](export/linux/screenshots/Screenshot_04.png) | ![Screenshot 5](export/linux/screenshots/Screenshot_05.png) | ![Screenshot 6](export/linux/screenshots/Screenshot_06.png) |
+| ![Screenshot 7](export/linux/screenshots/Screenshot_07.png) | | |
 
 </div>
 
