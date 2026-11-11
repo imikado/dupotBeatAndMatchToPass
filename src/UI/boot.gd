@@ -2,7 +2,9 @@ extends Control
 
 const NEXT_SCENE = "res://src/UI/title.tscn"
 
-# heavy scenes loaded in background while the logo is displayed
+# heavy scenes loaded in background while the logo is displayed, one after the other:
+# requested all at once, the exported game (binary .scn / .gdc) sometimes deadlocks
+# between loading threads that share resources (stuck on the boot screen)
 const SCENES_TO_PRELOAD = [
 	"res://src/UI/title.tscn",
 	"res://src/UI/menu.tscn",
@@ -26,14 +28,26 @@ var _elapsed := 0.0
 var _progress := 0.0
 var _is_loaded := false
 var _is_leaving := false
+# index in SCENES_TO_PRELOAD of the scene being loaded
+var _loading_index := 0
 
 
 func _ready():
 	build_progress_bar()
 	animate_logo()
 
-	for path in SCENES_TO_PRELOAD:
-		ResourceLoader.load_threaded_request(path)
+	request_next_scene()
+
+
+func request_next_scene() -> void:
+	if _loading_index >= SCENES_TO_PRELOAD.size():
+		_is_loaded = true
+		return
+	var path: String = SCENES_TO_PRELOAD[_loading_index]
+	if ResourceLoader.load_threaded_request(path) != OK:
+		# fallback: the scene will be loaded synchronously when needed
+		_loading_index += 1
+		request_next_scene()
 
 
 func build_progress_bar() -> void:
@@ -80,28 +94,21 @@ func _process(delta: float) -> void:
 
 
 func update_loading() -> void:
-	var total := 0.0
-	var loaded_count := 0
-	for path in SCENES_TO_PRELOAD:
-		var progress_array := []
-		var status = ResourceLoader.load_threaded_get_status(path, progress_array)
+	var path: String = SCENES_TO_PRELOAD[_loading_index]
+	var progress_array := []
+	var status = ResourceLoader.load_threaded_get_status(path, progress_array)
+	var current_progress := 0.0
+	if status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+		if progress_array.size() > 0:
+			current_progress = progress_array[0]
+	else:
 		if status == ResourceLoader.THREAD_LOAD_LOADED:
-			total += 1.0
-			loaded_count += 1
-		elif status == ResourceLoader.THREAD_LOAD_IN_PROGRESS and progress_array.size() > 0:
-			total += progress_array[0]
-		elif status == ResourceLoader.THREAD_LOAD_FAILED or status == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
-			# fallback: the scene will be loaded synchronously when needed
-			total += 1.0
-			loaded_count += 1
+			Transition.cache_scene(path, ResourceLoader.load_threaded_get(path))
+		# failed: the scene will be loaded synchronously when needed
+		_loading_index += 1
+		request_next_scene()
 
-	_progress = total / SCENES_TO_PRELOAD.size()
-
-	if loaded_count == SCENES_TO_PRELOAD.size():
-		for path in SCENES_TO_PRELOAD:
-			if ResourceLoader.load_threaded_get_status(path) == ResourceLoader.THREAD_LOAD_LOADED:
-				Transition.cache_scene(path, ResourceLoader.load_threaded_get(path))
-		_is_loaded = true
+	_progress = (_loading_index + current_progress) / SCENES_TO_PRELOAD.size()
 
 
 func _input(event: InputEvent) -> void:
