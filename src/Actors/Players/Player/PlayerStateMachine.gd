@@ -95,12 +95,12 @@ func _handle_interrupt_input(event) -> bool:
 
 	if (
 		event.is_action_pressed(owner.action(INPUT_ATTACK_MANA))
-		and GlobalPlayer.can_use_amount_mana(GlobalPlayer.attack_amount_mana)
+		and GlobalPlayer.can_use_amount_mana(GlobalPlayer.attack_amount_mana, owner.player_index)
 	):
 		if [get_node(STATE_ATTACK_MANA01)].has(current_state):
 			return false
 		_change_state(STATE_ATTACK_MANA01)
-		Events.emit_signal("player_launch_mana_attack")
+		Events.emit_signal("player_launch_mana_attack", owner)
 		return true
 
 	return false

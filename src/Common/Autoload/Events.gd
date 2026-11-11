@@ -10,7 +10,7 @@ signal actor_let_item(actor)
 
 signal actor_health_changed(actor, previous_value, new_value)
 
-signal player_launch_mana_attack
+signal player_launch_mana_attack(player)
 
 signal player_took_lifebottle(bottle, player)
 

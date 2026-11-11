@@ -27,6 +27,9 @@ const STORM_DISTANCE := 150.0
 const STORM_IMPACT_DELAY := 0.8
 
 const MIN_LIFE := 40.0
+# écart max entre les deux joueurs pour la capture en mode 2 joueurs (sinon ils sont
+# aux bords de l'écran et les ennemis coupés)
+const COOP_MAX_GAP := 110.0
 
 var _bot_group := ""
 # temps avant le prochain coup d'épée, par joueur piloté (deux en mode 2 joueurs)
@@ -70,6 +73,11 @@ func run() -> void:
 	await wait(0.3)
 	shoot(2)
 
+	await start_level(2, true)
+	await wait_crowd_kill(2, COOP_MAX_GAP)
+	await wait(0.3)
+	shoot(7)
+
 	await start_level(3)
 	await wait_until(func(): return count_enemies_near(STORM_DISTANCE) >= 3)
 	release_all()
@@ -81,13 +89,14 @@ func run() -> void:
 	get_tree().quit()
 
 
-func start_level(level: int) -> void:
+func start_level(level: int, two_players := false) -> void:
 	_bot_group = ""
 	release_all()
 	GlobalPlayer.reset_game()
-	GlobalPlayer.two_players = false
+	GlobalPlayer.two_players = two_players
 	GlobalPlayer.set_level(level)
 	GlobalPlayer.mana = GlobalPlayer.MAX_MANA
+	GlobalPlayer.mana2 = GlobalPlayer.MAX_MANA
 	Transition.goto(LEVEL_SCENE)
 	await wait_scene(LEVEL_SCENE)
 	_bot_group = Game.GROUP_ENEMY
@@ -124,10 +133,27 @@ func wait_scene(path: String) -> void:
 
 
 # Attend qu'un ennemi meure avec d'autres ennemis autour du joueur
-func wait_crowd_kill(min_enemies: int) -> void:
-	await wait_until(func(): return count_enemies_near(CROWD_DISTANCE) >= min_enemies + 1)
+# max_gap : en mode 2 joueurs, écart max entre les joueurs
+func wait_crowd_kill(min_enemies: int, max_gap := INF) -> void:
+	await wait_until(func(): return count_enemies_near(CROWD_DISTANCE) >= min_enemies + 1 and players_gap() <= max_gap)
 	_crowd_kill = false
-	await wait_until(func(): return _crowd_kill and count_enemies_near(CROWD_DISTANCE) >= min_enemies)
+	await wait_until(func(): return _crowd_kill and count_enemies_near(CROWD_DISTANCE) >= min_enemies and players_gap() <= max_gap)
+
+
+func players_gap() -> float:
+	var players := get_bot_players()
+	if players.size() < 2:
+		return 0.0
+	return players[0].global_position.distance_to(players[1].global_position)
+
+
+# Centre des joueurs pilotés
+func get_players_center() -> Vector2:
+	var players := get_bot_players()
+	var center := Vector2.ZERO
+	for player in players:
+		center += player.global_position
+	return center / players.size()
 
 
 func _on_actor_health_changed(_actor, _previous_value: float, new_value: float) -> void:
@@ -149,13 +175,14 @@ func get_banner_text() -> String:
 	return hud._banner.text
 
 
+# Ennemis proches du joueur (du centre des deux joueurs en mode 2 joueurs)
 func count_enemies_near(distance: float) -> int:
-	var player := get_player()
-	if player == null:
+	if get_bot_players().is_empty():
 		return 0
+	var center := get_players_center()
 	var count := 0
 	for enemy in get_tree().get_nodes_in_group(Game.GROUP_ENEMY):
-		if not enemy._is_dying and enemy.global_position.distance_to(player.global_position) < distance:
+		if not enemy._is_dying and enemy.global_position.distance_to(center) < distance:
 			count += 1
 	return count
 

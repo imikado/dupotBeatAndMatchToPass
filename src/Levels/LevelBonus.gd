@@ -106,6 +106,7 @@ func _ready() -> void:
 			player.life_changed.connect(_on_coop_life_changed)
 		_hud.enable_second_player()
 		_hud.update_player_life(GlobalPlayer.life2, 1)
+		_hud.update_player_mana(GlobalPlayer.mana2, 1)
 		_controls.visible = false
 	else:
 		Events.connect("player_health_changed", Callable(self, "_on_player_healt_changed"))
@@ -370,15 +371,17 @@ func _on_SpawnTimer_timeout() -> void:
 
 
 func _on_ManaTimer_timeout() -> void:
-	GlobalPlayer.increment_mana(1)
-	_hud.update_player_mana(GlobalPlayer.mana)
+	for player in _players:
+		GlobalPlayer.increment_mana(1, player.player_index)
+		_hud.update_player_mana(GlobalPlayer.get_mana(player.player_index), player.player_index)
 
 	update_mana_button()
 
 
-func _on_player_launch_mana_attack() -> void:
-	GlobalPlayer.use_amount_mana(GlobalPlayer.attack_amount_mana)
-	_hud.update_player_mana(GlobalPlayer.mana)
+func _on_player_launch_mana_attack(player: Player = null) -> void:
+	var index := player.player_index if player else 0
+	GlobalPlayer.use_amount_mana(GlobalPlayer.attack_amount_mana, index)
+	_hud.update_player_mana(GlobalPlayer.get_mana(index), index)
 
 	update_mana_button()
 

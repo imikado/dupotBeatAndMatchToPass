@@ -36,6 +36,11 @@ const SPAWN_DELAY_WHEN_LOW = 1.5
 # Les ennemis d'une vague arrivent l'un après l'autre plutôt qu'en bloc
 const WAVE_STAGGER = 0.35
 
+# Mode 2 joueurs : vagues plus rapprochées et 40 % de groupes de barrières en plus
+# (le niveau est rallongé d'autant, voir extend_level)
+const COOP_SPAWN_DELAY_FACTOR = 0.7
+const COOP_BARRIER_GROUP_FACTOR = 1.4
+
 @onready var _ysort = get_node("Node2D")
 @onready var _player = get_node("Node2D/Player")
 @onready var _cameraLimitRect = get_node("CameraLimitRect")
@@ -76,7 +81,8 @@ var _active_barrier_list: Array[Node2D] = []
 
 var _opened_barrier_count := 0
 var _total_barrier_count := 0
-var _was_mana_ready := false
+# orage disponible, par joueur (index 0 / 1)
+var _was_mana_ready := [false, false]
 # labels « +10 » encore à l'écran (voir kill_text_position)
 var _kill_texts := []
 
@@ -115,9 +121,6 @@ func _ready() -> void:
 	_hud.update_player_life(GlobalPlayer.life)
 	_hud.update_score(GlobalPlayer.get_score())
 	_hud.update_player_mana(GlobalPlayer.mana)
-
-	_was_mana_ready = GlobalPlayer.can_use_amount_mana(GlobalPlayer.attack_amount_mana)
-	update_mana_button()
 	_hud.update_streak(GlobalPlayer.kill_streak, GlobalPlayer.get_multiplier())
 
 	_player.set_camera_limit_rect(_cameraLimitRect)
@@ -125,6 +128,10 @@ func _ready() -> void:
 	_players = [_player]
 	if GlobalPlayer.two_players:
 		setup_coop()
+
+	for player in _players:
+		_was_mana_ready[player.player_index] = can_launch_storm(player)
+	update_mana_button()
 
 	_pause_menu = PauseMenu.new()
 	add_child(_pause_menu)
@@ -160,6 +167,7 @@ func setup_coop() -> void:
 		player.life_changed.connect(_on_coop_life_changed)
 	_hud.enable_second_player()
 	_hud.update_player_life(GlobalPlayer.life2, 1)
+	_hud.update_player_mana(GlobalPlayer.mana2, 1)
 	_controls.visible = false
 
 
@@ -232,9 +240,49 @@ func build_level():
 	# la porte se place un intervalle après le dernier groupe
 	_gate.global_position.x = BARRIER_GROUP_START_X + BARRIER_GROUP_SPACING * group_count
 
+	extend_level(BARRIER_GROUP_SPACING * (group_count - BARRIER_GROUP_MAX))
+
 
 func get_barrier_group_count() -> int:
-	return mini(BARRIER_GROUP_MIN + GlobalPlayer.get_level(), BARRIER_GROUP_MAX)
+	var count := mini(BARRIER_GROUP_MIN + GlobalPlayer.get_level(), BARRIER_GROUP_MAX)
+	if GlobalPlayer.two_players:
+		count = roundi(count * COOP_BARRIER_GROUP_FACTOR)
+	return count
+
+
+# La scène est prévue pour BARRIER_GROUP_MAX groupes : au-delà (mode 2 joueurs), on
+# prolonge vers la droite le sol, son ombre, les limites de marche et celles de la caméra
+func extend_level(extra: float) -> void:
+	if extra <= 0.0:
+		return
+
+	var ground: TileMap = get_node("ground")
+	var tile_width: int = ground.tile_set.tile_size.x
+	var used := ground.get_used_rect()
+	var last_column := used.end.x - 1
+	var extra_columns := ceili(extra / tile_width)
+	for y in range(used.position.y, used.end.y):
+		for x in range(last_column + 1, last_column + 1 + extra_columns):
+			# motif du sol repris au hasard parmi les colonnes existantes
+			var source_x := randi_range(used.position.x, last_column)
+			var source := Vector2i(source_x, y)
+			if ground.get_cell_source_id(0, source) >= 0:
+				ground.set_cell(0, Vector2i(x, y), ground.get_cell_source_id(0, source), ground.get_cell_atlas_coords(0, source))
+
+	var edge: Sprite2D = get_node("ForestBackground/GroundShade/edge")
+	edge.region_rect.size.x += extra
+	var shade: Sprite2D = get_node("ForestBackground/GroundShade/shade")
+	shade.scale.x += extra
+
+	for limit in [get_node("WalkingLimits/limit_walking_horiz"), get_node("WalkingLimits/limit_walking_horiz2")]:
+		var collision: CollisionShape2D = limit.get_node("CollisionShape2D")
+		# forme partagée entre les instances et les scènes : copie avant de l'agrandir
+		var shape: RectangleShape2D = collision.shape.duplicate()
+		shape.size.x += extra
+		collision.shape = shape
+		collision.position.x += extra / 2.0
+
+	_cameraLimitRect.offset_right += extra
 
 
 # Types de barrière d'un groupe, de gauche à droite : fourmi, puis scarabée (niveau 2+), puis araignée (niveau 3+)
@@ -394,7 +442,7 @@ func manage_combo_for_actor(actor):
 		# « COMBO! » au-dessus du « +10 » (qui monte jusqu'à y -46 environ)
 		var new_combo_bonus = ComboBonus.instantiate()
 		new_combo_bonus.global_position = (actor.global_position + Vector2(0, -62)).round()
-		new_combo_bonus.connect("combo_arrived", Callable(self, "_on_combo_bonus_finished"))
+		new_combo_bonus.connect("combo_arrived", _on_combo_bonus_finished.bind(mana_receiver(actor)))
 		new_combo_bonus.set_target(_hudScore)
 		new_combo_bonus.set_as_top_level(true)
 		Sound.play("combo", 0.0)
@@ -421,8 +469,8 @@ func _on_actor_healt_changed(actor: CharacterBody2D, previous_value: float, new_
 	if new_value <= 0.0:
 		var multiplier = GlobalPlayer.register_kill()
 		var points = 10 * multiplier
-		# la tempête ne se recharge pas avec ses propres victimes
-		increment_score(points, not is_anyone_storming())
+		# la tempête ne se recharge pas avec ses propres victimes ; la mana va au joueur qui a tué
+		increment_score(points, not is_anyone_storming(), mana_receiver(actor))
 		_hud.update_streak(GlobalPlayer.kill_streak, multiplier)
 
 		var text_color = Color.WHITE if multiplier == 1 else Color("ffd34d")
@@ -463,18 +511,24 @@ func kill_text_position(text_position: Vector2) -> Vector2:
 	return text_position.round()
 
 
-func increment_score(points: int, give_mana := true):
+func increment_score(points: int, give_mana := true, player_index := 0):
 	var new_score: int
 	new_score = GlobalPlayer.get_score() + points
 	GlobalPlayer.save_score(new_score)
 	_hud.update_score(new_score)
 
 	if give_mana:
-		increment_mana()
+		increment_mana(player_index)
 
 
-func _on_combo_bonus_finished():
-	increment_score(10)
+func _on_combo_bonus_finished(player_index := 0):
+	increment_score(10, true, player_index)
+
+
+# Index du joueur qui a frappé l'ennemi (0 en solo)
+func mana_receiver(actor) -> int:
+	var attacker = actor.get_attacker()
+	return attacker.player_index if attacker is Player else 0
 
 
 # Barrière encore fermée du type de l'ennemi, la plus proche du joueur (null si aucune)
@@ -645,44 +699,49 @@ func start_spawn_timer() -> void:
 
 	# Les vagues arrivent plus vite à chaque niveau après le niveau 3 (jusqu'à -40 %)
 	delay *= max(1.0 - 0.1 * GlobalPlayer.get_difficulty(), 0.6)
+	if GlobalPlayer.two_players:
+		delay *= COOP_SPAWN_DELAY_FACTOR
 
 	_spawnTimer.start(delay)
 
 
 func _on_ManaTimer_timeout() -> void:
-	GlobalPlayer.increment_mana(1)
-	_hud.update_player_mana(GlobalPlayer.mana)
+	for player in _players:
+		increment_mana(player.player_index)
+
+
+func increment_mana(player_index := 0) -> void:
+	GlobalPlayer.increment_mana(1, player_index)
+	_hud.update_player_mana(GlobalPlayer.get_mana(player_index), player_index)
 
 	update_mana_button()
 
 
-func increment_mana() -> void:
-	GlobalPlayer.increment_mana(1)
-	_hud.update_player_mana(GlobalPlayer.mana)
+func _on_player_launch_mana_attack(player: Player = null) -> void:
+	var index := player.player_index if player else 0
+	GlobalPlayer.use_amount_mana(GlobalPlayer.attack_amount_mana, index)
+	_hud.update_player_mana(GlobalPlayer.get_mana(index), index)
 
 	update_mana_button()
 
 
-func _on_player_launch_mana_attack() -> void:
-	GlobalPlayer.use_amount_mana(GlobalPlayer.attack_amount_mana)
-	_hud.update_player_mana(GlobalPlayer.mana)
-
-	update_mana_button()
+func can_launch_storm(player: Player) -> bool:
+	return GlobalPlayer.can_use_amount_mana(GlobalPlayer.attack_amount_mana, player.player_index)
 
 
 func update_mana_button():
-	var is_mana_ready = GlobalPlayer.can_use_amount_mana(GlobalPlayer.attack_amount_mana)
-	if is_mana_ready:
+	if can_launch_storm(_player):
 		_controls.enable_mana_button()
 	else:
 		_controls.disable_mana_button()
 
-	if is_mana_ready and not _was_mana_ready:
-		Sound.play("mana_ready", 0.0)
-		for player in _players:
+	for player in _players:
+		var is_mana_ready := can_launch_storm(player)
+		if is_mana_ready and not _was_mana_ready[player.player_index]:
+			Sound.play("mana_ready", 0.0)
 			if player.is_alive():
 				Fx.floating_text(_specialEffects, "MANA READY", player.global_position + Vector2(0, -36), Color("74b9ff"))
-	_was_mana_ready = is_mana_ready
+		_was_mana_ready[player.player_index] = is_mana_ready
 
 
 func _on_Gate_player_entered_gate() -> void:

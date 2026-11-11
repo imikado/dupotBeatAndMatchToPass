@@ -350,7 +350,7 @@ func increment_mana() -> void:
 	update_mana_button()
 
 
-func _on_player_launch_mana_attack() -> void:
+func _on_player_launch_mana_attack(_player_launching = null) -> void:
 	GlobalPlayer.use_amount_mana(GlobalPlayer.attack_amount_mana)
 	_hud.update_player_mana(GlobalPlayer.mana)
 

@@ -121,8 +121,10 @@ func coop_sequence(fight_duration: float) -> void:
 
 	await wait_scene(LEVEL_SCENE)
 	GlobalPlayer.mana = GlobalPlayer.MAX_MANA
+	GlobalPlayer.mana2 = GlobalPlayer.MAX_MANA
 	var level := get_tree().current_scene
 	level._hud.update_player_mana(GlobalPlayer.mana)
+	level._hud.update_player_mana(GlobalPlayer.mana2, 1)
 	level.update_mana_button()
 	_bot_group = Game.GROUP_ENEMY
 	await wait_at_most(is_target_close, STEP_TIMEOUT)

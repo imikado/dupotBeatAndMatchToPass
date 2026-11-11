@@ -12,8 +12,10 @@ const MAX_MULTIPLIER = 4
 # Les niveaux 1 à 3 introduisent les ennemis, la difficulté augmente ensuite
 const DIFFICULTY_START_LEVEL = 3
 
-# Mode 2 joueurs sur le même écran (score, mana et combo partagés, une vie chacun)
+# Mode 2 joueurs sur le même écran (score et combo partagés, une vie et une mana chacun)
 const REVIVE_LIFE = 50
+# mana gagnée divisée par deux en mode 2 joueurs (deux orages possibles)
+const COOP_MANA_GAIN_FACTOR = 0.5
 
 var two_players := false
 
@@ -21,6 +23,7 @@ var _score = 0
 var life = START_LIFE
 var life2 = START_LIFE
 var mana = START_MANA
+var mana2 = START_MANA
 var _level = 1
 
 var attack_amount_mana = 10
@@ -47,6 +50,7 @@ func reset_game():
 	life = START_LIFE
 	life2 = START_LIFE
 	mana = START_MANA
+	mana2 = START_MANA
 	kill_streak = 0
 
 
@@ -58,20 +62,30 @@ func save_score(score):
 	_score = score
 
 
-func increment_mana(value):
-	mana += value
-	if mana > MAX_MANA:
-		mana = MAX_MANA
+# index : 0 joueur 1 (et solo), 1 joueur 2
+func get_mana(index := 0) -> float:
+	return mana2 if index == 1 else mana
 
 
-func use_amount_mana(value):
-	mana -= value
+func set_mana(value, index := 0) -> void:
+	if index == 1:
+		mana2 = value
+	else:
+		mana = value
 
 
-func can_use_amount_mana(value):
-	if mana >= value:
-		return true
-	return false
+func increment_mana(value, index := 0):
+	if two_players:
+		value *= COOP_MANA_GAIN_FACTOR
+	set_mana(min(get_mana(index) + value, MAX_MANA), index)
+
+
+func use_amount_mana(value, index := 0):
+	set_mana(get_mana(index) - value, index)
+
+
+func can_use_amount_mana(value, index := 0):
+	return get_mana(index) >= value
 
 
 func decrease_health(value):

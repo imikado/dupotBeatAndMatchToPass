@@ -37,12 +37,15 @@ const SHAKE_STEP=0.04
 
 var _life_target:=0.0
 
-# Mode 2 joueurs : jauge de vie du joueur 2 en haut à droite (LEVEL xx passe dessous)
+# Mode 2 joueurs : jauges de vie et de mana du joueur 2 en haut à droite (LEVEL xx passe dessous)
 const P2_BAR_POSITION=Vector2(215, 3)
-const P2_HUD_SHIFT_Y=10
+const P2_MANA_OFFSET=Vector2(0, 10)
+const P2_HUD_SHIFT_Y=16
 var _p2_life_bar:PixelBar
+var _p2_mana_bar:PixelBar
 var _p2_life_target:=0.0
 var _mana_cells:=0
+var _p2_mana_cells:=0
 
 var _shake_tween:Tween
 var _portrait_tween:Tween
@@ -208,26 +211,40 @@ func mana_cells(value:float) -> int:
 	return int(floor(value / GlobalPlayer.attack_amount_mana))
 
 
-func update_player_mana(value:float)->void:
-	_player_mana_progress_bar.set_value(value)
-	refresh_mana_color(value)
+# index : 0 joueur 1 (et solo), 1 joueur 2
+func update_player_mana(value:float, index:=0)->void:
+	var bar:=mana_bar(index)
+	if bar == null:
+		return
+	bar.set_value(value)
+	refresh_mana_color(value, bar)
 
 	# Une case de plus = une attaque de foudre de plus disponible
 	var cells:=mana_cells(value)
-	if cells > _mana_cells:
-		_player_mana_progress_bar.flash()
-	_mana_cells=cells
+	var previous_cells:=_p2_mana_cells if index == 1 else _mana_cells
+	if cells > previous_cells:
+		bar.flash()
+	if index == 1:
+		_p2_mana_cells=cells
+	else:
+		_mana_cells=cells
 
 
-func refresh_mana_color(value:float) -> void:
+func mana_bar(index:int) -> PixelBar:
+	return _p2_mana_bar if index == 1 else _player_mana_progress_bar
+
+
+func refresh_mana_color(value:float, bar:PixelBar = null) -> void:
+	if bar == null:
+		bar=_player_mana_progress_bar
 	if value >= GlobalPlayer.attack_amount_mana:
-		_player_mana_progress_bar.set_fill_color(MANA_COLOR_ENOUGH)
+		bar.set_fill_color(MANA_COLOR_ENOUGH)
 		# Orage disponible : un reflet parcourt la jauge, plus souvent quand elle est pleine
 		var period:=MANA_SHIMMER_PERIOD_FULL if value >= GlobalPlayer.MAX_MANA else MANA_SHIMMER_PERIOD
-		_player_mana_progress_bar.start_shimmer(period)
+		bar.start_shimmer(period)
 	else:
-		_player_mana_progress_bar.set_fill_color(MANA_COLOR_NOTENOUGH)
-		_player_mana_progress_bar.stop_shimmer()
+		bar.set_fill_color(MANA_COLOR_NOTENOUGH)
+		bar.stop_shimmer()
 
 
 func enable_second_player() -> void:
@@ -240,6 +257,16 @@ func enable_second_player() -> void:
 	_p2_life_target=GlobalPlayer.life2
 	_p2_life_bar.set_value(_p2_life_target, false)
 	refresh_life_color(_p2_life_target, _p2_life_bar)
+
+	_p2_mana_bar=_player_mana_progress_bar.duplicate()
+	add_child(_p2_mana_bar)
+	_p2_mana_bar.position=P2_BAR_POSITION + P2_MANA_OFFSET
+	_p2_mana_bar.size=_player_mana_progress_bar.size
+	_p2_mana_bar.max_value=GlobalPlayer.MAX_MANA
+	_p2_mana_bar.segment=GlobalPlayer.attack_amount_mana
+	_p2_mana_cells=mana_cells(GlobalPlayer.mana2)
+	_p2_mana_bar.set_value(GlobalPlayer.mana2, false)
+	refresh_mana_color(GlobalPlayer.mana2, _p2_mana_bar)
 
 	var tag:=build_label(5, HORIZONTAL_ALIGNMENT_RIGHT)
 	tag.text="P2"
