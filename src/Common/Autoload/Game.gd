@@ -103,6 +103,13 @@ func setControlsEnabled(enabled):
 	_is_controls_enabled = enabled
 
 
+# Smartphone / tablette (appli Android / iOS ou navigateur mobile), hors Fire TV
+func is_mobile() -> bool:
+	if OS.has_feature("firetv"):
+		return false
+	return OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios")
+
+
 func is_debug():
 	return _is_debug
 

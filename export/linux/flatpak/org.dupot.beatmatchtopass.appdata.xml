@@ -55,6 +55,15 @@
   <content_rating type="oars-1.1"/>
   <releases>
 
+    <release date="2026-11-12" version="1.13.2">
+      <description>
+        <p>Bug fix</p>
+        <p>Add 2 player mode</p>
+        <p>Improve control setup for 1 or 2 players</p>
+      </description>
+    </release>
+
+
     <release date="2026-11-11" version="1.13.0">
       <description>
         <p>Add 2 player mode</p>

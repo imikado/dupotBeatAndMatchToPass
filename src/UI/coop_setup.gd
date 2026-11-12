@@ -68,6 +68,10 @@ var _indices: Array
 
 func _ready() -> void:
 	_indices = PlayerInput.indices(two_players)
+	# smartphone / tablette : pas de clavier, manettes uniquement
+	if Game.is_mobile():
+		for i in _indices:
+			PlayerInput.set_device(i, PlayerInput.Device.GAMEPAD)
 	# actions des héros de la zone d'essai
 	PlayerInput.apply()
 	_test_area = ControlsTestArea.new()
@@ -214,6 +218,8 @@ func refresh() -> void:
 		var keyboard := is_keyboard(col)
 		var button_conflicts := PlayerInput.conflicting_buttons(idx(col))
 		var device_text := "< KEYBOARD >" if keyboard else "< GAMEPAD >"
+		if Game.is_mobile():
+			device_text = "GAMEPAD"
 		_values[col][ROW_DEVICE].text = device_text
 		set_color(_values[col][ROW_DEVICE], _row == ROW_DEVICE and _col == col)
 
@@ -379,6 +385,8 @@ func activate() -> void:
 		ROW_LAYOUT:
 			cycle_layout(1)
 		ROW_DEVICE:
+			if Game.is_mobile():
+				return
 			var device: int = PlayerInput.Device.GAMEPAD if is_keyboard(_col) else PlayerInput.Device.KEYBOARD
 			PlayerInput.set_device(idx(_col), device)
 			Sound.play("menu_move", 0.0)

@@ -54,7 +54,11 @@ func update_controlsEnabled_toggle(enabled: bool) -> void:
 		close_controlsMap()
 	else:
 		_controlsBoxDisabled.visible=true
-		open_controlsMap()
+		# smartphone / tablette : pas de clavier à configurer
+		if Game.is_mobile():
+			close_controlsMap()
+		else:
+			open_controlsMap()
 
 
 func update_and_save_controlsEnabled_toggle(enabled:bool)->void:

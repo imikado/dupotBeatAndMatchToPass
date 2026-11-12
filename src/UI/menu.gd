@@ -112,8 +112,15 @@ func leave(path: String) -> void:
 	Transition.goto(path)
 
 
-# Mode 1 joueur : écran des contrôles (essai du héros) avant de lancer la partie
+# Mode 1 joueur : écran des contrôles (essai du héros) avant de lancer la partie,
+# sauf sur smartphone / tablette en tactile : rien à configurer, partie directe
 func goto_game():
+	if Game.is_mobile() and Game.isControlsEnabled():
+		PlayerInput.apply()
+		GlobalPlayer.reset_game()
+		GlobalPlayer.two_players = false
+		leave("res://src/Levels/LevelTemplate.tscn")
+		return
 	leave("res://src/UI/solo_setup.tscn")
 
 # Mode 2 joueurs : choix des manettes / touches avant de lancer la partie
