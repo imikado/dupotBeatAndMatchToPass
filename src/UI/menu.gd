@@ -151,7 +151,6 @@ func _input(event: InputEvent) -> void:
 	elif Game.isInputNextButton(event):
 		next_button()
 	elif Game.isInputValidateButton(event):
-		Game.setControlsEnabled(false)
 		get_selected_buton().emit_signal("released")
 
 func get_selected_buton():

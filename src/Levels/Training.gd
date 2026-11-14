@@ -1,5 +1,7 @@
 extends Node2D
 
+const ButtonStyle = preload("res://src/Common/UI/MenuButtonStyle.gd")
+
 const WALK_RECT := Rect2(12, 82, 296, 88)
 const DUMMY_POSITION := Vector2(210, 124)
 const GROUND_Y := 70
@@ -12,22 +14,20 @@ const MOON_POSITION := Vector2(284, 40)
 const COLOR_GOLD := Color("ffd34d")
 const COLOR_TEXT := Color("fff0bf")
 const COLOR_MUTED := Color("c9ccff")
-const COLOR_BUTTON_TEXT := Color("c9ccff")
 const COLOR_OUTLINE := Color("140c1c")
 const COLOR_BORDER := Color("5c61d5")
 const COLOR_PANEL := Color(0.04, 0.06, 0.13, 0.85)
-const COLOR_PANEL_HOVER := Color(0.1, 0.11, 0.3, 0.95)
 const COLOR_TARGET := Color("ffbd69")
 const COLOR_DOWN := Color("ff4d4d")
 const COLOR_QUICK := Color("7fdbff")
 const COLOR_HEAVY := Color("ff9f43")
 
-const BUTTON_HEIGHT := 13
-const TOP_BUTTON_WIDTH := 70
+const BUTTON_HEIGHT := ButtonStyle.HEIGHT
+const TOP_BUTTON_WIDTH := 64
 const TARGET_ROW_Y := 30
 const TARGET_BAR_X := 114
 const TARGET_BAR_WIDTH := 80
-const COMBOS_WIDTH := 160
+const COMBOS_WIDTH := 190
 const COMBOS_ROW_Y := 28
 const COMBOS_ROW_STEP := 9
 
@@ -38,6 +38,7 @@ var _life_label: Label
 var _life_bar: PixelBar
 var _ko_label: Label
 var _leaving := false
+var _feedback_labels: Array[Label] = []
 
 
 func _ready() -> void:
@@ -134,23 +135,14 @@ func cap_offset(font_size: int) -> float:
 	return Fx.FONT.get_ascent(font_size) - font_size
 
 
-# Boutons dans le style du menu : fond nuit, liseré bleu, or au survol / à l'appui.
-# Libellé dans un Label enfant : un Button grandirait jusqu'à l'interligne de la police (31 px)
 func button(text_: String, at: Vector2, width: float, parent: Node, callback: Callable) -> Button:
 	var value := Button.new()
 	value.position = at
 	value.size = Vector2(width, BUTTON_HEIGHT)
-	value.add_theme_stylebox_override("normal", box_style(COLOR_PANEL, COLOR_BORDER))
-	value.add_theme_stylebox_override("hover", box_style(COLOR_PANEL_HOVER, COLOR_GOLD))
-	value.add_theme_stylebox_override("pressed", box_style(COLOR_PANEL_HOVER, COLOR_GOLD))
-	value.add_theme_stylebox_override("hover_pressed", box_style(COLOR_PANEL_HOVER, COLOR_GOLD))
-	value.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	value.focus_mode = Control.FOCUS_NONE
 	value.pressed.connect(callback)
 	parent.add_child(value)
-	var caption := label(text_, Vector2(0, floorf((BUTTON_HEIGHT - 5) / 2.0)), width, value, COLOR_BUTTON_TEXT, 5, HORIZONTAL_ALIGNMENT_CENTER)
-	value.mouse_entered.connect(caption.add_theme_color_override.bind("font_color", COLOR_GOLD))
-	value.mouse_exited.connect(caption.add_theme_color_override.bind("font_color", COLOR_BUTTON_TEXT))
+	ButtonStyle.bind_interaction(value, text_)
 	return value
 
 
@@ -164,17 +156,15 @@ func box_style(background: Color, border: Color) -> StyleBoxFlat:
 	return style
 
 
-# Raccourci clavier / manette affiché seulement quand il existe (pas sur mobile tactile)
-func with_hint(text_: String, hint: String) -> String:
-	return text_ if Game.is_mobile() else text_ + "  " + hint
-
-
 func build_interface() -> void:
 	var hud := CanvasLayer.new()
 	hud.layer = 20
 	add_child(hud)
-	button(with_hint("COMBOS", "C/LB"), Vector2(4, 4), TOP_BUTTON_WIDTH, hud, toggle_combos)
-	button(with_hint("MENU", "ESC"), Vector2(316 - TOP_BUTTON_WIDTH, 4), TOP_BUTTON_WIDTH, hud, leave_training)
+	button("COMBOS", Vector2(4, 4), TOP_BUTTON_WIDTH, hud, toggle_combos)
+	button("MENU", Vector2(316 - TOP_BUTTON_WIDTH, 4), TOP_BUTTON_WIDTH, hud, leave_training)
+	if not Game.is_mobile():
+		label("C / LB", Vector2(4, 23), TOP_BUTTON_WIDTH, hud, COLOR_MUTED, 5, HORIZONTAL_ALIGNMENT_CENTER)
+		label("ESC", Vector2(316 - TOP_BUTTON_WIDTH, 23), TOP_BUTTON_WIDTH, hud, COLOR_MUTED, 5, HORIZONTAL_ALIGNMENT_CENTER)
 	# Titre centré comme « LEVEL xx » du HUD des niveaux, mode de jeu en or dessous
 	label("TRAINING", Vector2(80, 5), 160, hud, Color.WHITE, 10, HORIZONTAL_ALIGNMENT_CENTER)
 	label("2 PLAYERS" if GlobalPlayer.two_players else "1 PLAYER", Vector2(80, 19), 160, hud, COLOR_GOLD, 5, HORIZONTAL_ALIGNMENT_CENTER)
@@ -192,6 +182,11 @@ func build_interface() -> void:
 	_life_label = label("", Vector2(TARGET_BAR_X + TARGET_BAR_WIDTH + 4, TARGET_ROW_Y), 60, hud)
 	_ko_label = label("", Vector2(80, TARGET_ROW_Y + 11), 160, hud, COLOR_MUTED, 5, HORIZONTAL_ALIGNMENT_CENTER)
 	update_ko_count()
+	for i in range(players.size()):
+		var feedback := label("P%d: QUICK / HEAVY TO PRACTISE" % (i + 1), Vector2(4, 53 + i * 9), 312, hud, Player.COOP_COLORS[i], 5, HORIZONTAL_ALIGNMENT_CENTER)
+		_feedback_labels.append(feedback)
+		players[i].combo_feedback.connect(func(message: String):
+			feedback.text = "P%d: %s" % [i + 1, message])
 	build_combos_panel(hud)
 
 
@@ -208,7 +203,7 @@ func build_combos_panel(hud: CanvasLayer) -> void:
 			toggle_combos())
 	combos_panel.add_child(dim)
 	var panel := Panel.new()
-	var panel_size := Vector2(COMBOS_WIDTH, COMBOS_ROW_Y + CombatChain.RECIPES.size() * COMBOS_ROW_STEP + 33)
+	var panel_size := Vector2(COMBOS_WIDTH, COMBOS_ROW_Y + CombatChain.RECIPES.size() * COMBOS_ROW_STEP + 44)
 	panel.size = panel_size
 	panel.position = ((Vector2(320, 180) - panel_size) / 2.0).floor()
 	# opaque : en rendu HDR 2D, même 4 % de transparence laisse deviner le HUD derrière
@@ -235,8 +230,9 @@ func build_combos_panel(hud: CanvasLayer) -> void:
 		row += 1
 	var footer_y := COMBOS_ROW_Y + row * COMBOS_ROW_STEP
 	separator(panel, footer_y)
-	label("NEXT INPUT: LAST 0.24S", Vector2(0, footer_y + 4), COMBOS_WIDTH, panel, COLOR_MUTED, 5, HORIZONTAL_ALIGNMENT_CENTER)
-	button(with_hint("CLOSE", "C/LB"), Vector2((COMBOS_WIDTH - 72) / 2.0, footer_y + 14), 72, panel, toggle_combos)
+	label("BUFFER %.2fS - TIMING VARIES" % CombatChain.BUFFER_SECONDS, Vector2(0, footer_y + 4), COMBOS_WIDTH, panel, COLOR_MUTED, 5, HORIZONTAL_ALIGNMENT_CENTER)
+	label("MULTI-HIT: TAP EVERY <%.2fS" % CombatChain.MASH_WINDOW, Vector2(0, footer_y + 13), COMBOS_WIDTH, panel, COLOR_MUTED, 5, HORIZONTAL_ALIGNMENT_CENTER)
+	button("CLOSE", Vector2((COMBOS_WIDTH - TOP_BUTTON_WIDTH) / 2.0, footer_y + 25), TOP_BUTTON_WIDTH, panel, toggle_combos)
 	combos_panel.hide()
 
 

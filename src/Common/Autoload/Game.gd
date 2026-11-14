@@ -6,6 +6,8 @@ const GROUP_ENEMY := "enemy"
 const GROUP_BONUSACTOR := "bonusactor"
 const GROUP_BARRIER := "electrical_barrier"
 
+const PATH_SETTINGS := "user://settings.cfg"
+
 const PATH_HIGHSCORE := "user://highscore.dat"
 
 enum ENEMY_TYPE_LIST { ANT, SPIDER, BEETLE }
@@ -26,6 +28,7 @@ var _screenshot_count := 0
 
 
 func _ready():
+	load_settings()
 	var is_tour := false
 	var demo := ""
 	for arg in OS.get_cmdline_user_args():
@@ -99,8 +102,24 @@ func isControlsEnabled():
 	return _is_controls_enabled
 
 
-func setControlsEnabled(enabled):
-	_is_controls_enabled = enabled
+func setControlsEnabled(enabled: bool, persist := false) -> void:
+	_is_controls_enabled = enabled and not OS.has_feature("firetv")
+	if persist:
+		var config := ConfigFile.new()
+		config.set_value("controls", "touch", _is_controls_enabled)
+		config.save(PATH_SETTINGS)
+
+
+func load_settings() -> void:
+	# L'émulation souris peut signaler un écran tactile même sur ordinateur.
+	_is_controls_enabled = is_mobile()
+	var config := ConfigFile.new()
+	if config.load(PATH_SETTINGS) == OK:
+		var enabled = config.get_value("controls", "touch", _is_controls_enabled)
+		if enabled is bool:
+			_is_controls_enabled = enabled
+	if OS.has_feature("firetv"):
+		_is_controls_enabled = false
 
 
 # Smartphone / tablette (appli Android / iOS ou navigateur mobile), hors Fire TV

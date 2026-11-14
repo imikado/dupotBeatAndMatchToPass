@@ -2,6 +2,7 @@ class_name Player
 extends Actor
 
 signal life_changed(player, value)
+signal combo_feedback(message: String)
 
 const GROUP_PLAYER := "player"
 
@@ -529,7 +530,7 @@ func tint_world(color: Color, duration: float, tween: Tween = null) -> Tween:
 
 # Teinte partagée : arrête celle en cours (y compris celle de l'autre joueur)
 func new_tint_tween() -> Tween:
-	var previous = _canvas_modulate.get_meta("tint_tween", null)
+	var previous = _canvas_modulate.get_meta("tint_tween") if _canvas_modulate.has_meta("tint_tween") else null
 	if previous is Tween and previous.is_valid():
 		previous.kill()
 	var tween := create_tween()

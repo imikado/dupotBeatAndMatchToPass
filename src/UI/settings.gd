@@ -1,122 +1,58 @@
 extends Control
 
+const ButtonStyle = preload("res://src/Common/UI/MenuButtonStyle.gd")
 
-@onready var _menuButton:=get_node("menuButton")
+var _touch_button: Button
 
-@onready var _controlsBoxEnabled :=get_node("Control/VBoxContainer/HBoxContainer/contolsEnabled")
-@onready var _controlsBoxDisabled :=get_node("Control/VBoxContainer/HBoxContainer/contolsDisabled")
-
-@onready var _controlsMap := get_node("controlsMap")
-
-@onready var _modal:=get_node("modalKey")
-
-var recordingEnabled=false
-var recordingAction
 
 func _ready() -> void:
-	close_modal()
-	_menuButton.connect("released", Callable(self, "goto_menu"))
-	_menuButton.select()
-	
-	update_controlsEnabled_toggle(Game.isControlsEnabled())
-	# Fire TV : télévision sans écran tactile, le choix « Controls tactil » n'a pas de sens
-	if OS.has_feature("firetv"):
-		_controlsBoxEnabled.get_parent().visible = false
-	
-func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("attack"):
-		_menuButton.emit_signal("released")
-
-func open_modal():
-	_modal.visible=true
-	
-func close_modal():
-	_modal.visible=false
-
-func open_controlsMap():
-	_controlsMap.visible=true
-	
-func close_controlsMap():
-	_controlsMap.visible=false
-	
+	var buttons: Array[Button] = []
+	if not OS.has_feature("firetv"):
+		_touch_button = add_option("", 50, toggle_touch)
+		refresh_touch()
+		buttons.append(_touch_button)
+	buttons.append(add_option("COMMANDES SOLO", 76, open_controls.bind(false)))
+	buttons.append(add_option("COMMANDES COOP", 102, open_controls.bind(true)))
+	buttons.append(add_option("MENU", 128, goto_menu))
+	buttons[0].grab_focus()
 
 
-func goto_menu():
+func add_option(caption: String, y: float, callback: Callable) -> Button:
+	var button := Button.new()
+	button.position = Vector2(64, y)
+	button.size = Vector2(192, ButtonStyle.HEIGHT)
+	button.pressed.connect(callback)
+	add_child(button)
+	ButtonStyle.bind_interaction(button, caption)
+	return button
+
+
+func refresh_touch() -> void:
+	var caption := "TACTILE : " + ("OUI" if Game.isControlsEnabled() else "NON")
+	_touch_button.set_meta("caption", caption)
+	ButtonStyle.apply(_touch_button, caption, _touch_button.has_focus() or _touch_button.is_hovered())
+
+
+func toggle_touch() -> void:
+	Game.setControlsEnabled(not Game.isControlsEnabled(), true)
+	refresh_touch()
+
+
+func open_controls(coop: bool) -> void:
+	Transition.goto("res://src/UI/settings_%s_setup.tscn" % ("coop" if coop else "solo"))
+
+
+func goto_menu() -> void:
 	Transition.goto("res://src/UI/menu.tscn")
 
 
-func update_controlsEnabled_toggle(enabled: bool) -> void:
-	_controlsBoxEnabled.visible=false
-	_controlsBoxDisabled.visible=false
-	
-	if enabled:
-		_controlsBoxEnabled.visible=true
-		close_controlsMap()
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") or Game.isInputPauseButton(event):
+		goto_menu()
+	elif event.is_action_pressed("attack"):
+		var focused := get_viewport().gui_get_focus_owner()
+		if focused is Button:
+			focused.pressed.emit()
 	else:
-		_controlsBoxDisabled.visible=true
-		# smartphone / tablette : pas de clavier à configurer
-		if Game.is_mobile():
-			close_controlsMap()
-		else:
-			open_controlsMap()
-
-
-func update_and_save_controlsEnabled_toggle(enabled:bool)->void:
-	update_controlsEnabled_toggle(enabled)
-	Game.setControlsEnabled(enabled)
-	
-	
-func _on_contolsEnabled_pressed() -> void:
-	update_and_save_controlsEnabled_toggle(false)
-
-func _on_contolsDisabled_pressed() -> void:
-	update_and_save_controlsEnabled_toggle(true)
-
-func record_keymap(action):
-	recordingAction=action
-	recordingEnabled=true
-	open_modal()
-	
-func _unhandled_key_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and recordingEnabled:
-		
-		var ev = InputEventKey.new()
-		ev.keycode =event.keycode
-		
-		#if InputMap.has_action(recordingAction):
-		#	InputMap.erase_action(recordingAction)
-		InputMap.action_add_event(recordingAction,ev)
-		
-		close_modal()
-		recordingEnabled=false
-	
 		return
-	
-
-func _on_right_pressed() -> void:
-	record_keymap(PlayerAbstractState.INPUT_RIGHT)
-
-func _on_left_pressed() -> void:
-	record_keymap(PlayerAbstractState.INPUT_LEFT)
-	
-func _on_down_pressed() -> void:
-	record_keymap(PlayerAbstractState.INPUT_DOWN)
-
-func _on_up_pressed() -> void:
-	record_keymap(PlayerAbstractState.INPUT_UP)
-
-
-func _on_attack_pressed() -> void:
-	record_keymap(PlayerAbstractState.INPUT_ATTACK)
-
-
-func _on_manaAttack_pressed() -> void:
-	record_keymap(PlayerAbstractState.INPUT_ATTACK_MANA)
-
-
-func _on_dash_pressed() -> void:
-	record_keymap(PlayerAbstractState.INPUT_DASH)
-
-
-func _on_heavyAttack_pressed() -> void:
-	record_keymap("attack_heavy")
+	get_viewport().set_input_as_handled()

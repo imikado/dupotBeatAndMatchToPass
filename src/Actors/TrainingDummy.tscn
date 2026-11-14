@@ -1,7 +1,8 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://d76nf2q4kud2"]
 
 [ext_resource type="PackedScene" path="res://src/Actors/SimpleEnemies/Ant.tscn" id="1"]
-[ext_resource type="Script" path="res://src/Actors/TrainingDummy.gd" id="2"]
+[ext_resource type="Script" uid="uid://dkbrw7gmdyimf" path="res://src/Actors/TrainingDummy.gd" id="2"]
 
-[node name="TrainingDummy" instance=ExtResource("1")]
+[node name="TrainingDummy" unique_id=1408556706 instance=ExtResource("1")]
+scale = Vector2(-1, 1)
 script = ExtResource("2")

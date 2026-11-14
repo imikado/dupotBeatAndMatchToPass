@@ -19,6 +19,8 @@ func enter():
 	_next_hit = 0
 	_strike = CombatChain.strike(owner.get_node("StateMachine").combo_sequence)
 	owner.begin_strike(_strike)
+	if _strike.get("mash", false):
+		owner.combo_feedback.emit("KEEP TAPPING QUICK / HEAVY")
 	var stage: int = owner.get_node("StateMachine").combo_sequence.length()
 	var animation := "attacking_heavy_right" if _strike.heavy else "attacking_%02d_right" % stage
 	if _strike.finisher:
@@ -33,18 +35,24 @@ func handle_input(_event):
 	var press: String = owner.get_node("StateMachine").attack_press
 	if press != "" and _strike.get("mash", false):
 		_last_press = _elapsed
-	if press == "" or _elapsed < float(_strike.input_open):
+	if press == "":
+		return
+	if _elapsed < float(_strike.input_open):
+		owner.combo_feedback.emit("KEEP TAPPING QUICK / HEAVY" if _strike.get("mash", false) else "TOO EARLY")
 		return
 	_buffered = press
 	_buffered_at = _elapsed
+	owner.combo_feedback.emit("INPUT BUFFERED")
 
 
 func update(delta):
 	_elapsed += delta
 	if _buffered != "" and _elapsed - _buffered_at > CombatChain.BUFFER_SECONDS:
 		_buffered = ""
+		owner.combo_feedback.emit("TOO EARLY - INPUT EXPIRED")
 	if _strike.finisher:
 		if _strike.get("mash", false) and _next_hit < _strike.hits.size() and _elapsed - _last_press > CombatChain.MASH_WINDOW and _buffered == "":
+			owner.combo_feedback.emit("COMBO STOPPED - KEEP TAPPING")
 			emit_signal("finished", STATE_WALK)
 			return
 		while _next_hit < _strike.hits.size() and _elapsed >= float(_strike.hits[_next_hit]):
@@ -72,6 +80,7 @@ func _on_animation_finished(_anim_name):
 
 func _chain():
 	var machine: PlayerStateMachine = owner.get_node("StateMachine")
+	owner.combo_feedback.emit("CHAIN ACCEPTED")
 	var next := _buffered
 	_buffered = ""
 	if _strike.finisher:

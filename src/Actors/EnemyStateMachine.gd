@@ -45,4 +45,3 @@ func _change_state(state_name):
 		return
 	# pas de push_front : aucun état ennemi ne revient à "previous" (la pile grossissait sans fin)
 	super._change_state(state_name)
-

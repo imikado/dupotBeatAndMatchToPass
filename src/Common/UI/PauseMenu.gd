@@ -1,8 +1,7 @@
 class_name PauseMenu
 extends CanvasLayer
 
-const COLOR_SELECTED = Color("ffd34d")
-const COLOR_NORMAL = Color(1, 1, 1, 0.7)
+const ButtonStyle = preload("res://src/Common/UI/MenuButtonStyle.gd")
 
 var _options := []
 var _selected := 0
@@ -26,13 +25,21 @@ func _ready() -> void:
 	var title := build_label("PAUSE", 10, Vector2(0, 50))
 	title.add_theme_color_override("font_color", Color("7fdbff"))
 
-	_options = [
-		build_label("RESUME", 5, Vector2(0, 88)),
-		build_label("QUIT TO MENU", 5, Vector2(0, 104)),
-	]
-	for i in range(_options.size()):
-		_options[i].mouse_filter = Control.MOUSE_FILTER_STOP
-		_options[i].gui_input.connect(_on_option_gui_input.bind(i))
+	for caption in ["RESUME", "QUIT TO MENU"]:
+		var button := Button.new()
+		button.position = Vector2(96, 88 + _options.size() * 24)
+		button.size = Vector2(128, ButtonStyle.HEIGHT)
+		button.focus_mode = Control.FOCUS_NONE
+		var index := _options.size()
+		button.pressed.connect(func():
+			_selected = index
+			validate())
+		button.mouse_entered.connect(func():
+			_selected = index
+			refresh())
+		_root.add_child(button)
+		ButtonStyle.apply(button, caption)
+		_options.append(button)
 
 
 func build_label(text_: String, font_size: int, position_: Vector2) -> Label:
@@ -77,10 +84,7 @@ func close() -> void:
 
 func refresh() -> void:
 	for i in range(_options.size()):
-		var label: Label = _options[i]
-		var is_selected = i == _selected
-		label.add_theme_color_override("font_color", COLOR_SELECTED if is_selected else COLOR_NORMAL)
-		label.text = ("> " + label.text.trim_prefix("> ") + " <") if is_selected else label.text.trim_prefix("> ").trim_suffix(" <")
+		ButtonStyle.apply(_options[i], ["RESUME", "QUIT TO MENU"][i], i == _selected)
 
 
 func validate() -> void:
@@ -107,10 +111,3 @@ func _input(event: InputEvent) -> void:
 	else:
 		return
 	get_viewport().set_input_as_handled()
-
-
-func _on_option_gui_input(event: InputEvent, index: int) -> void:
-	if (event is InputEventMouseButton or event is InputEventScreenTouch) and event.is_pressed():
-		_selected = index
-		refresh()
-		validate()

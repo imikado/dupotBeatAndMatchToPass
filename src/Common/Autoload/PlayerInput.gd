@@ -278,11 +278,16 @@ func apply() -> void:
 
 
 # Joueur seul : les touches d'origine restent valables (manette quel que soit le choix,
-# télécommande Fire TV, réglages de SETTINGS) sauf celles déjà prises par une autre action
+# télécommande Fire TV) sauf les commandes redéfinies ou déjà prises par une autre action
 func add_solo_defaults() -> void:
 	for action in ACTIONS:
-		# actions d'origine du projet (modifiées par SETTINGS), jamais touchées par apply()
+		# Actions d'origine du projet, jamais touchées par apply().
 		for event in InputMap.action_get_events(action):
+			# Une redéfinition remplace aussi les raccourcis clavier d'origine.
+			if event is InputEventKey and players[SOLO]["keys"][action] != PRESETS[layout][SOLO][action]:
+				continue
+			if event is InputEventJoypadButton and GAMEPAD_REMAPPABLE.has(action) and players[SOLO]["buttons"][action] != GAMEPAD_BUTTONS[action]:
+				continue
 			var taken := false
 			for other in ACTIONS:
 				for existing in InputMap.action_get_events(prefix(SOLO) + other):

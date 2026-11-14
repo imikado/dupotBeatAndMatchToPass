@@ -3,6 +3,11 @@ extends Node2D
 # Choix des commandes, éditeur et essai partagés par les modes solo, coop et entraînement.
 @export var two_players := true
 @export var training_mode := false
+@export var settings_only := false
+
+const SETTINGS_SCENE := "res://src/UI/settings.tscn"
+var _original_players := []
+var _original_layout := ""
 
 const LEVEL_SCENE := "res://src/Levels/LevelTemplate.tscn"
 const MENU_SCENE := "res://src/UI/menu.tscn"
@@ -36,14 +41,9 @@ const Y_FIRST_KEY := 33.0
 const Y_MESSAGE := 104.0
 const PANEL_RECT := Rect2(10, 2, 300, 130)
 
-# Boutons : mêmes textures et couleurs que le menu principal (menuButton)
-const BUTTON_TEXTURE := preload("res://src/UI/menu/button.png")
-const BUTTON_TEXTURE_SELECTED := preload("res://src/UI/menu/buttonSelected.png")
-const BUTTON_TEXTURE_PRESSED := preload("res://src/UI/menu/buttonPressed.png")
-const BUTTON_FONT := preload("res://src/Common/UI/fonts/font.tres")
-const BUTTON_FONT_SIZE := 8
-const BUTTON_LABEL_NORMAL := Color("c9ccff")
-const BUTTON_LABEL_SELECTED := Color("ffd34d")
+const ButtonStyle = preload("res://src/Common/UI/MenuButtonStyle.gd")
+const BUTTON_LABEL_NORMAL = ButtonStyle.TEXT
+const BUTTON_LABEL_SELECTED = ButtonStyle.GOLD
 
 var _row := ROW_START
 var _editing := false
@@ -72,6 +72,8 @@ var _indices: Array
 
 
 func _ready() -> void:
+	_original_players = PlayerInput.players.duplicate(true)
+	_original_layout = PlayerInput.layout
 	_indices = PlayerInput.indices(two_players)
 	# smartphone / tablette : pas de clavier, manettes uniquement
 	if Game.is_mobile():
@@ -84,6 +86,9 @@ func _ready() -> void:
 	_test_area.setup(two_players, get_node("Camera2D"))
 	build_ui()
 	Input.joy_connection_changed.connect(_on_joy_connection_changed)
+	if settings_only:
+		_editing = true
+		_row = ROW_DEVICE
 	refresh()
 
 
@@ -199,17 +204,6 @@ func build_ui() -> void:
 		button.name = {ROW_START: "Play", ROW_TEST: "Test", ROW_EDIT: "Edit", ROW_BACK: "Menu"}[row]
 		button.focus_mode = Control.FOCUS_NONE
 		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		button.add_theme_stylebox_override("pressed", texture_style(BUTTON_TEXTURE_PRESSED))
-		button.add_theme_stylebox_override("disabled", texture_style(BUTTON_TEXTURE, Color(0.55, 0.55, 0.6, 0.7)))
-		button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-		# libellé enfant comme menuButton : la ligne Pixeled (23 px) déborde du bouton de 16 px
-		var label := Label.new()
-		label.name = "Label"
-		label.add_theme_font_size_override("font_size", BUTTON_FONT_SIZE)
-		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		button.add_child(label)
 		button.pressed.connect(func():
 			if _capturing or _leaving:
 				return
@@ -237,39 +231,6 @@ func button_style(background: Color, border: Color) -> StyleBoxFlat:
 	return style
 
 
-# Texture du menu étirée en 9-patch : bords arrondis intacts quelle que soit la largeur
-func texture_style(texture: Texture2D, modulate := Color.WHITE) -> StyleBoxTexture:
-	var style := StyleBoxTexture.new()
-	style.texture = texture
-	style.texture_margin_left = 6
-	style.texture_margin_right = 6
-	style.texture_margin_top = 5
-	style.texture_margin_bottom = 5
-	style.modulate_color = modulate
-	for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
-		style.set_content_margin(side, 0)
-	return style
-
-
-# Même règle que menuButton : taille 8 (nette), lettres resserrées d'1 px si trop long
-func set_button_label(button: Button, text_: String, width: float, color: Color) -> void:
-	var label: Label = button.get_node("Label")
-	var inner_width := width - 4.0
-	var font: Font = BUTTON_FONT
-	if font.get_string_size(text_, HORIZONTAL_ALIGNMENT_LEFT, -1, BUTTON_FONT_SIZE).x > inner_width:
-		var tight := FontVariation.new()
-		tight.base_font = BUTTON_FONT
-		tight.spacing_glyph = -1
-		tight.spacing_space = 2
-		font = tight
-	label.add_theme_font_override("font", font)
-	label.text = text_
-	label.add_theme_color_override("font_color", color)
-	var line_height := font.get_height(BUTTON_FONT_SIZE)
-	label.size = Vector2(width, line_height)
-	label.position = Vector2(0, round((BUTTON_TEXTURE.get_height() - line_height) / 2.0) - 1.0)
-
-
 func refresh_actions(error_text: String) -> void:
 	var testing := _test_area.is_testing()
 	_editor.visible = _editing and not testing
@@ -277,6 +238,8 @@ func refresh_actions(error_text: String) -> void:
 	_subtitle.visible = not _editing or testing
 	_subtitle.text = ("ENTRAINEMENT / " if training_mode else "") + ("2 JOUEURS" if two_players else "1 JOUEUR")
 	_title.text = "ESSAI DES TOUCHES" if testing else ("MODIFIER LES TOUCHES" if _editing else "PRET A JOUER ?")
+	if settings_only and not _editing and not testing:
+		_title.text = "COMMANDES"
 	_title.add_theme_font_size_override("font_size", 8 if _editing or testing else 10)
 	for col in range(_indices.size()):
 		var movement: Array[String] = []
@@ -298,19 +261,18 @@ func refresh_actions(error_text: String) -> void:
 		var text_: String = {ROW_START: "JOUER", ROW_TEST: "TESTER LES TOUCHES", ROW_EDIT: "MODIFIER LES TOUCHES", ROW_BACK: "RETOUR AU MENU"}[row]
 		if _editing:
 			text_ = {ROW_START: "JOUER", ROW_TEST: "TESTER", ROW_EDIT: "TERMINE", ROW_BACK: "MENU"}[row]
+		if settings_only:
+			if row == ROW_START:
+				text_ = "VALIDER"
+			elif row == ROW_BACK:
+				text_ = "RETOUR"
 		if testing:
 			text_ = "TERMINER LE TEST"
 		var rect: Rect2 = Rect2(80, 80, 160, 16) if testing else (edit_rects[i] if _editing else home_rects[i])
 		var selected := _row == row or testing
-		var style := texture_style(BUTTON_TEXTURE_SELECTED if selected else BUTTON_TEXTURE)
-		button.add_theme_stylebox_override("normal", style)
-		button.add_theme_stylebox_override("hover", style)
-		var label_color := BUTTON_LABEL_SELECTED if selected else BUTTON_LABEL_NORMAL
-		if button.disabled:
-			label_color = Color(1, 1, 1, 0.35)
-		set_button_label(button, text_, rect.size.x, label_color)
 		button.position = rect.position
 		button.size = rect.size
+		ButtonStyle.apply(button, text_, selected)
 	_message.position.y = 98.0 if _editing and not testing else 112.0
 
 
@@ -591,6 +553,9 @@ func start_game() -> void:
 		return
 	PlayerInput.save_config()
 	PlayerInput.apply()
+	if settings_only:
+		leave(SETTINGS_SCENE)
+		return
 	if not training_mode:
 		GlobalPlayer.reset_game()
 	GlobalPlayer.two_players = two_players
@@ -609,7 +574,14 @@ func leave(path: String) -> void:
 	if _leaving:
 		return
 	_leaving = true
-	if path == MENU_SCENE:
-		PlayerInput.save_config()
+	if settings_only and path == MENU_SCENE:
+		path = SETTINGS_SCENE
+	if path in [MENU_SCENE, SETTINGS_SCENE]:
+		if PlayerInput.validation_error(_indices) == "":
+			PlayerInput.save_config()
+		else:
+			PlayerInput.players = _original_players.duplicate(true)
+			PlayerInput.layout = _original_layout
+		PlayerInput.apply()
 	Sound.play("menu_select", 0.0)
 	Transition.goto(path)

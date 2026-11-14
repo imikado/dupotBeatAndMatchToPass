@@ -14,12 +14,12 @@ const WAVE_SIZE_MAX = 6
 # Décalage vers l'extérieur quand plusieurs ennemis partagent un point d'apparition
 const WAVE_SPOT_SPACING = 25.0
 
-# Énergie à apporter à chaque barrière : 6, puis +1 tous les 2 niveaux après le niveau 3
-const BARRIER_ENERGY = 6
+# Énergie par espèce : 6, 4, 3 aux niveaux 1–3, puis +1 tous les 3 niveaux.
+const INTRO_BARRIER_ENERGY = [6, 4, 3]
 const MAX_BARRIER_ENERGY = 10
 
-# Groupes de barrières : 2 + niveau, au plus 5 ; un tous les BARRIER_GROUP_SPACING pixels
-const BARRIER_GROUP_MIN = 2
+# Trois groupes au départ, puis un de plus aux niveaux 5 et 8.
+const BARRIER_GROUP_MIN = 3
 const BARRIER_GROUP_MAX = 5
 const BARRIER_GROUP_START_X = 400.0
 const BARRIER_GROUP_SPACING = 510.0
@@ -188,13 +188,6 @@ func nearest_player(from: Vector2) -> Player:
 	return best if best else _player
 
 
-func is_anyone_storming() -> bool:
-	for player in _players:
-		if player.is_storming():
-			return true
-	return false
-
-
 func _on_coop_life_changed(player: Player, newLife: float) -> void:
 	var index: int = player.player_index
 	if newLife < GlobalPlayer.get_player_life(index) and GlobalPlayer.kill_streak > 0:
@@ -267,7 +260,7 @@ func close_level_after_gate() -> void:
 
 
 func get_barrier_group_count() -> int:
-	var count := mini(BARRIER_GROUP_MIN + GlobalPlayer.get_level(), BARRIER_GROUP_MAX)
+	var count := mini(BARRIER_GROUP_MIN + maxi(GlobalPlayer.get_level() - 2, 0) / 3, BARRIER_GROUP_MAX)
 	if GlobalPlayer.two_players:
 		count = roundi(count * COOP_BARRIER_GROUP_FACTOR)
 	return count
@@ -319,7 +312,10 @@ func get_barrier_types() -> Array[int]:
 
 
 func get_barrier_energy() -> int:
-	return mini(BARRIER_ENERGY + ceili(GlobalPlayer.get_difficulty() / 2.0), MAX_BARRIER_ENERGY)
+	var level: int = maxi(GlobalPlayer.get_level(), 1)
+	if level <= INTRO_BARRIER_ENERGY.size():
+		return INTRO_BARRIER_ENERGY[level - 1]
+	return mini(3 + GlobalPlayer.get_difficulty() / 3, MAX_BARRIER_ENERGY)
 
 
 # Crée un groupe de barrières sous ElectricalBarriers, à la position globale donnée
@@ -493,7 +489,7 @@ func _on_actor_healt_changed(actor: CharacterBody2D, previous_value: float, new_
 		var multiplier = GlobalPlayer.register_kill()
 		var points = 10 * multiplier
 		# la tempête ne se recharge pas avec ses propres victimes ; la mana va au joueur qui a tué
-		increment_score(points, not is_anyone_storming(), mana_receiver(actor))
+		increment_score(points, actor.get("last_hit_by_storm") != true, mana_receiver(actor))
 		_hud.update_streak(GlobalPlayer.kill_streak, multiplier)
 		give_gems(actor)
 

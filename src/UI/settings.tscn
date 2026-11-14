@@ -3,18 +3,7 @@
 [ext_resource type="Texture2D" path="res://src/Levels/LevelTemplate/background.png" id="1"]
 [ext_resource type="FontVariation" path="res://src/Common/UI/fonts/font.tres" id="2"]
 [ext_resource type="Script" path="res://src/UI/settings.gd" id="3"]
-[ext_resource type="PackedScene" path="res://src/UI/menu/menuButton.tscn" id="4"]
 [ext_resource type="Theme" path="res://src/Common/UI/theme.tres" id="5"]
-[ext_resource type="Texture2D" path="res://src/UI/menu/checkbox_off.png" id="6"]
-[ext_resource type="Texture2D" path="res://src/UI/menu/checkbox_on.png" id="7"]
-[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Arrow.png" id="8"]
-[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Attack01.png" id="9"]
-[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Attack02.png" id="10"]
-[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Dash.png" id="11"]
-[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/ArrowLeft.png" id="12"]
-[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/ArrowUp.png" id="13"]
-[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/ArrowDown.png" id="14"]
-[ext_resource type="Texture2D" path="res://src/Common/UI/Controls/Heavy.png" id="15"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_1"]
 texture = ExtResource("1")
@@ -45,7 +34,7 @@ offset_left = 15.0
 offset_top = 8.0
 offset_right = 304.0
 offset_bottom = 172.0
-color = Color(1, 1, 1, 0.301961)
+color = Color(0, 0, 0.05, 0.78)
 
 [node name="backgroundTitle" type="ColorRect" parent="." unique_id=1544755678]
 layout_mode = 0
@@ -70,113 +59,3 @@ theme_override_font_sizes/font_size = 8
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "SETTINGS"
 horizontal_alignment = 1
-
-[node name="menuButton" parent="." unique_id=691189829 instance=ExtResource("4")]
-position = Vector2(228, 17)
-title = "MENU"
-
-[node name="Control" type="Control" parent="." unique_id=1765343201]
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Control" unique_id=181538910]
-layout_mode = 0
-offset_left = 24.0
-offset_top = 43.0
-offset_right = 300.0
-offset_bottom = 72.0
-
-[node name="HBoxContainer" type="HBoxContainer" parent="Control/VBoxContainer" unique_id=287343203]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Control/VBoxContainer/HBoxContainer" unique_id=197587736]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-text = "Controls tactil"
-uppercase = true
-
-[node name="contolsEnabled" type="TouchScreenButton" parent="Control/VBoxContainer/HBoxContainer" unique_id=1792923379]
-position = Vector2(244, 6)
-texture_normal = ExtResource("7")
-
-[node name="contolsDisabled" type="TouchScreenButton" parent="Control/VBoxContainer/HBoxContainer" unique_id=277393323]
-position = Vector2(244, 6)
-texture_normal = ExtResource("6")
-
-[node name="controlsMap" type="Node2D" parent="." unique_id=1552570647]
-
-[node name="right" type="TouchScreenButton" parent="controlsMap" unique_id=912798779]
-position = Vector2(117, 122)
-texture_normal = ExtResource("8")
-
-[node name="left" type="TouchScreenButton" parent="controlsMap" unique_id=19129457]
-position = Vector2(79, 122)
-texture_normal = ExtResource("12")
-
-[node name="up" type="TouchScreenButton" parent="controlsMap" unique_id=1252097550]
-position = Vector2(98, 103)
-texture_normal = ExtResource("13")
-
-[node name="down" type="TouchScreenButton" parent="controlsMap" unique_id=1748974819]
-position = Vector2(98, 141)
-texture_normal = ExtResource("14")
-
-[node name="attack" type="TouchScreenButton" parent="controlsMap" unique_id=1439278884]
-position = Vector2(198, 141)
-texture_normal = ExtResource("9")
-
-[node name="heavyAttack" type="TouchScreenButton" parent="controlsMap" unique_id=1395872047]
-position = Vector2(179, 122)
-texture_normal = ExtResource("15")
-
-[node name="manaAttack" type="TouchScreenButton" parent="controlsMap" unique_id=1505119412]
-position = Vector2(198, 103)
-texture_normal = ExtResource("10")
-
-[node name="dash" type="TouchScreenButton" parent="controlsMap" unique_id=1873440561]
-position = Vector2(217, 122)
-texture_normal = ExtResource("11")
-
-[node name="Label" type="Label" parent="controlsMap" unique_id=1560934321]
-offset_left = 24.0
-offset_top = 78.0
-offset_right = 296.0
-offset_bottom = 94.0
-theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 8
-theme_override_colors/font_color = Color(0.788235, 0.8, 1, 1)
-text = "CLICK TO CHANGE KEY"
-horizontal_alignment = 1
-uppercase = true
-
-[node name="modalKey" type="ColorRect" parent="." unique_id=1193259317]
-visible = false
-layout_mode = 0
-offset_left = -1.0
-offset_top = 14.0
-offset_right = 345.0
-offset_bottom = 201.0
-color = Color(0, 0, 0, 0.780392)
-
-[node name="Label" type="Label" parent="modalKey" unique_id=1311544468]
-layout_mode = 0
-offset_left = 102.0
-offset_top = 69.0
-offset_right = 218.0
-offset_bottom = 92.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-text = "PRESS NEW KEY"
-horizontal_alignment = 1
-uppercase = true
-
-[connection signal="pressed" from="Control/VBoxContainer/HBoxContainer/contolsEnabled" to="." method="_on_contolsEnabled_pressed"]
-[connection signal="pressed" from="Control/VBoxContainer/HBoxContainer/contolsDisabled" to="." method="_on_contolsDisabled_pressed"]
-[connection signal="pressed" from="controlsMap/right" to="." method="_on_right_pressed"]
-[connection signal="pressed" from="controlsMap/left" to="." method="_on_left_pressed"]
-[connection signal="pressed" from="controlsMap/up" to="." method="_on_up_pressed"]
-[connection signal="pressed" from="controlsMap/down" to="." method="_on_down_pressed"]
-[connection signal="pressed" from="controlsMap/attack" to="." method="_on_attack_pressed"]
-[connection signal="pressed" from="controlsMap/manaAttack" to="." method="_on_manaAttack_pressed"]
-[connection signal="pressed" from="controlsMap/dash" to="." method="_on_dash_pressed"]
-[connection signal="pressed" from="controlsMap/heavyAttack" to="." method="_on_heavyAttack_pressed"]
