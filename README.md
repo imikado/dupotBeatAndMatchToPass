@@ -46,7 +46,7 @@ Grab a friend: pick **2 PLAYERS** in the menu and fight side by side through the
 </div>
 
 - 🎮 **Any setup**: two players on **one keyboard**, a **keyboard + a gamepad**, or **two gamepads**.
-- ⌨️ **Your keys, your way**: AZERTY and QWERTY presets out of the box, and every key (and every gamepad action button) can be remapped before the game starts. The setup is remembered for next time.
+- ⌨️ **Your keys, your way**: AZERTY and QWERTY presets out of the box, and every key (and every gamepad action button) can be remapped and tried out before the game starts. The setup is remembered for next time.
 - 🎥 **One shared camera** keeps both heroes in view: nobody gets left off-screen.
 - 🐜 **Smart enemies** go after the closest hero, so you can split the crowd or bait them for your partner.
 - 🤝 **Team play**: score and kill streak are shared, each hero has their own life and mana bars (a lightning storm each), and any life bottle heals whoever grabs it.
@@ -57,13 +57,15 @@ Grab a friend: pick **2 PLAYERS** in the menu and fight side by side through the
 ## ✨ Features
 
 - 👥 **Solo or two players on the same screen**: see [Play together on one screen](#-play-together-on-one-screen).
-- 🗡️ **Quick and heavy attacks**: quick slashes deal 8 damage in 0.26 seconds; heavy overhead swings deal 24 in 0.70 seconds. Mix them into nine chains that trigger automatic flurries, crossed slashes or a ground slam with area damage.
+- 🗡️ **Quick and heavy attacks**: quick slashes deal 8 damage in 0.26 seconds; heavy overhead swings deal 24 in 0.70 seconds, with a visible wind-up and stronger knockback.
+- ⚔️ **Nine combo chains**: mix quick and heavy strikes to unleash an 8-cut flurry, alternating cross slashes or a ground slam with area damage.
 - 💨 **Dash**: a quick dodge in any direction that makes you untouchable for an instant, and cancels a sword swing.
 - 🔥 **Kill streaks**: every 5 kills in a row raise your score multiplier, up to **x4**. Get hit and the streak is gone.
 - ⚡ **Lightning storm**: spend your mana to darken the sky and call down three volleys of lightning on everything around you. You can't be hurt while casting, so it also works as a panic button.
 - 🐜 **Three enemy types**: ants swarm you, beetles hit hard, and spiders shoot from a distance. Beetles join in at level 2 and spiders at level 3, and every level adds more barriers to open.
 - 🧪 **Life bottles**: they show up from level 2 on to heal you mid-fight.
 - 🐿️ **Bonus stage**: between levels you get 15 seconds to hit the squirrels and grab extra life bottles.
+- 🎯 **Training mode**: a harmless practice dummy that respawns endlessly, with the combo list on screen, solo or for two. See [Training](#-training).
 - 🏆 **Best scores**: chase your record, with a big *NEW RECORD!* when you beat it.
 - 🎵 **Chiptune music and retro sound effects**, plus hit-stop, screen shake and particles that make every blow land.
 - ⏸️ **Pause anytime**, keys you can remap, gamepad support and on-screen touch controls for touch screens.
@@ -102,7 +104,14 @@ A loading screen that really preloads the game, an animated title, a lively menu
 | Pause | `Esc` | Start |
 | Music on / off | `M` | — |
 
-⌨️ Keys can be remapped from the **Settings** menu, and on-screen touch controls can be turned on for touch screens.
+⌨️ **Controls screen** — shown before every solo or two-player game:
+
+- **Jouer** starts the selected mode.
+- **Tester les touches** lets you move and attack in a small practice strip; press `Esc` / Start or click **Terminer le test** to stop.
+- **Modifier les touches** opens the keyboard/gamepad editor (`Esc` returns to the overview). Conflicting inputs are discarded when you leave.
+- **Retour au menu** goes back.
+
+The same editor is available from **Settings**, where **Valider** saves without starting a game. On-screen touch controls can also be turned on there; the choice is remembered.
 
 **Two players** — default keys when you share one keyboard (changeable in the 2 PLAYERS screen):
 
@@ -115,9 +124,11 @@ A loading screen that really preloads the game, an animated title, a lively menu
 | Dash | `H` | `J` | Button X |
 | Pause | `Esc` | `Esc` | Start |
 
-Quick (`R`) and heavy (`L`) inputs appear above your character. Press the next button during the last 0.24 seconds of the current swing. One press buffers one next attack; holding a button does not repeat. Damage, dash, storm and the end of a chain clear the combo.
+## ⚔️ Combos
 
-| Chain | Finisher | Automatic attack |
+Quick (`R`) and heavy (`L`) inputs appear above your character. A next attack is buffered for 0.30 seconds; the valid timing depends on the current swing. A quick attack can chain shortly after impact; a heavy attack needs a later press. One press buffers one next attack; holding a button does not repeat. Training shows whether an input is buffered, accepted or too early. Damage, dash, storm and the end of a chain clear the combo.
+
+| Chain | Finisher | Finisher effect |
 |---|---|---|
 | R R R R | Rafale | 8 hits × 8 damage |
 | R R R L | Exécution | Ground slam, 64 area damage |
@@ -129,11 +140,14 @@ Quick (`R`) and heavy (`L`) inputs appear above your character. Press the next b
 | L L R | Revers | 6 hits, alternating 8 / 12 damage |
 | L L L | Fracas | Ground slam, 48 area damage |
 
-All sword attacks use the accepted cross sprite sheet in each player’s `combo/` directory. Rest, walk, hurt, potion, magic and defeat sprites share the same character design, palette and ground anchor. The flurry chains eight sword cuts in 32 poses over 2.30 seconds: downward cut, left-to-right sweep, right-to-left return, rising cut, downward cut, rising return, downward cut and final thrust. The alternating combo chains six cuts in 24 poses over 2.80 seconds, alternating quick cuts and heavier follow-throughs: rise, descent, sweep, return, rise and final descent. Shared cross poses and the new follow-up sheet keep one character design. Early impacts use short knockback to keep enemies within reach; the final hit pushes them away. Player 2 keeps the blue-grey palette variant. Finishers play their full animation automatically after the last input. Buffer another attack during their last 0.24 seconds to flow directly into the next chain. The ground slam raises the sword, strikes the floor and produces cracks, debris and a shockwave. It damages nearby enemies on the same depth lane once; the longer R R R L chain has the strongest impact.
+- **Ground slams** (R R R L, R R L, R L L, L L L) play automatically: the hero raises the sword and strikes the floor with cracks, debris and a shockwave that hits every nearby enemy on the same depth lane once. R R R L hits the hardest.
+- **Flurry and cross finishers** need repeated quick or heavy presses less than 0.40 seconds apart until the last hit; stop pressing and the combo is interrupted. The flurry chains eight sword cuts, the cross finishers six alternating quick and heavy cuts.
+- Early hits barely push enemies back so they stay within reach; the final hit sends them flying.
+- Near the final hit, a press can buffer the next chain for 0.30 seconds, so you can flow straight into another combo.
 
-Heavy attacks have a visible wind-up, the original blue sword trail and stronger knockback. Each swing damages a given enemy once. Dash can cancel either attack type.
+Each swing damages a given enemy once. Dash can cancel either attack type.
 
-## Training
+## 🎯 Training
 
 Choose **TRAINING** in the main menu, then one or two players. The practice enemy stays in place and never attacks. Its health bar decreases with each hit; after death it respawns at the same spot with full health, so you can practise continuously.
 
@@ -144,7 +158,8 @@ Use **COMBOS** in the arena (keyboard `C` / gamepad `LB`) to show or hide the av
 - **Look at the barrier icon** before you fight: defeating the wrong species won't charge the barrier. Enemies that still charge a barrier carry a small arrow of its colour above their head.
 - **Protect your streak.** Backing off for a second is often worth more than trading hits.
 - **Mana refills on its own** and with every kill. The bar turns blue and *MANA READY* pops up when you can cast again.
-- **Playing as two?** Split up to take enemies from both sides, and agree on who casts the storm: the mana bar is shared.
+- **Playing as two?** Split up to take enemies from both sides, and coordinate your storms: each player has a separate mana bar.
+- **Ground slams for crowds**: they hit every enemy around you on the same lane.
 - **Keep the storm for crowds**, or for when a spider has you in its sights: you're untouchable while casting.
 
 ## 📦 Install
@@ -181,6 +196,26 @@ All the sound effects and the music are generated by a small dependency-free Pyt
 python3 tools/generate_audio.py
 ```
 
+The combo sprite sheets are generated from the files kept under `chatgpt/` (filled prompts, original generations and conversion settings). Rebuild them with:
+
+```bash
+python3 -B chatgpt/generated/prepare_sprites.py
+```
+
+Regression tests run headless:
+
+```bash
+godot --headless --path . res://tests/combat_test.tscn
+godot --headless --path . res://tests/finisher_test.tscn
+godot --headless --path . res://tests/training_test.tscn
+godot --headless --path . res://tests/appearance_test.tscn
+godot --headless --path . res://tests/controls_setup_test.tscn
+godot --headless --path . res://tests/difficulty_test.tscn
+godot --headless --path . res://tests/improvements_test.tscn
+godot --headless --path . res://tests/resource_load_test.tscn
+godot --headless --path . res://tests/debug_menu_test.tscn
+```
+
 ## 🕹️ More from dupot.org
 
 Also on Flathub from the same developer:
@@ -206,13 +241,3 @@ This game is released under the [GNU LGPL v2.1](LICENSE).
 Made with ❤️ and [Godot Engine](https://godotengine.org) by [Michael Bertocchi](https://www.dupot.org/games.html) · [dupot.org](https://www.dupot.org)
 
 </div>
-
-Combat regression tests: `godot --headless --path . res://tests/combat_test.tscn`.
-Training regression tests: `godot --headless --path . res://tests/training_test.tscn`.
-
-Finisher regression tests: `godot --headless --path . res://tests/finisher_test.tscn`.
-
-
-Rebuild the generated combo sheets: `python3 -B chatgpt/generated/prepare_sprites.py`. The filled prompts, original generations and conversion settings are kept under `chatgpt/`.
-
-Appearance regression tests: `godot --headless --path . res://tests/appearance_test.tscn`.

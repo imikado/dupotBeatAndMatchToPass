@@ -8,9 +8,11 @@ const MAX_SPAWN_Y = 196
 const LIFE_BOTTLE_HEAL = 30
 
 const MAX_ENEMY = 5
+const MAX_ENEMY_LATE = 8
 
 # Taille d'une vague : 2-3 ennemis au début, puis plus avec le niveau et la difficulté
 const WAVE_SIZE_MAX = 6
+const WAVE_SIZE_LATE_MAX = 10
 # Décalage vers l'extérieur quand plusieurs ennemis partagent un point d'apparition
 const WAVE_SPOT_SPACING = 25.0
 
@@ -632,9 +634,22 @@ func has_too_much_enemy(enemy_to_spawn_type):
 	for enemy_still_there_loop in get_tree().get_nodes_in_group(Game.GROUP_ENEMY):
 		if enemy_to_spawn_type == enemy_still_there_loop.get_type():
 			current_number += 1
-			if current_number >= MAX_ENEMY:
+			if current_number >= get_enemy_limit():
 				return true
 	return false
+
+
+func get_enemy_limit() -> int:
+	return mini(MAX_ENEMY + maxi(GlobalPlayer.get_level() - 4, 0) / 3, MAX_ENEMY_LATE)
+
+
+func get_wave_size() -> int:
+	var level: int = GlobalPlayer.get_level()
+	if level < 5:
+		var size := clampi(level + GlobalPlayer.get_difficulty() / 2, 2, WAVE_SIZE_MAX - 1)
+		return mini(size + randi_range(0, 1), WAVE_SIZE_MAX)
+	var size := mini(WAVE_SIZE_MAX + (level - 5) / 2, WAVE_SIZE_LATE_MAX)
+	return mini(size + randi_range(0, 1), WAVE_SIZE_LATE_MAX)
 
 
 func get_enemy_by_type(type):
@@ -694,8 +709,7 @@ func build_wave() -> Array:
 		return []
 	types.shuffle()
 
-	var size: int = clampi(GlobalPlayer.get_level() + GlobalPlayer.get_difficulty() / 2, 2, WAVE_SIZE_MAX - 1)
-	size = mini(size + randi_range(0, 1), WAVE_SIZE_MAX)
+	var size := get_wave_size()
 	size = maxi(size, types.size())
 
 	var spots := [_spawnPositionLeft, _spawnPositionLeft2, _spawnPositionRight, _spawnPositionRight2]
@@ -716,22 +730,26 @@ func _on_SpawnTimer_timeout() -> void:
 	start_spawn_timer()
 
 
-func start_spawn_timer() -> void:
-	if _opened_barrier_count >= _total_barrier_count:
-		return
-
-	var delay = SPAWN_DELAY_START
+func get_spawn_delay() -> float:
+	var delay := SPAWN_DELAY_START
 	if _total_wave_number > 8:
 		delay = SPAWN_DELAY_FAST
 	elif _total_wave_number > 4:
 		delay = SPAWN_DELAY_MID
 
-	# Les vagues arrivent plus vite à chaque niveau après le niveau 3 (jusqu'à -40 %)
-	delay *= max(1.0 - 0.1 * GlobalPlayer.get_difficulty(), 0.6)
+	# Progression prolongée après le niveau 4, bornée pour garder des temps de réaction.
+	var difficulty: int = GlobalPlayer.get_difficulty()
+	delay *= maxf(0.9 / (1.0 + 0.14 * maxi(difficulty - 1, 0)), 0.3) if difficulty > 0 else 1.0
 	if GlobalPlayer.two_players:
 		delay *= COOP_SPAWN_DELAY_FACTOR
 
-	_spawnTimer.start(delay)
+	return delay
+
+
+func start_spawn_timer() -> void:
+	if _opened_barrier_count >= _total_barrier_count:
+		return
+	_spawnTimer.start(get_spawn_delay())
 
 
 func _on_ManaTimer_timeout() -> void:

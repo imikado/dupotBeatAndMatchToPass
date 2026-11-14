@@ -48,7 +48,7 @@ func run() -> void:
 		for row in screen.ACTION_ROWS:
 			var button: Button = screen._buttons[row]
 			check(button.visible and button.get_rect().end.y <= 126, "Action is clipped or hidden")
-		check(screen._buttons[screen.ROW_START].size.y > screen._buttons[screen.ROW_BACK].size.y, "Play needs visual priority")
+		check(screen._buttons[screen.ROW_START].get_node("Label").get_theme_color("font_color") == screen.BUTTON_LABEL_SELECTED, "Play must be highlighted initially")
 		await snapshot(scene)
 		screen._input(action("ui_right"))
 		check(screen._row == screen.ROW_TEST, "Grid right should select test")
@@ -63,7 +63,7 @@ func run() -> void:
 		check(not screen._overview.visible, "Overview overlaps editor")
 		await snapshot(scene + "-edit")
 		for row in screen.ACTION_ROWS:
-			check(screen._buttons[row].get_rect().end.y <= 126, "Editor footer overlaps test ground")
+			check(screen._buttons[row].get_rect().end.y <= screen.PANEL_RECT.end.y, "Editor footer exceeds the panel")
 		screen._col = 1 if coop else 0
 		screen._row = screen.ROW_FIRST_KEY + PlayerInput.ACTIONS.find("attack_heavy")
 		screen.activate()
@@ -75,7 +75,7 @@ func run() -> void:
 		check(not screen._capturing and PlayerInput.players[screen.idx(screen._col)].keys.attack_heavy == KEY_P, "Remapping targets the wrong player")
 		screen._buttons[screen.ROW_TEST].pressed.emit()
 		check(screen._test_area.is_testing() and screen._overview.visible and not screen._editor.visible, "Testing should have its own clear layout")
-		check(screen._buttons[screen.ROW_TEST].text == "TERMINER LE TEST", "Testing needs an explicit stop button")
+		check(screen._buttons[screen.ROW_TEST].get_node("Label").text == "TERMINER LE TEST", "Testing needs an explicit stop button")
 		check(not screen._buttons[screen.ROW_START].visible, "Play must not intercept test actions")
 		await snapshot(scene + "-test")
 		key.keycode = KEY_ESCAPE

@@ -57,8 +57,9 @@ func run() -> void:
 		check(dummy.get_life() == 60, "Training damage routing failed")
 		var combo_button: Button
 		for candidate in arena.find_children("*", "Button", true, false):
-			if candidate.text.begins_with("COMBOS"):
-				combo_button = candidate
+			for caption in candidate.get_children():
+				if caption is Label and caption.text.begins_with("COMBOS"):
+					combo_button = candidate
 		check(combo_button != null, "Missing clickable combo button")
 		if combo_button:
 			combo_button.pressed.emit()
@@ -68,6 +69,10 @@ func run() -> void:
 			help_text += label.text + "\n"
 		for recipe_name in CombatChain.RECIPES.values():
 			check(help_text.contains(recipe_name), "Missing combo: " + recipe_name)
+		check(help_text.contains("0.30S") and help_text.contains("0.40S") and not help_text.contains("0.24S"), "Combo instructions use outdated timing")
+		check(arena._feedback_labels.size() == arena.players.size(), "Missing per-player training feedback")
+		player.combo_feedback.emit("CHAIN ACCEPTED")
+		check(arena._feedback_labels[0].text == "P1: CHAIN ACCEPTED", "Training feedback is not visible")
 		arena.toggle_combos()
 		check(not arena.combos_panel.visible, "Combos panel did not close")
 		var keyboard_help := InputEventKey.new()
@@ -101,6 +106,29 @@ func run() -> void:
 			check(dummy.get_life() == 76 and dummy.last_attacker == player2, "Player 2 heavy attack failed")
 		check(dummy.global_position.is_equal_approx(origin), "Enemy drifted from its spawn")
 		check(GlobalPlayer.get_score() == 137, "Training changed campaign score")
+		player.position = Vector2(40, 120)
+		var machine: PlayerStateMachine = player.get_node("StateMachine")
+		machine._change_state("Idle")
+		attack(player, true)
+		attack(player, false)
+		check(arena._feedback_labels[0].text.contains("INPUT BUFFERED"), "Buffered input has no feedback")
+		var feedback_deadline := Time.get_ticks_msec() + 1000
+		while not arena._feedback_labels[0].text.contains("INPUT EXPIRED") and Time.get_ticks_msec() < feedback_deadline:
+			await get_tree().physics_frame
+		check(arena._feedback_labels[0].text.contains("INPUT EXPIRED"), "Early input expiration has no feedback: " + arena._feedback_labels[0].text)
+		await wait_seconds(0.5)
+		machine._change_state("Idle")
+		attack(player, true)
+		while machine.current_state.name == "Attack01" and machine.current_state._elapsed < 0.4:
+			await get_tree().physics_frame
+		attack(player, false)
+		await wait_seconds(0.15)
+		check(arena._feedback_labels[0].text.contains("CHAIN ACCEPTED"), "Successful chain has no feedback")
+		machine.combo_sequence = "RRRR"
+		machine._change_state("Attack04")
+		check(arena._feedback_labels[0].text.contains("KEEP TAPPING"), "Multi-hit requirement is not announced")
+		await wait_seconds(0.5)
+		check(arena._feedback_labels[0].text.contains("COMBO STOPPED"), "Interrupted combo has no feedback")
 		arena.queue_free()
 		await get_tree().process_frame
 	GlobalPlayer.two_players = false

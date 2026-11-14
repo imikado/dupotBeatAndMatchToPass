@@ -32,6 +32,14 @@ func _ready() -> void:
 	_trainingButton.released.connect(goto_training)
 	_highScoresButton.connect("released", Callable(self, "goto_scores"))
 	_settingsButton.connect("released", Callable(self, "goto_settings"))
+	if OS.get_environment("DEBUG") == "1":
+		var debug_button = preload("res://src/UI/menu/menuButton.tscn").instantiate()
+		debug_button.name = "debugButton"
+		debug_button.title = "DEBUG"
+		debug_button.position = Vector2(_playButton.position.x, 133)
+		$Control.add_child(debug_button)
+		debug_button.released.connect(leave.bind("res://src/UI/DebugSelect.tscn"))
+		_buttonList.append(debug_button)
 
 	_buttons_x = _playButton.position.x
 
@@ -66,7 +74,8 @@ func build_best_score_label() -> void:
 	var best = Game.getHighestScore(Game.getHighScoreList())
 	if best <= 0:
 		return
-	build_label("BEST  " + str(int(best)), Vector2(200, 136), 110, Color("ffd34d"))
+	var label_x := 30 if OS.get_environment("DEBUG") == "1" else 200
+	build_label("BEST  " + str(int(best)), Vector2(label_x, 136), 110, Color("ffd34d"))
 
 
 func build_music_label() -> void:

@@ -230,8 +230,9 @@ func stop_catchup_dash() -> void:
 
 # Plus rapide et plus fort à chaque niveau après le niveau 3
 func apply_difficulty(difficulty:int):
-	_walk_speed*=min(1.0 + 0.1 * difficulty, 1.6)
-	_damage=int(round(_damage * min(1.0 + 0.1 * difficulty, 1.5)))
+	var late_difficulty := maxi(difficulty - 1, 0)
+	_walk_speed *= minf(1.0 + 0.1 * difficulty + 0.04 * late_difficulty, 2.2)
+	_damage = roundi(_damage * minf(1.0 + 0.1 * difficulty + 0.05 * late_difficulty, 2.5))
 
 func update_enemy_life(start_value:float, end_value:float)->void:
 
