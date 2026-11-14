@@ -16,6 +16,10 @@ const DIFFICULTY_START_LEVEL = 3
 const REVIVE_LIFE = 50
 # mana gagnée divisée par deux en mode 2 joueurs (deux orages possibles)
 const COOP_MANA_GAIN_FACTOR = 0.5
+# Mana gagnée par kill à l'épée / bonus de combo (pas pour un kill par l'orage)
+# et toutes les 5 s (ManaTimer) ; l'orage en coûte attack_amount_mana
+const MANA_PER_KILL = 0.5
+const MANA_PER_TICK = 0.5
 
 var two_players := false
 
@@ -50,7 +54,10 @@ var mana = START_MANA
 var mana2 = START_MANA
 var _level = 1
 
-var attack_amount_mana = 10
+var attack_amount_mana = 20
+# Attaque lourde : coûte un peu de mana (gratuite à l'entraînement)
+const HEAVY_ATTACK_MANA = 5.0
+var heavy_attack_free := false
 
 var kill_streak = 0
 
@@ -189,6 +196,19 @@ func increment_mana(value, index := 0):
 
 func use_amount_mana(value, index := 0):
 	set_mana(get_mana(index) - value, index)
+
+
+func can_heavy_attack(index := 0) -> bool:
+	return heavy_attack_free or get_mana(index) >= HEAVY_ATTACK_MANA
+
+
+# true si de la mana a réellement été dépensée (effet lumineux)
+func use_heavy_attack_mana(index := 0) -> bool:
+	if heavy_attack_free:
+		return false
+	use_amount_mana(minf(HEAVY_ATTACK_MANA, get_mana(index)), index)
+	Events.player_mana_changed.emit(index)
+	return true
 
 
 func can_use_amount_mana(value, index := 0):

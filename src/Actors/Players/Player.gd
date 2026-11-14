@@ -50,6 +50,9 @@ const DASH_GHOST_COLOR = Color(0.55, 0.75, 1.0, 0.6)
 const ANIM_DASH_POWER = "dash_power"
 const DASH_ATTACK_WINDOW_MS = 130
 const POWER_DAMAGE = 40
+# Réduction globale des dégâts du joueur : sans achat d'attaque à la boutique,
+# chaque coup fait 70 % de sa valeur de base (100 %+ vers le niveau 6 d'attaque)
+const BASE_DAMAGE_FACTOR = 0.7
 const POWER_KNOCKBACK = 28.0
 const POWER_RADIUS = Vector2(24, 12)
 const POWER_COLOR = Color(1.0, 0.85, 0.35)
@@ -88,6 +91,13 @@ var _last_dash_ms := -100000
 var _canvas_modulate: CanvasModulate
 var _aura_particles: CPUParticles2D
 var _aura_light: PointLight2D
+var _sprite_material: ShaderMaterial
+# Lueur de mana de l'attaque lourde : flash bleu du corps, halo et anneau au sol
+const HEAVY_MANA_COLOR = Color(0.35, 0.6, 1.0)
+const HEAVY_MANA_FLASH = 0.55
+const HEAVY_MANA_GLOW_DURATION = 0.35
+var _heavy_glow_tween: Tween
+var _heavy_light: PointLight2D
 var _aura_tween: Tween
 var _lunge_tween: Tween
 var _storm_sky: StormSky
@@ -119,7 +129,7 @@ func _ready() -> void:
 	build_storm_effects()
 
 	Fx.shadow(self, 16).position = Vector2(-1, -1)
-	Fx.character_material(get_node("BodyPivot/AnimatedSprite2D"))
+	_sprite_material = Fx.character_material(get_node("BodyPivot/AnimatedSprite2D"))
 	Fx.cast_shadow(self, get_node("BodyPivot/AnimatedSprite2D"))
 
 
@@ -257,7 +267,7 @@ func took_damage(damage: int):
 # Dégâts de mêlée avec le bonus d'attaque acheté à la boutique
 func attack_damage(base: float) -> int:
 	# arrondi aléatoire : les coups font ~8 points, +5 % arrondi ne changerait rien
-	var value := base * GlobalPlayer.skill_factor(GlobalPlayer.SKILL_ATTACK, player_index)
+	var value := base * BASE_DAMAGE_FACTOR * GlobalPlayer.skill_factor(GlobalPlayer.SKILL_ATTACK, player_index)
 	return int(floor(value)) + (1 if randf() < value - floor(value) else 0)
 
 
@@ -720,6 +730,31 @@ func begin_strike(strike: Dictionary) -> void:
 		_combo_label.text += " " + str(strike.label)
 	_combo_label.modulate = Color("ffd34d") if strike.heavy else Color("a6eaff")
 	_combo_label.show()
+
+
+func spend_heavy_mana() -> void:
+	if GlobalPlayer.use_heavy_attack_mana(player_index):
+		heavy_mana_glow()
+
+
+func heavy_mana_glow() -> void:
+	if _heavy_light == null:
+		_heavy_light = Fx.light(self, HEAVY_MANA_COLOR, 0.6)
+		_heavy_light.position = Vector2(0, -14)
+	_heavy_light.enabled = true
+	if _heavy_glow_tween:
+		_heavy_glow_tween.kill()
+	_sprite_material.set_shader_parameter("flash_color", HEAVY_MANA_COLOR.lightened(0.3))
+	_heavy_glow_tween = create_tween().set_parallel(true)
+	_heavy_glow_tween.tween_method(func(value: float):
+		_sprite_material.set_shader_parameter("flash", value)
+	, HEAVY_MANA_FLASH, 0.0, HEAVY_MANA_GLOW_DURATION)
+	_heavy_light.energy = 1.4
+	_heavy_glow_tween.tween_property(_heavy_light, "energy", 0.0, HEAVY_MANA_GLOW_DURATION)
+	_heavy_glow_tween.chain().tween_callback(func(): _heavy_light.enabled = false)
+	var direction := -1.0 if _bodyPivot.scale.x < 0 else 1.0
+	Fx.burst(get_parent(), global_position + Vector2(direction * 10, -20), HEAVY_MANA_COLOR.lightened(0.4), 6)
+	Fx.ring(get_parent(), global_position, HEAVY_MANA_COLOR, 14.0, 0.3)
 
 
 func strike_impact(strike: Dictionary) -> void:

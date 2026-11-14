@@ -16,6 +16,19 @@ var _near_distance:=10
 var _damage:=10
 const MAX_LIFE=50.0
 var _life:=50.0
+var _max_life:=MAX_LIFE
+
+# Variantes de couleur : même espèce (charge la même barrière), mais plus de vie,
+# plus de dégâts et plus de points / gems. hue : rotation de teinte du sprite
+const VARIANT_NORMAL:=0
+const VARIANT_ELITE:=1
+const VARIANT_CHAMPION:=2
+const VARIANTS:=[
+	{"hue": 0.0, "life": 1.0, "damage": 1.0, "reward": 1},
+	{"hue": 0.42, "life": 1.6, "damage": 1.4, "reward": 2},
+	{"hue": 0.72, "life": 2.3, "damage": 1.8, "reward": 3},
+]
+var _variant:=VARIANT_NORMAL
 var _type= Game.ENEMY_TYPE_LIST.ANT
 var _walk_speed:=15.0
 var _shadow_width:=14
@@ -228,6 +241,28 @@ func stop_catchup_dash() -> void:
 		_catchup_next_ms=Time.get_ticks_msec() + CATCHUP_DASH_COOLDOWN_MS
 	_catchup_dashing=false
 
+# À appeler avant add_child (la barre de vie et la teinte sont réglées dans _ready)
+func apply_variant(variant:int) -> void:
+	_variant=clampi(variant, VARIANT_NORMAL, VARIANTS.size() - 1)
+	var data:Dictionary=VARIANTS[_variant]
+	_max_life=MAX_LIFE * data["life"]
+	_life=_max_life
+	_damage=roundi(_damage * data["damage"])
+
+func get_variant() -> int:
+	return _variant
+
+# Multiplicateur de points et de gems au kill
+func get_reward_factor() -> int:
+	return VARIANTS[_variant]["reward"]
+
+# Couleur de l'espèce décalée comme le sprite (barre de vie, mort, particules)
+func get_variant_color() -> Color:
+	var color:=Fx.enemy_color(_type)
+	if _variant == VARIANT_NORMAL:
+		return color
+	return Color.from_hsv(fposmod(color.h + VARIANTS[_variant]["hue"], 1.0), minf(color.s * 1.3, 1.0), color.v)
+
 # Plus rapide et plus fort à chaque niveau après le niveau 3
 func apply_difficulty(difficulty:int):
 	var late_difficulty := maxi(difficulty - 1, 0)
@@ -302,15 +337,17 @@ func _ready() -> void:
 	_animationPlayer.connect("animation_finished", Callable(_stateMachine, "_on_animation_finished"))
 	_stateMachine.set_state_walk()
 	
-	_enemy_progress_bar.set_max(MAX_LIFE)
+	_enemy_progress_bar.set_max(_max_life)
+	_enemy_progress_bar.value=_max_life
 	_hitBox.connect("body_entered", Callable(self, "_on_HitBox_body_entered"))
 	_timer.connect("timeout", Callable(self, "hide_progressbar"))
 
 	Fx.shadow(self, _shadow_width).position = Vector2(0, -1)
 	_material=Fx.character_material(get_node("BodyPivot/AnimatedSprite2D"))
+	_material.set_shader_parameter("hue_shift", VARIANTS[_variant]["hue"])
 	Fx.cast_shadow(self, get_node("BodyPivot/AnimatedSprite2D"))
 
-	style_life_bar(_enemy_progress_bar, Fx.enemy_color(_type))
+	style_life_bar(_enemy_progress_bar, get_variant_color())
 	Events.actor_struck_by_lightning.connect(_on_struck_by_lightning)
 
 	collision_layer=BODY_LAYER
@@ -606,7 +643,7 @@ func start_death():
 	if _marker:
 		_marker.visible=false
 
-	var color:=ASH_COLOR if _charred else Fx.enemy_color(_type)
+	var color:=ASH_COLOR if _charred else get_variant_color()
 	_material.set_shader_parameter("dissolve_color", color)
 	_material.set_shader_parameter("dissolve_energy", 1.0 if _charred else DISSOLVE_ENERGY)
 	Fx.burst(get_parent(), global_position + Vector2(0, -6), color, DEATH_BURST_AMOUNT)

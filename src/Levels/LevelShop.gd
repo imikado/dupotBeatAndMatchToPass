@@ -66,6 +66,7 @@ func _ready() -> void:
 	door.player_entered.connect(_on_exit_entered)
 
 	Events.player_launch_mana_attack.connect(_on_player_launch_mana_attack)
+	Events.player_mana_changed.connect(_on_player_mana_changed)
 	update_mana_button()
 
 	Sound.play_music()
@@ -94,6 +95,11 @@ func _on_exit_entered(_player_: Player) -> void:
 	_leaving = true
 	Sound.play("menu_select", 0.0)
 	Transition.goto(NEXT_LEVEL)
+
+
+func _on_player_mana_changed(player_index: int) -> void:
+	_hud.update_player_mana(GlobalPlayer.get_mana(player_index), player_index)
+	update_mana_button()
 
 
 func _on_player_launch_mana_attack(player: Player = null) -> void:

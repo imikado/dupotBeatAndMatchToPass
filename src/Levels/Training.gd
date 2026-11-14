@@ -42,6 +42,7 @@ var _feedback_labels: Array[Label] = []
 
 
 func _ready() -> void:
+	GlobalPlayer.heavy_attack_free = true
 	PlayerInput.apply()
 	build_arena()
 	var camera := Camera2D.new()
@@ -289,3 +290,7 @@ func _on_actor_took_damage(actor: Node, damage: int) -> void:
 func _on_actor_took_damage_by_bullet(actor: Node, damage: int, bullet: Node) -> void:
 	_on_actor_took_damage(actor, damage)
 	bullet.explode()
+
+
+func _exit_tree() -> void:
+	GlobalPlayer.heavy_attack_free = false

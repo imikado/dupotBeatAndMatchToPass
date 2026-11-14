@@ -115,6 +115,9 @@ func _handle_interrupt_input(event) -> bool:
 			return true
 		if not current_state.name in [STATE_IDLE, STATE_WALK]:
 			return false
+		if attack_press == CombatChain.HEAVY and not GlobalPlayer.can_heavy_attack(owner.player_index):
+			owner.combo_feedback.emit("NOT ENOUGH MANA")
+			return true
 		combo_sequence = attack_press
 		_change_state(STATE_ATTACK01)
 		return true

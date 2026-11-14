@@ -117,6 +117,7 @@ func _ready() -> void:
 	Events.connect("actor_took_damage_by_bullet", Callable(self, "_on_actor_took_damage_by_bullet"))
 
 	Events.connect("player_launch_mana_attack", Callable(self, "_on_player_launch_mana_attack"))
+	Events.player_mana_changed.connect(_on_player_mana_changed)
 
 	Events.connect("actor_let_item", Callable(self, "_on_actor_let_item"))
 	Events.connect("player_took_lifebottle", Callable(self, "_on_player_took_lifebottle"))
@@ -372,9 +373,14 @@ func _on_SpawnTimer_timeout() -> void:
 
 func _on_ManaTimer_timeout() -> void:
 	for player in _players:
-		GlobalPlayer.increment_mana(1, player.player_index)
+		GlobalPlayer.increment_mana(GlobalPlayer.MANA_PER_TICK, player.player_index)
 		_hud.update_player_mana(GlobalPlayer.get_mana(player.player_index), player.player_index)
 
+	update_mana_button()
+
+
+func _on_player_mana_changed(player_index: int) -> void:
+	_hud.update_player_mana(GlobalPlayer.get_mana(player_index), player_index)
 	update_mana_button()
 
 

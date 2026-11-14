@@ -50,6 +50,15 @@ const WAVE_STAGGER = 0.35
 # (le niveau est rallongé d'autant, voir extend_level)
 const COOP_SPAWN_DELAY_FACTOR = 0.7
 const COOP_BARRIER_GROUP_FACTOR = 1.4
+# Ennemis élites / champions (Enemy.VARIANTS) : niveau d'apparition et chance par ennemi
+const ELITE_START_LEVEL = 4
+const ELITE_CHANCE_START = 0.15
+const ELITE_CHANCE_STEP = 0.07
+const ELITE_CHANCE_MAX = 0.5
+const CHAMPION_START_LEVEL = 7
+const CHAMPION_CHANCE_START = 0.1
+const CHAMPION_CHANCE_STEP = 0.05
+const CHAMPION_CHANCE_MAX = 0.3
 
 @onready var _ysort = get_node("Node2D")
 @onready var _player = get_node("Node2D/Player")
@@ -158,6 +167,7 @@ func _ready() -> void:
 	Events.connect("actor_took_damage_by_bullet", Callable(self, "_on_actor_took_damage_by_bullet"))
 
 	Events.connect("player_launch_mana_attack", Callable(self, "_on_player_launch_mana_attack"))
+	Events.player_mana_changed.connect(_on_player_mana_changed)
 
 	#life bottles
 	Events.connect("player_took_lifebottle", Callable(self, "_on_player_took_lifebottle"))
@@ -489,7 +499,7 @@ func _on_actor_healt_changed(actor: CharacterBody2D, previous_value: float, new_
 
 	if new_value <= 0.0:
 		var multiplier = GlobalPlayer.register_kill()
-		var points = 10 * multiplier
+		var points = 10 * multiplier * actor.get_reward_factor()
 		# la tempête ne se recharge pas avec ses propres victimes ; la mana va au joueur qui a tué
 		increment_score(points, actor.get("last_hit_by_storm") != true, mana_receiver(actor))
 		_hud.update_streak(GlobalPlayer.kill_streak, multiplier)
@@ -498,7 +508,7 @@ func _on_actor_healt_changed(actor: CharacterBody2D, previous_value: float, new_
 		var text_color = Color.WHITE if multiplier == 1 else Color("ffd34d")
 		Fx.floating_text(_specialEffects, "+" + str(points), kill_text_position(actor.global_position + Vector2(0, -24)), text_color)
 		_kill_texts.append(_specialEffects.get_child(-1))
-		Fx.burst(_specialEffects, actor.global_position + Vector2(0, -6), Fx.enemy_color(actor.get_type()))
+		Fx.burst(_specialEffects, actor.global_position + Vector2(0, -6), actor.get_variant_color())
 		Sound.play("enemy_die")
 
 		Game.hit_stop(0.06)
@@ -518,7 +528,7 @@ func _on_actor_healt_changed(actor: CharacterBody2D, previous_value: float, new_
 # Gems du kill au joueur qui l'a tué, moitié pour un kill par l'orage
 func give_gems(actor) -> void:
 	var index := mana_receiver(actor)
-	var amount := GlobalPlayer.gems_for_enemy(actor.get_type(), actor.get("last_hit_by_storm") == true)
+	var amount: int = GlobalPlayer.gems_for_enemy(actor.get_type(), actor.get("last_hit_by_storm") == true) * actor.get_reward_factor()
 	GlobalPlayer.add_gems(amount, index)
 	_hud.update_gems(GlobalPlayer.get_gems(index), index)
 
@@ -621,12 +631,30 @@ func spawn_enemy_on_position(enemy_to_spawn, spawn_position, offset = Vector2.ZE
 
 	enemy_spawn.add_to_group(Game.GROUP_ENEMY)
 	enemy_spawn.setPlayer(nearest_player(pos))
+	enemy_spawn.apply_variant(pick_enemy_variant())
 	enemy_spawn.apply_difficulty(GlobalPlayer.get_difficulty())
 
 	enemy_spawn.set_global_position(pos)
 
 	_ysort.add_child(enemy_spawn)
 	enemy_spawn.set_wanted(true)
+
+
+# Variantes plus fortes : élites (autre couleur) dès le niveau 4, champions dès le niveau 7,
+# de plus en plus fréquentes ensuite
+func pick_enemy_variant() -> int:
+	var level: int = GlobalPlayer.get_level()
+	var roll := randf()
+	if level >= CHAMPION_START_LEVEL:
+		var champion_chance := minf(CHAMPION_CHANCE_START + CHAMPION_CHANCE_STEP * (level - CHAMPION_START_LEVEL), CHAMPION_CHANCE_MAX)
+		if roll < champion_chance:
+			return Enemy.VARIANT_CHAMPION
+		roll -= champion_chance
+	if level >= ELITE_START_LEVEL:
+		var elite_chance := minf(ELITE_CHANCE_START + ELITE_CHANCE_STEP * (level - ELITE_START_LEVEL), ELITE_CHANCE_MAX)
+		if roll < elite_chance:
+			return Enemy.VARIANT_ELITE
+	return Enemy.VARIANT_NORMAL
 
 
 func has_too_much_enemy(enemy_to_spawn_type):
@@ -754,13 +782,18 @@ func start_spawn_timer() -> void:
 
 func _on_ManaTimer_timeout() -> void:
 	for player in _players:
-		increment_mana(player.player_index)
+		increment_mana(player.player_index, GlobalPlayer.MANA_PER_TICK)
 
 
-func increment_mana(player_index := 0) -> void:
-	GlobalPlayer.increment_mana(1, player_index)
+func increment_mana(player_index := 0, amount: float = GlobalPlayer.MANA_PER_KILL) -> void:
+	GlobalPlayer.increment_mana(amount, player_index)
 	_hud.update_player_mana(GlobalPlayer.get_mana(player_index), player_index)
 
+	update_mana_button()
+
+
+func _on_player_mana_changed(player_index: int) -> void:
+	_hud.update_player_mana(GlobalPlayer.get_mana(player_index), player_index)
 	update_mana_button()
 
 

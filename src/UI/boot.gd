@@ -38,13 +38,17 @@ var _load_mutex := Mutex.new()
 # scenes loaded by the thread, in SCENES_TO_PRELOAD order (null when loading failed)
 var _loaded_scenes := []
 var _stop_loading := false
+# web export without thread support (variant/thread_support=false): a Thread never
+# runs there, the scenes are loaded on the main thread, one per frame
+var _use_thread := not OS.has_feature("nothreads")
 
 
 func _ready():
 	build_progress_bar()
 	animate_logo()
 
-	_load_thread.start(load_scenes)
+	if _use_thread and _load_thread.start(load_scenes) != OK:
+		_use_thread = false
 
 
 func load_scenes() -> void:
@@ -113,6 +117,11 @@ func _process(delta: float) -> void:
 
 
 func update_loading() -> void:
+	# main-thread loading: let the first frame (logo + bar) render before loading
+	if not _use_thread and _loaded_scenes.size() < SCENES_TO_PRELOAD.size():
+		if Engine.get_process_frames() > 1:
+			_loaded_scenes.append(load(SCENES_TO_PRELOAD[_loaded_scenes.size()]))
+
 	_load_mutex.lock()
 	var loaded := _loaded_scenes.duplicate()
 	_load_mutex.unlock()
@@ -121,7 +130,8 @@ func update_loading() -> void:
 	if loaded.size() < SCENES_TO_PRELOAD.size():
 		return
 
-	_load_thread.wait_to_finish()
+	if _load_thread.is_started():
+		_load_thread.wait_to_finish()
 	for i in range(loaded.size()):
 		# failed: the scene will be loaded synchronously when needed
 		if loaded[i] is PackedScene:

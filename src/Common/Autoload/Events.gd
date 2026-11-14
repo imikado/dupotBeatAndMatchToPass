@@ -12,6 +12,9 @@ signal actor_health_changed(actor, previous_value, new_value)
 
 signal player_launch_mana_attack(player)
 
+# mana dépensée hors orage (attaque lourde) : le niveau met le HUD à jour
+signal player_mana_changed(player_index)
+
 signal player_took_lifebottle(bottle, player)
 
 signal player_tookadvantage_of_lifebottle(player)

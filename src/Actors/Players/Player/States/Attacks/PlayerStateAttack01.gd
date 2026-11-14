@@ -19,6 +19,8 @@ func enter():
 	_next_hit = 0
 	_strike = CombatChain.strike(owner.get_node("StateMachine").combo_sequence)
 	owner.begin_strike(_strike)
+	if owner.get_node("StateMachine").combo_sequence.ends_with(CombatChain.HEAVY):
+		owner.spend_heavy_mana()
 	if _strike.get("mash", false):
 		owner.combo_feedback.emit("KEEP TAPPING QUICK / HEAVY")
 	var stage: int = owner.get_node("StateMachine").combo_sequence.length()
@@ -36,6 +38,9 @@ func handle_input(_event):
 	if press != "" and _strike.get("mash", false):
 		_last_press = _elapsed
 	if press == "":
+		return
+	if press == CombatChain.HEAVY and not GlobalPlayer.can_heavy_attack(owner.player_index):
+		owner.combo_feedback.emit("NOT ENOUGH MANA")
 		return
 	if _elapsed < float(_strike.input_open):
 		owner.combo_feedback.emit("KEEP TAPPING QUICK / HEAVY" if _strike.get("mash", false) else "TOO EARLY")
