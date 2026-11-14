@@ -4,7 +4,10 @@ const NEXT_SCENE = "res://src/UI/title.tscn"
 
 # heavy scenes loaded in background while the logo is displayed, one after the other:
 # requested all at once, the exported game (binary .scn / .gdc) sometimes deadlocks
-# between loading threads that share resources (stuck on the boot screen)
+# between loading threads that share resources (stuck on the boot screen).
+# A plain Thread calling load() rather than ResourceLoader.load_threaded_request():
+# in Godot 4.7 the threaded API leaves internal load tokens behind
+# ("ObjectDB instances were leaked at exit" when the game is closed)
 const SCENES_TO_PRELOAD = [
 	"res://src/UI/title.tscn",
 	"res://src/UI/menu.tscn",
@@ -12,6 +15,7 @@ const SCENES_TO_PRELOAD = [
 	"res://src/UI/coop_setup.tscn",
 	"res://src/Levels/LevelTemplate.tscn",
 	"res://src/Levels/LevelBonus.tscn",
+	"res://src/Levels/LevelShop.tscn",
 	"res://src/UI/LevelCompleted.tscn",
 	"res://src/UI/GameOver.tscn",
 ]
@@ -29,26 +33,40 @@ var _elapsed := 0.0
 var _progress := 0.0
 var _is_loaded := false
 var _is_leaving := false
-# index in SCENES_TO_PRELOAD of the scene being loaded
-var _loading_index := 0
+var _load_thread := Thread.new()
+var _load_mutex := Mutex.new()
+# scenes loaded by the thread, in SCENES_TO_PRELOAD order (null when loading failed)
+var _loaded_scenes := []
+var _stop_loading := false
 
 
 func _ready():
 	build_progress_bar()
 	animate_logo()
 
-	request_next_scene()
+	_load_thread.start(load_scenes)
 
 
-func request_next_scene() -> void:
-	if _loading_index >= SCENES_TO_PRELOAD.size():
-		_is_loaded = true
-		return
-	var path: String = SCENES_TO_PRELOAD[_loading_index]
-	if ResourceLoader.load_threaded_request(path) != OK:
-		# fallback: the scene will be loaded synchronously when needed
-		_loading_index += 1
-		request_next_scene()
+func load_scenes() -> void:
+	for path in SCENES_TO_PRELOAD:
+		_load_mutex.lock()
+		var stop := _stop_loading
+		_load_mutex.unlock()
+		if stop:
+			return
+		var scene = load(path)
+		_load_mutex.lock()
+		_loaded_scenes.append(scene)
+		_load_mutex.unlock()
+
+
+func _exit_tree() -> void:
+	# game closed during the boot: let the thread finish the scene in progress
+	_load_mutex.lock()
+	_stop_loading = true
+	_load_mutex.unlock()
+	if _load_thread.is_started():
+		_load_thread.wait_to_finish()
 
 
 func build_progress_bar() -> void:
@@ -95,21 +113,20 @@ func _process(delta: float) -> void:
 
 
 func update_loading() -> void:
-	var path: String = SCENES_TO_PRELOAD[_loading_index]
-	var progress_array := []
-	var status = ResourceLoader.load_threaded_get_status(path, progress_array)
-	var current_progress := 0.0
-	if status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
-		if progress_array.size() > 0:
-			current_progress = progress_array[0]
-	else:
-		if status == ResourceLoader.THREAD_LOAD_LOADED:
-			Transition.cache_scene(path, ResourceLoader.load_threaded_get(path))
-		# failed: the scene will be loaded synchronously when needed
-		_loading_index += 1
-		request_next_scene()
+	_load_mutex.lock()
+	var loaded := _loaded_scenes.duplicate()
+	_load_mutex.unlock()
 
-	_progress = (_loading_index + current_progress) / SCENES_TO_PRELOAD.size()
+	_progress = float(loaded.size()) / SCENES_TO_PRELOAD.size()
+	if loaded.size() < SCENES_TO_PRELOAD.size():
+		return
+
+	_load_thread.wait_to_finish()
+	for i in range(loaded.size()):
+		# failed: the scene will be loaded synchronously when needed
+		if loaded[i] is PackedScene:
+			Transition.cache_scene(SCENES_TO_PRELOAD[i], loaded[i])
+	_is_loaded = true
 
 
 func _input(event: InputEvent) -> void:

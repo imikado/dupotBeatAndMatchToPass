@@ -9,6 +9,7 @@ const GROUP_PLAYER := "player"
 const COOP_COLORS := [Color("7fdbff"), Color("ff9f43")]
 const COOP_OUTLINES := [Color(0.05, 0.08, 0.22), Color(0.25, 0.06, 0.04)]
 
+const SPRITE_POSITION := Vector2(-1, -29)
 const MAX_LIFE = 100.0
 var _life := 100.0
 
@@ -28,7 +29,7 @@ const STORM_MIN_SPACING = 20.0
 const STORM_MAX_DELAY = 0.25
 # éclair qui monte de la pointe de l'épée levée vers les nuages, avant que les
 # éclairs ne redescendent (pointe : image 3 de attacking_mana01, en local du BodyPivot)
-const SWORD_TIP = Vector2(-1, -44)
+const SWORD_TIP = Vector2(-1, -36)
 const SWORD_BEAM_COLOR = Color(0.6, 0.85, 1.0)
 const SWORD_BEAM_SKY = 16.0
 const SWORD_BEAM_RISE = 0.08
@@ -44,7 +45,19 @@ const DASH_COOLDOWN_MS = 450
 const DASH_GHOST_COUNT = 3
 const DASH_GHOST_COLOR = Color(0.55, 0.75, 1.0, 0.6)
 
-var _damage = 10
+# attaque en puissance (esquive + attaque)
+const ANIM_DASH_POWER = "dash_power"
+const DASH_ATTACK_WINDOW_MS = 130
+const POWER_DAMAGE = 40
+const POWER_KNOCKBACK = 28.0
+const POWER_RADIUS = Vector2(24, 12)
+const POWER_COLOR = Color(1.0, 0.85, 0.35)
+
+var _damage = 8
+var _strike: Dictionary = {}
+var _combo_hit_index := -1
+var _struck_bodies := {}
+var _combo_label: Label
 
 #onready var _animationTree := get_node("AnimationTree")
 @onready var _camera := get_node("Camera2D")
@@ -69,9 +82,9 @@ var _is_invincible := false
 var _is_dashing := false
 var _last_dash_ms := -100000
 
+# CanvasModulate partagé entre les joueurs en coop ; ses metas portent l'état commun :
+# "storm_count" (orages actifs), "tint_tween" (teinte en cours), "parallax_layers" (couleurs d'origine)
 var _canvas_modulate: CanvasModulate
-var _parallax_layers := {}
-var _tint_tween: Tween
 var _aura_particles: CPUParticles2D
 var _aura_light: PointLight2D
 var _aura_tween: Tween
@@ -87,6 +100,7 @@ var _is_coop := false
 
 
 func _ready() -> void:
+	build_melee_animations()
 	add_to_group(GROUP_PLAYER)
 	# actions du joueur seul (setup_coop les remplace en mode 2 joueurs)
 	_input_prefix = PlayerInput.prefix(PlayerInput.SOLO)
@@ -105,6 +119,7 @@ func _ready() -> void:
 
 	Fx.shadow(self, 16).position = Vector2(-1, -1)
 	Fx.character_material(get_node("BodyPivot/AnimatedSprite2D"))
+	Fx.cast_shadow(self, get_node("BodyPivot/AnimatedSprite2D"))
 
 
 # Nom de l'action pour ce joueur (« solo_attack » en solo, « p2_attack » pour le joueur 2)
@@ -139,11 +154,12 @@ func setup_coop(index: int, shared_camera: Camera2D) -> void:
 	tag.add_theme_color_override("font_outline_color", Color.BLACK)
 	tag.add_theme_constant_override("outline_size", 2)
 	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	tag.size = Vector2(20, 8)
-	tag.position = Vector2(-10, -46)
 	tag.modulate.a = 0.85
 	tag.name = "CoopTag"
+	# Taille fixée après add_child : hors de l'arbre le Label se dimensionne avec la police par défaut
 	add_child(tag)
+	tag.size = Vector2(20, 14)
+	tag.position = Vector2(-10, -46)
 
 
 # Coop : joueur tombé, les ennemis l'ignorent et les autres le traversent
@@ -225,7 +241,8 @@ func took_damage(damage: int):
 	if _is_invincible or _is_dashing or _life <= 0 or _state == STATE_ATTACK_MANA01:
 		return
 
-	updateLife(_life - damage)
+	var resistance := minf(GlobalPlayer.SKILL_BONUS_PER_LEVEL * GlobalPlayer.skill_level(GlobalPlayer.SKILL_RESISTANCE, player_index), 0.9)
+	updateLife(_life - damage * (1.0 - resistance))
 	if _life <= 0:
 		return
 
@@ -234,6 +251,17 @@ func took_damage(damage: int):
 	Fx.squash(_bodyPivot, Vector2(1.25, 0.8), 0.2)
 	shake_camera(4.0, 0.25)
 	start_invincibility()
+
+
+# Dégâts de mêlée avec le bonus d'attaque acheté à la boutique
+func attack_damage(base: float) -> int:
+	# arrondi aléatoire : les coups font ~8 points, +5 % arrondi ne changerait rien
+	var value := base * GlobalPlayer.skill_factor(GlobalPlayer.SKILL_ATTACK, player_index)
+	return int(floor(value)) + (1 if randf() < value - floor(value) else 0)
+
+
+func move_speed_factor() -> float:
+	return GlobalPlayer.skill_factor(GlobalPlayer.SKILL_SPEED, player_index)
 
 
 func start_invincibility():
@@ -272,6 +300,76 @@ func dash_end() -> void:
 	_last_dash_ms = Time.get_ticks_msec()
 
 
+# appui sur attaque juste après la fin d'une esquive
+func just_dashed() -> bool:
+	return Time.get_ticks_msec() - _last_dash_ms <= DASH_ATTACK_WINDOW_MS
+
+
+func power_attack_begin() -> void:
+	_strike = {"knockback": POWER_KNOCKBACK, "power": true}
+	_struck_bodies.clear()
+	_damage = POWER_DAMAGE
+	Fx.squash(_bodyPivot, Vector2(0.8, 1.2), 0.08)
+	Sound.play("swing", 0.03, 2.0, 0.55)
+	_bodyPivot.modulate = Color(1.4, 1.25, 0.9)
+
+
+func power_attack_rush() -> void:
+	_is_dashing = true
+	Fx.squash(_bodyPivot, Vector2(1.35, 0.8), 0.18)
+	dust()
+	var direction := -1.0 if _bodyPivot.scale.x < 0 else 1.0
+	var cut := preload("res://src/Common/Effects/SwordCut.gd").new()
+	cut.kind = "thrust"
+	cut.facing = direction
+	add_child(cut)
+	var tween := create_tween()
+	for i in range(4):
+		tween.tween_callback(spawn_dash_ghost)
+		tween.tween_interval(0.045)
+
+
+# touche une seule fois chaque ennemi devant le joueur pendant la ruée
+func power_attack_hit() -> void:
+	var direction := -1.0 if _bodyPivot.scale.x < 0 else 1.0
+	var center := global_position + Vector2(direction * 14, 0)
+	for body in get_tree().get_nodes_in_group(Game.GROUP_ENEMY) + get_tree().get_nodes_in_group(Game.GROUP_BONUSACTOR):
+		if not is_instance_valid(body) or not body is Node2D:
+			continue
+		if _struck_bodies.has(body.get_instance_id()):
+			continue
+		if ((body.global_position - center) / POWER_RADIUS).length_squared() > 1.0:
+			continue
+		_struck_bodies[body.get_instance_id()] = true
+		body.last_attacker = self
+		if body.is_in_group(Game.GROUP_ENEMY):
+			body.set("last_hit_by_storm", false)
+			Events.emit_signal("actor_took_damage", body, attack_damage(POWER_DAMAGE))
+			Fx.burst(get_parent(), body.global_position + Vector2(0, -12), POWER_COLOR, 12)
+			if _struck_bodies.size() == 1:
+				Sound.play("hit", 0.03, 2.0, 0.7)
+				Game.hit_stop(0.06)
+				shake_camera(3.0, 0.15)
+		elif body.can_let_item():
+			body.let_item(global_position)
+			Events.emit_signal("actor_let_item", body)
+
+
+func power_attack_recover() -> void:
+	_is_dashing = false
+	Fx.squash(_bodyPivot, Vector2(1.1, 0.92), 0.12)
+	dust()
+
+
+func power_attack_end() -> void:
+	_is_dashing = false
+	_last_dash_ms = Time.get_ticks_msec()
+	_bodyPivot.modulate = Color.WHITE
+	_strike = {}
+	get_node("BodyPivot/AnimatedSprite2D").position = SPRITE_POSITION
+	_hitBox.set_deferred("disabled", true)
+
+
 # image rémanente bleutée qui s'efface sur place
 func spawn_dash_ghost() -> void:
 	var sprite: AnimatedSprite2D = get_node("BodyPivot/AnimatedSprite2D")
@@ -281,6 +379,7 @@ func spawn_dash_ghost() -> void:
 	ghost.offset = sprite.offset
 	ghost.flip_h = sprite.flip_h
 	ghost.modulate = DASH_GHOST_COLOR
+	Fx.character_material(ghost).set_shader_parameter("outline_color", DASH_GHOST_COLOR.darkened(0.6))
 	# dans le conteneur trié en y, juste avant le joueur : dessinée derrière lui
 	get_parent().add_child(ghost)
 	get_parent().move_child(ghost, get_index())
@@ -311,7 +410,12 @@ func dust() -> void:
 
 
 func shake_camera(strength: float, duration: float):
+	# une seule secousse à la fois par caméra (partagée en coop)
+	var previous = _camera.get_meta("shake_tween") if _camera.has_meta("shake_tween") else null
+	if previous is Tween and previous.is_valid():
+		previous.kill()
 	var tween = create_tween()
+	_camera.set_meta("shake_tween", tween)
 	var steps = int(duration / 0.05)
 	for i in range(steps):
 		var decay = 1.0 - float(i) / steps
@@ -349,23 +453,31 @@ func set_camera_limit_rect(referenceRect: ReferenceRect):
 
 
 func _on_HitBox_body_entered(body: Node) -> void:
+	if _strike.get("finisher", false):
+		return
+	if _struck_bodies.has(body.get_instance_id()):
+		return
+	_struck_bodies[body.get_instance_id()] = true
 	if body.is_in_group(Game.GROUP_ENEMY):
 		body.last_attacker = self
-		Events.emit_signal("actor_took_damage", body, _damage)
+		body.set("last_hit_by_storm", false)
+		Events.emit_signal("actor_took_damage", body, attack_damage(_damage))
+		if _strike.get("heavy", false) and _struck_bodies.size() == 1:
+			Game.hit_stop(0.045)
+			shake_camera(1.2, 0.1)
 	elif body.is_in_group(Game.GROUP_BONUSACTOR):
 		body.last_attacker = self
 		if body.can_let_item():
 			body.let_item(global_position)
 			Events.emit_signal("actor_let_item", body)
-			print("hit bonusactor")
-	pass  # Replace with function body.
+	elif body.has_method("on_player_hit"):
+		body.on_player_hit(self)
 
 
 func mana_cast_begin() -> void:
+	if not _storm_active:
+		_canvas_modulate.set_meta("storm_count", _canvas_modulate.get_meta("storm_count", 0) + 1)
 	_storm_active = true
-	_parallax_layers.clear()
-	for layer in get_tree().root.find_children("*", "ParallaxLayer", true, false):
-		_parallax_layers[layer] = layer.modulate
 	tint_world(STORM_DARK, 0.3)
 
 	if is_instance_valid(_storm_sky):
@@ -384,8 +496,12 @@ func mana_cast_begin() -> void:
 
 
 func mana_cast_end() -> void:
+	if _storm_active:
+		_canvas_modulate.set_meta("storm_count", maxi(_canvas_modulate.get_meta("storm_count", 0) - 1, 0))
 	_storm_active = false
-	tint_world(Color.WHITE, 0.4)
+	# coop : le monde reste sombre tant que l'autre joueur est en orage
+	if _canvas_modulate.get_meta("storm_count", 0) == 0:
+		tint_world(Color.WHITE, 0.4)
 
 	if is_instance_valid(_storm_sky):
 		_storm_sky.close()
@@ -402,15 +518,34 @@ func mana_cast_end() -> void:
 # darken or light up the whole world (play area and parallax background)
 func tint_world(color: Color, duration: float, tween: Tween = null) -> Tween:
 	if tween == null:
-		if _tint_tween:
-			_tint_tween.kill()
-		_tint_tween = create_tween()
-		tween = _tint_tween
+		tween = new_tint_tween()
 	tween.tween_property(_canvas_modulate, "color", color, duration)
-	for layer in _parallax_layers:
+	var layers := parallax_layers()
+	for layer in layers:
 		if is_instance_valid(layer):
-			tween.parallel().tween_property(layer, "modulate", _parallax_layers[layer] * color, duration)
+			tween.parallel().tween_property(layer, "modulate", layers[layer] * color, duration)
 	return tween
+
+
+# Teinte partagée : arrête celle en cours (y compris celle de l'autre joueur)
+func new_tint_tween() -> Tween:
+	var previous = _canvas_modulate.get_meta("tint_tween", null)
+	if previous is Tween and previous.is_valid():
+		previous.kill()
+	var tween := create_tween()
+	_canvas_modulate.set_meta("tint_tween", tween)
+	return tween
+
+
+# Couches de parallaxe et leur couleur d'origine, relevées une seule fois
+# (au premier orage, monde encore clair)
+func parallax_layers() -> Dictionary:
+	if not _canvas_modulate.has_meta("parallax_layers"):
+		var layers := {}
+		for layer in get_tree().root.find_children("*", "ParallaxLayer", true, false):
+			layers[layer] = layer.modulate
+		_canvas_modulate.set_meta("parallax_layers", layers)
+	return _canvas_modulate.get_meta("parallax_layers")
 
 
 # lightning flash on a real discharge: full flash for the first bolt of a salvo,
@@ -418,17 +553,15 @@ func tint_world(color: Color, duration: float, tween: Tween = null) -> Tween:
 func storm_flash(strong: bool = true) -> void:
 	if not _storm_active:
 		return
-	if _tint_tween:
-		_tint_tween.kill()
-	_tint_tween = create_tween()
+	var tween := new_tint_tween()
 	if strong:
-		tint_world(STORM_FLASH, 0.02, _tint_tween)
-		tint_world(STORM_DARK, 0.05, _tint_tween)
-		tint_world(STORM_FLASH_SOFT, 0.02, _tint_tween)
-		tint_world(STORM_DARK, 0.3, _tint_tween)
+		tint_world(STORM_FLASH, 0.02, tween)
+		tint_world(STORM_DARK, 0.05, tween)
+		tint_world(STORM_FLASH_SOFT, 0.02, tween)
+		tint_world(STORM_DARK, 0.3, tween)
 	else:
-		tint_world(STORM_FLASH_SOFT, 0.02, _tint_tween)
-		tint_world(STORM_DARK, 0.2, _tint_tween)
+		tint_world(STORM_FLASH_SOFT, 0.02, tween)
+		tint_world(STORM_DARK, 0.2, tween)
 
 
 func storm_impact() -> void:
@@ -550,9 +683,239 @@ func is_storming() -> bool:
 
 
 func is_combo():
-	if _state in [STATE_ATTACK02, STATE_ATTACK03, STATE_ATTACK04]:
-		return true
-	return false
+	return not _strike.is_empty() and _stateMachine.combo_sequence.length() > 1
+
+
+func melee_knockback() -> float:
+	if _strike.get("finisher", false) and not _strike.get("slam", false):
+		if _combo_hit_index < _strike.hits.size() - 1:
+			return 2.0
+	return float(_strike.get("knockback", 4.0))
+
+
+func begin_strike(strike: Dictionary) -> void:
+	if strike.heavy and not strike.finisher:
+		var sprite: AnimatedSprite2D = get_node("BodyPivot/AnimatedSprite2D")
+		var incoming := sprite.sprite_frames.get_frame_texture(sprite.animation, sprite.frame)
+		sprite.sprite_frames.set_frame("attacking_heavy", 0, incoming)
+	_combo_hit_index = -1
+	_strike = strike
+	_damage = strike.damage
+	_struck_bodies.clear()
+	velocity = Vector2.ZERO
+	_hitBox.position.x = 20.0 if strike.heavy else 16.0
+	if _combo_label == null:
+		_combo_label = Label.new()
+		_combo_label.add_theme_font_override("font", Fx.FONT)
+		_combo_label.add_theme_font_size_override("font_size", 5)
+		_combo_label.add_theme_constant_override("outline_size", 2)
+		_combo_label.add_theme_color_override("font_outline_color", Color.BLACK)
+		_combo_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_combo_label.position = Vector2(-55, -56)
+		_combo_label.size = Vector2(110, 10)
+		add_child(_combo_label)
+	_combo_label.text = _stateMachine.combo_sequence.replace("H", "L")
+	if strike.finisher:
+		_combo_label.text += " " + str(strike.label)
+	_combo_label.modulate = Color("ffd34d") if strike.heavy else Color("a6eaff")
+	_combo_label.show()
+
+
+func strike_impact(strike: Dictionary) -> void:
+	attack_lunge(strike.lunge, Vector2(1.25, 0.85) if strike.heavy else Vector2(1.12, 0.94))
+	Sound.play("swing", 0.03, 1.5 if strike.heavy else 0.0, 0.7 if strike.heavy else 1.15)
+	if strike.heavy:
+		dust()
+
+
+func combo_impact(strike: Dictionary, hit_index: int) -> void:
+	_combo_hit_index = hit_index
+	var final_hit: bool = hit_index == strike.hits.size() - 1
+	var connected := false
+	var direction := -1.0 if _bodyPivot.scale.x < 0 else 1.0
+	var center := global_position + Vector2(direction * 18, 0)
+	var radius: Vector2 = strike.radius
+	_struck_bodies.clear()
+	if strike.slam:
+		var effect := preload("res://src/Common/Effects/GroundImpact.gd").new()
+		effect.name = "GroundImpact"
+		effect.radius = radius
+		get_parent().add_child(effect)
+		effect.global_position = center.round()
+		Fx.dust(get_parent(), center, -1)
+		Fx.dust(get_parent(), center, 1)
+		Sound.play("hit", 0.03, 3.0, 0.6)
+		shake_camera(5.0, 0.25)
+		Game.hit_stop(0.07)
+		Fx.squash(_bodyPivot, Vector2(1.3, 0.75), 0.20)
+	else:
+		var heavy_cut: bool = strike.heavy_cuts[hit_index]
+		if _combo_label:
+			_combo_label.text = "%s %s %d/%d" % [_stateMachine.combo_sequence.replace("H", "L"), str(strike.label), hit_index + 1, strike.hits.size()]
+			_combo_label.modulate = Color("ffd34d") if heavy_cut else Color("a6eaff")
+		var cut := preload("res://src/Common/Effects/SwordCut.gd").new()
+		cut.kind = strike.cuts[hit_index]
+		cut.facing = direction
+		get_parent().add_child(cut)
+		cut.global_position = global_position.round()
+		attack_lunge(4.0 if final_hit else 2.0, Vector2(1.04, 0.98))
+		Sound.play("swing", 0.02, 1.5 if heavy_cut else 0.0, 0.75 if heavy_cut else 1.15 + hit_index * 0.05)
+		spawn_dash_ghost()
+	for enemy in get_tree().get_nodes_in_group(Game.GROUP_ENEMY):
+		if not is_instance_valid(enemy) or not enemy is Node2D:
+			continue
+		var offset: Vector2 = (enemy.global_position - center) / radius
+		if offset.length_squared() > 1.0 or _struck_bodies.has(enemy.get_instance_id()):
+			continue
+		_struck_bodies[enemy.get_instance_id()] = true
+		enemy.last_attacker = self
+		enemy.set("last_hit_by_storm", false)
+		connected = true
+		Events.emit_signal("actor_took_damage", enemy, attack_damage(int(strike.hit_damage[hit_index]) if strike.has("hit_damage") else int(strike.damage)))
+	if connected and final_hit and not strike.slam:
+		shake_camera(2.0, 0.1)
+		Game.hit_stop(0.035)
+	elif connected and not strike.slam and strike.heavy_cuts[hit_index]:
+		shake_camera(1.0, 0.08)
+		Game.hit_stop(0.015)
+
+
+func end_strike() -> void:
+	get_node("BodyPivot/AnimatedSprite2D").position = SPRITE_POSITION
+	_hitBox.set_deferred("disabled", true)
+	_hitBox.position.x = 16.0
+	if _lunge_tween:
+		_lunge_tween.kill()
+	_strike = {}
+	if _combo_label:
+		_combo_label.hide()
+
+
+func build_melee_animations() -> void:
+	var sprite: AnimatedSprite2D = get_node("BodyPivot/AnimatedSprite2D")
+	sprite.sprite_frames = sprite.sprite_frames.duplicate()
+	var frames := sprite.sprite_frames
+	frames.add_animation("attacking_heavy")
+	frames.set_animation_loop("attacking_heavy", false)
+	var poses := [
+		["attacking01", 0],
+		["attacking_mana01", 1],
+		["attacking_mana01", 2],
+		["attacking04", 2],
+		["attacking04", 3],
+		["attacking01", 0],
+	]
+	for pose in poses:
+		frames.add_frame("attacking_heavy", frames.get_frame_texture(pose[0], pose[1]))
+	var animation := Animation.new()
+	animation.length = 0.70
+	var frame_track := animation.add_track(Animation.TYPE_VALUE)
+	animation.track_set_path(frame_track, "BodyPivot/AnimatedSprite2D:frame")
+	animation.value_track_set_update_mode(frame_track, Animation.UPDATE_DISCRETE)
+	var times := [0.0, 0.10, 0.22, 0.38, 0.46, 0.58]
+	for i in range(6):
+		animation.track_insert_key(frame_track, times[i], i)
+	var pose_track := animation.add_track(Animation.TYPE_VALUE)
+	animation.track_set_path(pose_track, "BodyPivot/AnimatedSprite2D:animation")
+	animation.value_track_set_update_mode(pose_track, Animation.UPDATE_DISCRETE)
+	animation.track_insert_key(pose_track, 0.0, "attacking_heavy")
+	var hit_track := animation.add_track(Animation.TYPE_VALUE)
+	animation.track_set_path(hit_track, "BodyPivot/HitBox/CollisionShape2D:disabled")
+	animation.value_track_set_update_mode(hit_track, Animation.UPDATE_DISCRETE)
+	animation.track_insert_key(hit_track, 0.0, true)
+	animation.track_insert_key(hit_track, 0.38, false)
+	animation.track_insert_key(hit_track, 0.51, true)
+	var animator: AnimationPlayer = get_node("BodyPivot/AnimationPlayer")
+	animator.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_PHYSICS
+	var library: AnimationLibrary = animator.get_animation_library("").duplicate()
+	animator.remove_animation_library("")
+	animator.add_animation_library("", library)
+	library.add_animation("attacking_heavy_right", animation)
+	var flurry_poses: Array = []
+	var cross_poses: Array = []
+	add_combo_strip(frames, "cross", 8)
+	add_combo_strip(frames, "followups", 8)
+	var flurry_segments := [
+		["cross_sheet", [4, 5, 6, 7]],
+		["followups_sheet", [0, 1, 2, 3]],
+		["followups_sheet", [3, 2, 1, 0]],
+		["cross_sheet", [0, 1, 2, 3]],
+		["cross_sheet", [4, 5, 6, 7]],
+		["cross_sheet", [7, 6, 5, 4]],
+		["cross_sheet", [4, 5, 6, 7]],
+		["followups_sheet", [4, 5, 6, 7]],
+	]
+	var cross_segments := [
+		["cross_sheet", [0, 1, 2, 3]],
+		["cross_sheet", [4, 5, 6, 7]],
+		["followups_sheet", [0, 1, 2, 3]],
+		["followups_sheet", [3, 2, 1, 0]],
+		["cross_sheet", [7, 6, 5, 4]],
+		["cross_sheet", [4, 5, 6, 7]],
+	]
+	for segment in flurry_segments:
+		for index in segment[1]:
+			flurry_poses.append([segment[0], index])
+	for segment in cross_segments:
+		for index in segment[1]:
+			cross_poses.append([segment[0], index])
+	add_combo_animation(library, frames, "combo_flurry", flurry_poses,
+		CombatChain.FLURRY_TIMES, CombatChain.FLURRY_DURATION)
+	add_combo_animation(library, frames, "combo_cross", cross_poses,
+		CombatChain.CROSS_TIMES, CombatChain.CROSS_DURATION)
+	add_combo_animation(library, frames, "combo_slam", [
+		["attacking01", 0], ["attacking_mana01", 1], ["attacking_mana01", 2],
+		["attacking_mana01", 2], ["attacking01", 2], ["attacking04", 2],
+		["attacking04", 2], ["attacking04", 3],
+	], [0.0, 0.12, 0.25, 0.40, 0.50, 0.56, 0.78, 0.94], 1.05)
+	add_combo_animation(library, frames, ANIM_DASH_POWER, [
+		["attacking01", 0], ["attacking_mana01", 1], ["followups_sheet", 4],
+		["followups_sheet", 5], ["followups_sheet", 6], ["followups_sheet", 7],
+	], [0.0, 0.04, 0.08, 0.13, 0.22, 0.36], 0.55)
+
+
+func add_combo_strip(frames: SpriteFrames, kind: String, count: int) -> void:
+	var folder := "Player2" if scene_file_path.ends_with("Player2.tscn") else "Player"
+	var sheet: Texture2D = load("res://src/Actors/Players/%s/combo/player-combo-%s.png" % [folder, kind])
+	frames.add_animation(kind + "_sheet")
+	frames.set_animation_loop(kind + "_sheet", false)
+	for i in range(count):
+		var atlas := AtlasTexture.new()
+		atlas.atlas = sheet
+		atlas.region = Rect2(i * 64, 0, 64, 64)
+		frames.add_frame(kind + "_sheet", atlas)
+
+
+func add_combo_animation(library: AnimationLibrary, frames: SpriteFrames, name_: String, poses: Array, times: Array, duration: float) -> void:
+	frames.add_animation(name_)
+	frames.set_animation_loop(name_, false)
+	for pose in poses:
+		frames.add_frame(name_, frames.get_frame_texture(pose[0], pose[1]))
+	var animation := Animation.new()
+	animation.length = duration
+	for property in ["frame", "animation"]:
+		var track := animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(track, "BodyPivot/AnimatedSprite2D:" + property)
+		animation.value_track_set_update_mode(track, Animation.UPDATE_DISCRETE)
+		if property == "frame":
+			for i in range(times.size()):
+				animation.track_insert_key(track, times[i], i)
+		else:
+			animation.track_insert_key(track, 0.0, name_)
+	var hit_track := animation.add_track(Animation.TYPE_VALUE)
+	animation.track_set_path(hit_track, "BodyPivot/HitBox/CollisionShape2D:disabled")
+	animation.track_insert_key(hit_track, 0.0, true)
+	if name_ == "combo_slam":
+		var jump_track := animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(jump_track, "BodyPivot/AnimatedSprite2D:position")
+		animation.value_track_set_update_mode(jump_track, Animation.UPDATE_DISCRETE)
+		for key in [[0.0, 0], [0.25, -5], [0.40, -8], [0.50, -4], [0.56, 0]]:
+			animation.track_insert_key(jump_track, key[0], SPRITE_POSITION + Vector2(0, key[1]))
+	else:
+		var anchor_track := animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(anchor_track, "BodyPivot/AnimatedSprite2D:position")
+		animation.track_insert_key(anchor_track, 0.0, SPRITE_POSITION)
+	library.add_animation(name_, animation)
 
 
 func get_state():

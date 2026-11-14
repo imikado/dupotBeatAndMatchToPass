@@ -185,6 +185,10 @@ func hide_impact():
 
 func _on_HitBox_body_entered(body: Node) -> void:
 	if body.is_in_group(Game.GROUP_ENEMY):
+		# kill par l'orage : moitié moins de gems, au joueur qui l'a lancé
+		body.set("last_hit_by_storm", true)
+		if owner is Player:
+			body.last_attacker = owner
 		Events.emit_signal("actor_took_damage",body,_damage)
 		Events.emit_signal("actor_struck_by_lightning",body)
 	pass # Replace with function body.

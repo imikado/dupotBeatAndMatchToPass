@@ -8,6 +8,17 @@ extends Node2D
 @export var tint := Color.WHITE    # multiplies every parallax layer (other mood for the bonus level)
 @export var star_count := 15
 @export var cloud_speed := 2.0     # pixels per second
+@export_enum("Automatic:-1", "Forest:0", "Autumn:1", "Marsh:2", "Pines:3") var biome: int = -1
+
+const BIOME_TEXTURES = [
+	preload("res://src/Levels/LevelTemplate/background-trees-up.png"),
+	preload("res://src/Levels/ForestBackground/biomes/autumn.png"),
+	preload("res://src/Levels/ForestBackground/biomes/marsh.png"),
+	preload("res://src/Levels/ForestBackground/biomes/pines.png"),
+]
+const BIOME_FOG = [Color("0a1926"), Color("30202b"), Color("102c30"), Color("192840")]
+const BIOME_SKY = [Color("1c405a"), Color("65404b"), Color("28514c"), Color("39516c")]
+const BIOME_GROUND = [Color.WHITE, Color("cbb18e"), Color("8db8a6"), Color("a3b5cf")]
 
 const MIRROR := 620.0
 const STAR_COLORS = [Color(0.85, 0.9, 1.0), Color(0.95, 0.92, 0.8), Color(0.7, 0.8, 1.0)]
@@ -21,6 +32,7 @@ var _cloud_x := 0.0
 
 
 func _ready() -> void:
+	_apply_biome()
 	for layer in find_children("*", "ParallaxLayer", true, false):
 		layer.modulate *= tint
 	var rng := RandomNumberGenerator.new()
@@ -28,6 +40,31 @@ func _ready() -> void:
 	_moon.texture = _make_moon()
 	_cloudsSprite.texture = _make_clouds(rng)
 	_make_stars(rng)
+
+
+func _apply_biome() -> void:
+	var index := biome
+	if index < 0:
+		index = posmod(int(GlobalPlayer.get_level()) - 1, BIOME_TEXTURES.size())
+	index = clampi(index, 0, BIOME_TEXTURES.size() - 1)
+	if index == 0:
+		return
+	for layer_name in ["TreesFar", "TreesMid", "TreesNear"]:
+		var tree := get_node("ParallaxBackground/" + layer_name + "/trees") as Sprite2D
+		tree.texture = BIOME_TEXTURES[index]
+		var shader_material := tree.material.duplicate() as ShaderMaterial
+		shader_material.set_shader_parameter("fog_color", BIOME_FOG[index])
+		tree.material = shader_material
+	var sky := $ParallaxBackground/Sky/sky as Sprite2D
+	var sky_texture := sky.texture.duplicate(true) as GradientTexture2D
+	for i in sky_texture.gradient.get_point_count():
+		var amount := float(i) / float(sky_texture.gradient.get_point_count() - 1)
+		sky_texture.gradient.set_color(i, BIOME_FOG[index].darkened(0.65).lerp(BIOME_SKY[index], amount))
+	sky.texture = sky_texture
+	$ParallaxBackground2/Brushes/brushes.modulate = BIOME_GROUND[index]
+	var ground := get_parent().get_node_or_null("ground") as CanvasItem
+	if ground:
+		ground.modulate = BIOME_GROUND[index]
 
 
 func _process(delta: float) -> void:

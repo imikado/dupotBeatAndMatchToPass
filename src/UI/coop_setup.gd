@@ -1,15 +1,8 @@
 extends Node2D
 
-# Écran des contrôles, avant la partie : coop_setup.tscn (2 joueurs) et
-# solo_setup.tscn (1 joueur, two_players = false, configuration PlayerInput.SOLO).
-# Chaque joueur choisit clavier ou manette ; au clavier, les touches partent d'un
-# préréglage AZERTY / QWERTY et se redéfinissent une par une.
-# Haut / bas : ligne, gauche / droite : joueur (ou disposition du clavier),
-# Entrée / A : changer, Échap / B : retour au menu.
-# En bas, le ou les héros sur un bout de sol : TEST les rend jouables pour essayer
-# les touches (Échap / Start : fin de l'essai).
-
+# Choix des commandes, éditeur et essai partagés par les modes solo, coop et entraînement.
 @export var two_players := true
+@export var training_mode := false
 
 const LEVEL_SCENE := "res://src/Levels/LevelTemplate.tscn"
 const MENU_SCENE := "res://src/UI/menu.tscn"
@@ -23,9 +16,11 @@ const COLOR_HIGHLIGHT := Color(1.0, 0.83, 0.3, 0.22)
 const ROW_LAYOUT := 0
 const ROW_DEVICE := 1
 const ROW_FIRST_KEY := 2
-const ROW_START := ROW_FIRST_KEY + 7
+const ROW_START := ROW_FIRST_KEY + 8
 const ROW_TEST := ROW_START + 1
 const ROW_BACK := ROW_TEST + 1
+const ROW_EDIT := ROW_BACK + 1
+const ACTION_ROWS := [ROW_START, ROW_TEST, ROW_EDIT, ROW_BACK]
 
 # Écran compact : le bas (ControlsTestArea) est réservé aux héros
 const COLUMN_X := [20.0, 166.0]
@@ -38,15 +33,26 @@ const Y_LAYOUT := 9.0
 const Y_HEADER := 17.0
 const Y_DEVICE := 25.0
 const Y_FIRST_KEY := 33.0
-const Y_PAD_NAME := 89.0
-const Y_MESSAGE := 97.0
-const Y_BUTTONS := 106.0
-const PANEL_RECT := Rect2(10, 2, 300, 124)
-# START, TEST, BACK sur la même ligne
-const BUTTON_X := {ROW_START: 70.0, ROW_TEST: 135.0, ROW_BACK: 200.0}
-const BUTTON_WIDTH := 50.0
+const Y_MESSAGE := 104.0
+const PANEL_RECT := Rect2(10, 2, 300, 130)
 
-var _row := ROW_DEVICE
+# Boutons : mêmes textures et couleurs que le menu principal (menuButton)
+const BUTTON_TEXTURE := preload("res://src/UI/menu/button.png")
+const BUTTON_TEXTURE_SELECTED := preload("res://src/UI/menu/buttonSelected.png")
+const BUTTON_TEXTURE_PRESSED := preload("res://src/UI/menu/buttonPressed.png")
+const BUTTON_FONT := preload("res://src/Common/UI/fonts/font.tres")
+const BUTTON_FONT_SIZE := 8
+const BUTTON_LABEL_NORMAL := Color("c9ccff")
+const BUTTON_LABEL_SELECTED := Color("ffd34d")
+
+var _row := ROW_START
+var _editing := false
+var _editor: Control
+var _overview: Control
+var _content: Control
+var _title: Label
+var _subtitle: Label
+var _summaries: Array[Label] = []
 var _col := 0
 var _capturing := false
 var _leaving := false
@@ -57,7 +63,6 @@ var _layout_label: Label
 # [colonne] -> {row: Label} (libellés de valeur) et noms des actions
 var _values := [{}, {}]
 var _names := [{}, {}]
-var _pad_labels := []
 var _message: Label
 var _buttons := {}
 var _message_tween: Tween
@@ -99,7 +104,7 @@ func build_label(text_: String, font_size: int, position_: Vector2, width: float
 	label.position = position_
 	label.size = Vector2(width, ROW_HEIGHT)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_root.add_child(label)
+	_content.add_child(label)
 	return label
 
 
@@ -135,40 +140,178 @@ func build_ui() -> void:
 	_highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(_highlight)
 
-	var title := build_label("2 PLAYERS" if two_players else "1 PLAYER", 10, Vector2(0, Y_TITLE), 320, HORIZONTAL_ALIGNMENT_CENTER)
-	title.size.y = 14
-	title.add_theme_color_override("font_color", Color("7fdbff"))
+	_content = _root
+	_title = build_label("", 10, Vector2(0, Y_TITLE), 320, HORIZONTAL_ALIGNMENT_CENTER)
+	_title.size.y = 14
+	_title.add_theme_color_override("font_color", Color("7fdbff"))
 
+	_subtitle = build_label("", 5, Vector2(0, 10), 320, HORIZONTAL_ALIGNMENT_CENTER)
+	_overview = Control.new()
+	_overview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_root.add_child(_overview)
+	_content = _overview
+	for col in range(_indices.size()):
+		var x := column_x(col)
+		var card := Panel.new()
+		card.position = Vector2(x, 26)
+		card.size = Vector2(COLUMN_WIDTH, 44)
+		card.add_theme_stylebox_override("panel", button_style(Color("152639"), Player.COOP_COLORS[col]))
+		card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_overview.add_child(card)
+		var heading := build_label("JOUEUR %d" % (col + 1), 5, Vector2(x, 21), COLUMN_WIDTH, HORIZONTAL_ALIGNMENT_CENTER)
+		heading.add_theme_color_override("font_color", Player.COOP_COLORS[col])
+		var summary := build_label("", 4, Vector2(x + 5, 34), COLUMN_WIDTH - 10)
+		summary.size.y = 28
+		summary.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+		summary.add_theme_constant_override("line_spacing", 1)
+		_summaries.append(summary)
+	_editor = Control.new()
+	_editor.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_root.add_child(_editor)
+	_content = _editor
 	_layout_label = build_label("", 5, Vector2(0, Y_LAYOUT), 320, HORIZONTAL_ALIGNMENT_CENTER)
 	clickable(_layout_label, ROW_LAYOUT, 0)
 
 	for col in range(_indices.size()):
 		var x := column_x(col)
 		# en solo, la colonne n'a pas besoin d'en-tête
-		var header := build_label("PLAYER %d" % (col + 1) if two_players else "", 5, Vector2(x, Y_HEADER), COLUMN_WIDTH, HORIZONTAL_ALIGNMENT_CENTER)
+		var header := build_label("JOUEUR %d" % (col + 1) if two_players else "", 5, Vector2(x, Y_HEADER), COLUMN_WIDTH, HORIZONTAL_ALIGNMENT_CENTER)
 		header.add_theme_color_override("font_color", Player.COOP_COLORS[col])
 
-		_names[col][ROW_DEVICE] = build_label("CONTROL", 5, Vector2(x + 4, Y_DEVICE), 60)
+		_names[col][ROW_DEVICE] = build_label("ENTREE", 5, Vector2(x + 4, Y_DEVICE), 60)
 		_values[col][ROW_DEVICE] = build_label("", 5, Vector2(x + 50, Y_DEVICE), COLUMN_WIDTH - 54, HORIZONTAL_ALIGNMENT_RIGHT)
 		clickable(_values[col][ROW_DEVICE], ROW_DEVICE, col)
 
 		for i in range(PlayerInput.ACTIONS.size()):
 			var row := ROW_FIRST_KEY + i
 			var y := Y_FIRST_KEY + ROW_HEIGHT * i
-			_names[col][row] = build_label(PlayerInput.ACTION_LABELS[PlayerInput.ACTIONS[i]], 5, Vector2(x + 4, y), 60)
+			_names[col][row] = build_label({"ui_left": "GAUCHE", "ui_right": "DROITE", "ui_up": "HAUT", "ui_down": "BAS", "attack": "RAPIDE", "attack_heavy": "LOURDE", "attack_mana": "ORAGE", "dash": "DASH"}[PlayerInput.ACTIONS[i]], 5, Vector2(x + 4, y), 60)
 			_values[col][row] = build_label("", 5, Vector2(x + 50, y), COLUMN_WIDTH - 54, HORIZONTAL_ALIGNMENT_RIGHT)
 			clickable(_values[col][row], row, col)
+			clickable(_names[col][row], row, col)
 
-		var pad := build_label("", 5, Vector2(x, Y_PAD_NAME), COLUMN_WIDTH, HORIZONTAL_ALIGNMENT_CENTER)
-		pad.add_theme_color_override("font_color", COLOR_DIM)
-		pad.clip_text = true
-		_pad_labels.append(pad)
 
-	_message = build_label("", 5, Vector2(0, Y_MESSAGE), 320, HORIZONTAL_ALIGNMENT_CENTER)
-	for row in BUTTON_X:
-		var text: String = {ROW_START: "START", ROW_TEST: "TEST", ROW_BACK: "BACK"}[row]
-		_buttons[row] = build_label(text, 5, Vector2(BUTTON_X[row], Y_BUTTONS), BUTTON_WIDTH, HORIZONTAL_ALIGNMENT_CENTER)
-		clickable(_buttons[row], row, 0)
+	_content = _root
+	_message = build_label("", 4, Vector2(0, Y_MESSAGE), 320, HORIZONTAL_ALIGNMENT_CENTER)
+	_message.add_theme_constant_override("outline_size", 1)
+	for row in ACTION_ROWS:
+		var button := Button.new()
+		button.name = {ROW_START: "Play", ROW_TEST: "Test", ROW_EDIT: "Edit", ROW_BACK: "Menu"}[row]
+		button.focus_mode = Control.FOCUS_NONE
+		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		button.add_theme_stylebox_override("pressed", texture_style(BUTTON_TEXTURE_PRESSED))
+		button.add_theme_stylebox_override("disabled", texture_style(BUTTON_TEXTURE, Color(0.55, 0.55, 0.6, 0.7)))
+		button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+		# libellé enfant comme menuButton : la ligne Pixeled (23 px) déborde du bouton de 16 px
+		var label := Label.new()
+		label.name = "Label"
+		label.add_theme_font_size_override("font_size", BUTTON_FONT_SIZE)
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		button.add_child(label)
+		button.pressed.connect(func():
+			if _capturing or _leaving:
+				return
+			_row = row
+			activate()
+		)
+		button.mouse_entered.connect(func():
+			if not _capturing and not _test_area.is_testing():
+				_row = row
+				refresh()
+		)
+		_root.add_child(button)
+		_buttons[row] = button
+
+
+func button_style(background: Color, border: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = background
+	style.border_color = border
+	style.set_border_width_all(1)
+	style.content_margin_left = 0
+	style.content_margin_right = 0
+	style.content_margin_top = 0
+	style.content_margin_bottom = 0
+	return style
+
+
+# Texture du menu étirée en 9-patch : bords arrondis intacts quelle que soit la largeur
+func texture_style(texture: Texture2D, modulate := Color.WHITE) -> StyleBoxTexture:
+	var style := StyleBoxTexture.new()
+	style.texture = texture
+	style.texture_margin_left = 6
+	style.texture_margin_right = 6
+	style.texture_margin_top = 5
+	style.texture_margin_bottom = 5
+	style.modulate_color = modulate
+	for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
+		style.set_content_margin(side, 0)
+	return style
+
+
+# Même règle que menuButton : taille 8 (nette), lettres resserrées d'1 px si trop long
+func set_button_label(button: Button, text_: String, width: float, color: Color) -> void:
+	var label: Label = button.get_node("Label")
+	var inner_width := width - 4.0
+	var font: Font = BUTTON_FONT
+	if font.get_string_size(text_, HORIZONTAL_ALIGNMENT_LEFT, -1, BUTTON_FONT_SIZE).x > inner_width:
+		var tight := FontVariation.new()
+		tight.base_font = BUTTON_FONT
+		tight.spacing_glyph = -1
+		tight.spacing_space = 2
+		font = tight
+	label.add_theme_font_override("font", font)
+	label.text = text_
+	label.add_theme_color_override("font_color", color)
+	var line_height := font.get_height(BUTTON_FONT_SIZE)
+	label.size = Vector2(width, line_height)
+	label.position = Vector2(0, round((BUTTON_TEXTURE.get_height() - line_height) / 2.0) - 1.0)
+
+
+func refresh_actions(error_text: String) -> void:
+	var testing := _test_area.is_testing()
+	_editor.visible = _editing and not testing
+	_overview.visible = not _editing or testing
+	_subtitle.visible = not _editing or testing
+	_subtitle.text = ("ENTRAINEMENT / " if training_mode else "") + ("2 JOUEURS" if two_players else "1 JOUEUR")
+	_title.text = "ESSAI DES TOUCHES" if testing else ("MODIFIER LES TOUCHES" if _editing else "PRET A JOUER ?")
+	_title.add_theme_font_size_override("font_size", 8 if _editing or testing else 10)
+	for col in range(_indices.size()):
+		var movement: Array[String] = []
+		for action in ["ui_up", "ui_left", "ui_down", "ui_right"]:
+			var key := PlayerInput.action_label(idx(col), action)
+			movement.append({"UP": "^", "LEFT": "<", "DOWN": "v", "RIGHT": ">"}.get(key, key))
+		var movement_text := "FLECHES" if movement == ["^", "<", "v", ">"] else "/".join(movement)
+		var device := "CLAVIER " + movement_text if is_keyboard(col) else "MANETTE STICK / PAD"
+		if not is_keyboard(col) and PlayerInput.gamepad_for(idx(col)) < 0:
+			device = "MANETTE NON CONNECTEE"
+		_summaries[col].text = "%s\nRAPIDE %s / LOURDE %s\nORAGE %s / DASH %s" % [device, PlayerInput.action_label(idx(col), "attack"), PlayerInput.action_label(idx(col), "attack_heavy"), PlayerInput.action_label(idx(col), "attack_mana"), PlayerInput.action_label(idx(col), "dash")]
+	var home_rects := [Rect2(13, 74, 145, 16), Rect2(162, 74, 145, 16), Rect2(13, 94, 145, 16), Rect2(162, 94, 145, 16)]
+	var edit_rects := [Rect2(12, 114, 66, 16), Rect2(82, 114, 66, 16), Rect2(152, 114, 76, 16), Rect2(232, 114, 76, 16)]
+	for i in range(ACTION_ROWS.size()):
+		var row: int = ACTION_ROWS[i]
+		var button: Button = _buttons[row]
+		button.visible = not testing or row == ROW_TEST
+		button.disabled = _capturing or (row == ROW_START and error_text != "")
+		var text_: String = {ROW_START: "JOUER", ROW_TEST: "TESTER LES TOUCHES", ROW_EDIT: "MODIFIER LES TOUCHES", ROW_BACK: "RETOUR AU MENU"}[row]
+		if _editing:
+			text_ = {ROW_START: "JOUER", ROW_TEST: "TESTER", ROW_EDIT: "TERMINE", ROW_BACK: "MENU"}[row]
+		if testing:
+			text_ = "TERMINER LE TEST"
+		var rect: Rect2 = Rect2(80, 80, 160, 16) if testing else (edit_rects[i] if _editing else home_rects[i])
+		var selected := _row == row or testing
+		var style := texture_style(BUTTON_TEXTURE_SELECTED if selected else BUTTON_TEXTURE)
+		button.add_theme_stylebox_override("normal", style)
+		button.add_theme_stylebox_override("hover", style)
+		var label_color := BUTTON_LABEL_SELECTED if selected else BUTTON_LABEL_NORMAL
+		if button.disabled:
+			label_color = Color(1, 1, 1, 0.35)
+		set_button_label(button, text_, rect.size.x, label_color)
+		button.position = rect.position
+		button.size = rect.size
+	_message.position.y = 98.0 if _editing and not testing else 112.0
 
 
 # configuration PlayerInput de la colonne
@@ -192,6 +335,8 @@ func any_keyboard() -> bool:
 
 
 func selectable_rows() -> Array:
+	if not _editing:
+		return ACTION_ROWS.duplicate()
 	var rows := []
 	if any_keyboard():
 		rows.append(ROW_LAYOUT)
@@ -201,25 +346,26 @@ func selectable_rows() -> Array:
 			rows.append(ROW_FIRST_KEY + i)
 	rows.append(ROW_START)
 	rows.append(ROW_TEST)
+	rows.append(ROW_EDIT)
 	rows.append(ROW_BACK)
 	return rows
 
 
 func refresh() -> void:
 	if not selectable_rows().has(_row):
-		_row = ROW_DEVICE
+		_row = ROW_DEVICE if _editing else ROW_START
 
 	_layout_label.visible = any_keyboard()
-	_layout_label.text = "KEYBOARD   < " + PlayerInput.layout.to_upper() + " >"
+	_layout_label.text = "CLAVIER   < " + PlayerInput.layout.to_upper() + " >"
 	set_color(_layout_label, _row == ROW_LAYOUT)
 
 	var conflicts := PlayerInput.conflicting_keys(_indices)
 	for col in range(_indices.size()):
 		var keyboard := is_keyboard(col)
 		var button_conflicts := PlayerInput.conflicting_buttons(idx(col))
-		var device_text := "< KEYBOARD >" if keyboard else "< GAMEPAD >"
+		var device_text := "< CLAVIER >" if keyboard else "< MANETTE >"
 		if Game.is_mobile():
-			device_text = "GAMEPAD"
+			device_text = "MANETTE"
 		_values[col][ROW_DEVICE].text = device_text
 		set_color(_values[col][ROW_DEVICE], _row == ROW_DEVICE and _col == col)
 
@@ -229,7 +375,7 @@ func refresh() -> void:
 			var label: Label = _values[col][row]
 			var selected := _row == row and _col == col
 			if selected and _capturing:
-				label.text = "PRESS A KEY" if keyboard else "PRESS A BUTTON"
+				label.text = "UNE TOUCHE..." if keyboard else "UN BOUTON..."
 			else:
 				label.text = PlayerInput.action_label(idx(col), action)
 			var editable := PlayerInput.is_remappable(idx(col), action)
@@ -237,30 +383,23 @@ func refresh() -> void:
 			set_color(label, selected, COLOR_ERROR if error else (COLOR_NORMAL if editable else COLOR_DIM))
 			_names[col][row].add_theme_color_override("font_color", COLOR_NORMAL if editable else COLOR_DIM)
 
-		if keyboard:
-			_pad_labels[col].text = ""
-		else:
-			var pad_name := PlayerInput.gamepad_name(idx(col))
-			_pad_labels[col].text = pad_name if pad_name != "" else "NO GAMEPAD"
-			_pad_labels[col].add_theme_color_override("font_color", COLOR_DIM if pad_name != "" else COLOR_ERROR)
 
 	var error_text := PlayerInput.validation_error(_indices)
+	error_text = error_text.replace("SAME KEY USED TWICE", "TOUCHE EN DOUBLE : MODIFIEZ LES TOUCHES").replace("SAME BUTTON USED TWICE", "BOUTON EN DOUBLE : MODIFIEZ LES TOUCHES").replace("PLUG A GAMEPAD FOR PLAYER", "BRANCHEZ LA MANETTE DU JOUEUR").replace("PLUG A GAMEPAD", "BRANCHEZ UNE MANETTE")
 	if _test_area.is_testing():
-		_message.text = "TRY YOUR CONTROLS  -  ESC / START: STOP"
+		_message.text = "DEPLACEZ-VOUS !  ESC / START : TERMINER"
 		_message.add_theme_color_override("font_color", COLOR_SELECTED)
 	elif _capturing:
-		_message.text = "PRESS A KEY  -  ESC: CANCEL" if is_keyboard(_col) else "PRESS A BUTTON  -  START: CANCEL"
+		_message.text = "APPUYEZ SUR UNE TOUCHE / ESC : ANNULER" if is_keyboard(_col) else "APPUYEZ SUR UN BOUTON / START : ANNULER"
 		_message.add_theme_color_override("font_color", COLOR_SELECTED)
 	elif error_text != "":
 		_message.text = error_text
 		_message.add_theme_color_override("font_color", COLOR_ERROR)
 	else:
-		_message.text = "ENTER: CHANGE   ESC: BACK"
-		_message.add_theme_color_override("font_color", COLOR_DIM)
+		_message.text = "ENTREE / A : MODIFIER   ESC / B : TERMINE" if _editing else "CHOISIR : FLECHES / PAD   VALIDER : ENTREE / A"
+		_message.add_theme_color_override("font_color", Color("a3bdcd"))
 
-	set_color(_buttons[ROW_START], _row == ROW_START, COLOR_NORMAL if error_text == "" else COLOR_DIM)
-	set_color(_buttons[ROW_TEST], _row == ROW_TEST)
-	set_color(_buttons[ROW_BACK], _row == ROW_BACK)
+	refresh_actions(error_text)
 	place_highlight()
 
 
@@ -269,12 +408,13 @@ func set_color(label: Label, selected: bool, normal := COLOR_NORMAL) -> void:
 
 
 func place_highlight() -> void:
+	_highlight.visible = _editing and not _test_area.is_testing() and _row < ROW_START
+	if not _highlight.visible:
+		return
 	var rect := Rect2()
 	match _row:
 		ROW_LAYOUT:
 			rect = Rect2(90, Y_LAYOUT, 140, ROW_HEIGHT)
-		ROW_START, ROW_TEST, ROW_BACK:
-			rect = Rect2(BUTTON_X[_row], Y_BUTTONS, BUTTON_WIDTH, ROW_HEIGHT)
 		_:
 			var y: float = Y_DEVICE if _row == ROW_DEVICE else Y_FIRST_KEY + ROW_HEIGHT * (_row - ROW_FIRST_KEY)
 			rect = Rect2(column_x(_col), y, COLUMN_WIDTH, ROW_HEIGHT)
@@ -306,7 +446,10 @@ func _input(event: InputEvent) -> void:
 	elif event.is_action_pressed("ui_right"):
 		horizontal(1)
 	elif event.is_action_pressed("ui_cancel"):
-		leave(MENU_SCENE)
+		if _editing:
+			set_editing(false)
+		else:
+			leave(MENU_SCENE)
 	elif event.is_action_pressed("ui_accept") or event.is_action_pressed("attack"):
 		activate()
 	else:
@@ -351,6 +494,11 @@ func capture_button(event: InputEvent) -> void:
 
 
 func move(direction: int) -> void:
+	if not _editing:
+		_row = ACTION_ROWS[wrapi(ACTION_ROWS.find(_row) + direction * 2, 0, ACTION_ROWS.size())]
+		Sound.play("menu_move", 0.0)
+		refresh()
+		return
 	var rows := selectable_rows()
 	var index := rows.find(_row)
 	_row = rows[wrapi(index + direction, 0, rows.size())]
@@ -359,14 +507,18 @@ func move(direction: int) -> void:
 
 
 func horizontal(direction: int) -> void:
-	if _row == ROW_LAYOUT:
-		cycle_layout(direction)
-		return
-	if BUTTON_X.has(_row):
-		var rows: Array = BUTTON_X.keys()
-		_row = rows[wrapi(rows.find(_row) + direction, 0, rows.size())]
+	if not _editing:
+		_row = ACTION_ROWS[ACTION_ROWS.find(_row) ^ 1]
 		Sound.play("menu_move", 0.0)
 		refresh()
+		return
+	if _row in ACTION_ROWS:
+		_row = ACTION_ROWS[wrapi(ACTION_ROWS.find(_row) + direction, 0, ACTION_ROWS.size())]
+		Sound.play("menu_move", 0.0)
+		refresh()
+		return
+	if _row == ROW_LAYOUT:
+		cycle_layout(direction)
 		return
 	_col = wrapi(_col + direction, 0, _indices.size())
 	Sound.play("menu_move", 0.0)
@@ -400,6 +552,8 @@ func activate() -> void:
 				start_test()
 		ROW_BACK:
 			leave(MENU_SCENE)
+		ROW_EDIT:
+			set_editing(not _editing)
 		_:
 			if is_keyboard(_col) or PlayerInput.gamepad_for(idx(_col)) >= 0:
 				_capturing = true
@@ -407,7 +561,15 @@ func activate() -> void:
 				refresh()
 
 
+func set_editing(value: bool) -> void:
+	_editing = value
+	_row = ROW_DEVICE if value else ROW_EDIT
+	Sound.play("menu_select", 0.0)
+	refresh()
+
+
 func start_test() -> void:
+	_row = ROW_TEST
 	# touches redéfinies juste avant : appliquées aux héros
 	PlayerInput.apply()
 	_test_area.set_testing(true)
@@ -416,6 +578,7 @@ func start_test() -> void:
 
 
 func stop_test() -> void:
+	_row = ROW_TEST
 	_test_area.set_testing(false)
 	Sound.play("menu_move", 0.0)
 	refresh()
@@ -428,9 +591,10 @@ func start_game() -> void:
 		return
 	PlayerInput.save_config()
 	PlayerInput.apply()
-	GlobalPlayer.reset_game()
+	if not training_mode:
+		GlobalPlayer.reset_game()
 	GlobalPlayer.two_players = two_players
-	leave(LEVEL_SCENE)
+	leave("res://src/Levels/Training.tscn" if training_mode else LEVEL_SCENE)
 
 
 func shake_message() -> void:

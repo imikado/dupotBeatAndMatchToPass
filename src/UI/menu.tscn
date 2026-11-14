@@ -97,15 +97,19 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="playButton" parent="Control" unique_id=1187914007 instance=ExtResource("9")]
-position = Vector2(220, 56)
+position = Vector2(220, 48)
 title = "1 PLAYER"
 
 [node name="twoPlayersButton" parent="Control" unique_id=1187914008 instance=ExtResource("9")]
-position = Vector2(220, 76)
+position = Vector2(220, 65)
 title = "2 PLAYERS"
 
+[node name="trainingButton" parent="Control" instance=ExtResource("9")]
+position = Vector2(220, 82)
+title = "TRAINING"
+
 [node name="hightScoresButton" parent="Control" unique_id=645514756 instance=ExtResource("9")]
-position = Vector2(220, 96)
+position = Vector2(220, 99)
 title = "SCORES"
 
 [node name="settingsButton" parent="Control" unique_id=1305510745 instance=ExtResource("9")]
@@ -119,7 +123,7 @@ position = Vector2(160, 90)
 position = Vector2(22, 106)
 
 [node name="player" type="AnimatedSprite2D" parent="." unique_id=1992257358]
-position = Vector2(28, 13)
+position = Vector2(28, 16)
 sprite_frames = SubResource("10")
 autoplay = "default"
 frame = 1

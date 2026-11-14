@@ -5,7 +5,7 @@ extends CanvasLayer
 # boutons tactiles (mode 1 joueur) : actions du joueur seul (PlayerInput)
 const TOUCH_ACTIONS := {
 	"move_left": "ui_left", "move_right": "ui_right", "move_up": "ui_up", "move_down": "ui_down",
-	"attack": "attack", "attack_mana": "attack_mana", "dash": "dash",
+	"attack": "attack", "attack_heavy": "attack_heavy", "attack_mana": "attack_mana", "dash": "dash",
 }
 
 

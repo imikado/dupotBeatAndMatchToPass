@@ -32,7 +32,6 @@ func get_current_state_name():
 func _ready():
 	for child in get_children():
 		child.connect("finished", Callable(self, "_change_state"))
-	print(START_STATE)
 	initialize(START_STATE)
 
 

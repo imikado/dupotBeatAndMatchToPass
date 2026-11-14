@@ -12,6 +12,12 @@ const STATE_ATTACK_MANA01 = "AttackMana01"
 const STATE_GET_LIFE_BOTTLE = "GetLifeBottle"
 const STATE_GAMEOVER = "Gameover"
 const STATE_DASH = "Dash"
+const STATE_DASH_ATTACK = "DashAttack"
+
+var combo_sequence := ""
+# coup demandé par l'événement en cours ("R", "H" ou "") : uniquement au moment de l'appui
+var attack_press := ""
+var _attack_held := {}
 
 const INPUT_ATTACK = "attack"
 const INPUT_ATTACK_MANA = "attack_mana"
@@ -42,7 +48,8 @@ func _ready():
 		STATE_DAMAGED: get_node(STATE_DAMAGED),
 		STATE_GET_LIFE_BOTTLE: get_node(STATE_GET_LIFE_BOTTLE),
 		STATE_GAMEOVER: get_node(STATE_GAMEOVER),
-		STATE_DASH: get_node(STATE_DASH)
+		STATE_DASH: get_node(STATE_DASH),
+		STATE_DASH_ATTACK: get_node(STATE_DASH_ATTACK)
 	}
 	super._ready()
 
@@ -58,18 +65,34 @@ func _change_state(state_name):
 	if get_current_state_name() == STATE_ATTACK_MANA01 and state_name!=STATE_GAMEOVER:
 		return
 
-	if state_name in [STATE_ATTACK01, STATE_ATTACK_MANA01, STATE_DAMAGED,STATE_GAMEOVER]:
-		states_stack.push_front(states_map[state_name])
+	if not state_name in [STATE_ATTACK01, STATE_ATTACK02, STATE_ATTACK03, STATE_ATTACK04]:
+		combo_sequence = ""
 
 	super._change_state(state_name)
 
 
 func _input(event):
+	attack_press = _read_attack_press(event)
 	# l'appui qui lance une action n'est pas transmis au nouvel état
 	# (sinon l'appui qui lance Attack01 compterait déjà pour enchaîner Attack02)
 	if _handle_interrupt_input(event):
 		return
 	super._input(event)
+
+
+# front d'appui uniquement : ignore l'auto-répétition et les gâchettes analogiques
+# qui envoient un événement "pressé" à chaque mouvement de l'axe
+func _read_attack_press(event) -> String:
+	var result := ""
+	for kind in [CombatChain.HEAVY, CombatChain.LIGHT]:
+		var action: String = owner.action("attack_heavy" if kind == CombatChain.HEAVY else INPUT_ATTACK)
+		if not event.is_action(action):
+			continue
+		var pressed: bool = event.is_action_pressed(action)
+		if pressed and result == "" and not (event is InputEventJoypadMotion and _attack_held.get(kind, false)):
+			result = kind
+		_attack_held[kind] = pressed
+	return result
 
 
 func _handle_interrupt_input(event) -> bool:
@@ -85,11 +108,14 @@ func _handle_interrupt_input(event) -> bool:
 		_change_state(STATE_DASH)
 		return true
 
-	if event.is_action_pressed(owner.action(INPUT_ATTACK)):
-		if [get_node(STATE_ATTACK01), get_node(STATE_ATTACK02), get_node(STATE_ATTACK03), get_node(STATE_ATTACK04), get_node(STATE_DASH)].has(
-			current_state
-		):
+	if attack_press != "":
+		# esquive + attaque (pendant la ruée ou juste après) : attaque en puissance
+		if current_state.name == STATE_DASH or (current_state.name in [STATE_IDLE, STATE_WALK] and owner.just_dashed()):
+			_change_state(STATE_DASH_ATTACK)
+			return true
+		if not current_state.name in [STATE_IDLE, STATE_WALK]:
 			return false
+		combo_sequence = attack_press
 		_change_state(STATE_ATTACK01)
 		return true
 

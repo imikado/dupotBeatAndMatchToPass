@@ -57,7 +57,7 @@ Grab a friend: pick **2 PLAYERS** in the menu and fight side by side through the
 ## ✨ Features
 
 - 👥 **Solo or two players on the same screen**: see [Play together on one screen](#-play-together-on-one-screen).
-- 🗡️ **Four-hit sword combo**: keep pressing attack to chain slashes, and land three combo hits on the same enemy for a score bonus.
+- 🗡️ **Quick and heavy attacks**: quick slashes deal 8 damage in 0.26 seconds; heavy overhead swings deal 24 in 0.70 seconds. Mix them into nine chains that trigger automatic flurries, crossed slashes or a ground slam with area damage.
 - 💨 **Dash**: a quick dodge in any direction that makes you untouchable for an instant, and cancels a sword swing.
 - 🔥 **Kill streaks**: every 5 kills in a row raise your score multiplier, up to **x4**. Get hit and the streak is gone.
 - ⚡ **Lightning storm**: spend your mana to darken the sky and call down three volleys of lightning on everything around you. You can't be hurt while casting, so it also works as a panic button.
@@ -95,7 +95,8 @@ A loading screen that really preloads the game, an animated title, a lively menu
 | Action | Keyboard | Gamepad |
 |---|---|---|
 | Move | ← ↑ → ↓ arrow keys | D-pad / stick |
-| Sword attack (press again to chain the combo) | `Enter` or `Space` | Button A |
+| Quick attack | `Enter` or `Space` | Button A |
+| Heavy attack | `X` | Button Y |
 | Lightning storm (needs mana) | `Ctrl` | Button B |
 | Dash (short dodge, invincible) | `Shift` | Button X |
 | Pause | `Esc` | Start |
@@ -108,10 +109,35 @@ A loading screen that really preloads the game, an animated title, a lively menu
 | Action | Player 1 (QWERTY / AZERTY) | Player 2 | Gamepad |
 |---|---|---|---|
 | Move | `W A S D` / `Z Q S D` | ← ↑ → ↓ arrow keys | D-pad / left stick |
-| Sword attack | `F` | `L` | Button A |
+| Quick attack | `F` | `L` | Button A |
+| Heavy attack | `R` | `O` | Button Y |
 | Lightning storm | `G` | `K` | Button B |
 | Dash | `H` | `J` | Button X |
 | Pause | `Esc` | `Esc` | Start |
+
+Quick (`R`) and heavy (`L`) inputs appear above your character. Press the next button during the last 0.24 seconds of the current swing. One press buffers one next attack; holding a button does not repeat. Damage, dash, storm and the end of a chain clear the combo.
+
+| Chain | Finisher | Automatic attack |
+|---|---|---|
+| R R R R | Rafale | 8 hits × 8 damage |
+| R R R L | Exécution | Ground slam, 64 area damage |
+| R R L | Brise-garde | Ground slam, 48 area damage |
+| R L R | Contre-taille | 6 hits, alternating 8 / 12 damage |
+| R L L | Fendoir | Ground slam, 48 area damage |
+| L R R | Riposte | 6 hits, alternating 8 / 12 damage |
+| L R L | Croisé | 6 hits, alternating 10 / 14 damage |
+| L L R | Revers | 6 hits, alternating 8 / 12 damage |
+| L L L | Fracas | Ground slam, 48 area damage |
+
+All sword attacks use the accepted cross sprite sheet in each player’s `combo/` directory. Rest, walk, hurt, potion, magic and defeat sprites share the same character design, palette and ground anchor. The flurry chains eight sword cuts in 32 poses over 2.30 seconds: downward cut, left-to-right sweep, right-to-left return, rising cut, downward cut, rising return, downward cut and final thrust. The alternating combo chains six cuts in 24 poses over 2.80 seconds, alternating quick cuts and heavier follow-throughs: rise, descent, sweep, return, rise and final descent. Shared cross poses and the new follow-up sheet keep one character design. Early impacts use short knockback to keep enemies within reach; the final hit pushes them away. Player 2 keeps the blue-grey palette variant. Finishers play their full animation automatically after the last input. Buffer another attack during their last 0.24 seconds to flow directly into the next chain. The ground slam raises the sword, strikes the floor and produces cracks, debris and a shockwave. It damages nearby enemies on the same depth lane once; the longer R R R L chain has the strongest impact.
+
+Heavy attacks have a visible wind-up, the original blue sword trail and stronger knockback. Each swing damages a given enemy once. Dash can cancel either attack type.
+
+## Training
+
+Choose **TRAINING** in the main menu, then one or two players. The practice enemy stays in place and never attacks. Its health bar decreases with each hit; after death it respawns at the same spot with full health, so you can practise continuously.
+
+Use **COMBOS** in the arena (keyboard `C` / gamepad `LB`) to show or hide the available quick/heavy chains and practise their timing. Use **MENU** (`Esc` / Start) to leave training.
 
 ## 💡 Tips
 
@@ -180,3 +206,13 @@ This game is released under the [GNU LGPL v2.1](LICENSE).
 Made with ❤️ and [Godot Engine](https://godotengine.org) by [Michael Bertocchi](https://www.dupot.org/games.html) · [dupot.org](https://www.dupot.org)
 
 </div>
+
+Combat regression tests: `godot --headless --path . res://tests/combat_test.tscn`.
+Training regression tests: `godot --headless --path . res://tests/training_test.tscn`.
+
+Finisher regression tests: `godot --headless --path . res://tests/finisher_test.tscn`.
+
+
+Rebuild the generated combo sheets: `python3 -B chatgpt/generated/prepare_sprites.py`. The filled prompts, original generations and conversion settings are kept under `chatgpt/`.
+
+Appearance regression tests: `godot --headless --path . res://tests/appearance_test.tscn`.

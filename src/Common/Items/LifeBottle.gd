@@ -4,6 +4,7 @@ const POP_HEIGHT := 18.0
 
 
 func _ready() -> void:
+	Fx.character_material($AnimatedSprite2D)
 	$AnimatedSprite2D.play()
 
 func _on_Area2D_body_entered(body: Node) -> void:

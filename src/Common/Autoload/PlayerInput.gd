@@ -15,13 +15,14 @@ const SOLO := 2
 const COOP_INDICES := [0, 1]
 const SOLO_INDICES := [SOLO]
 
-const ACTIONS := ["ui_left", "ui_right", "ui_up", "ui_down", "attack", "attack_mana", "dash"]
+const ACTIONS := ["ui_left", "ui_right", "ui_up", "ui_down", "attack", "attack_heavy", "attack_mana", "dash"]
 const ACTION_LABELS := {
 	"ui_left": "LEFT",
 	"ui_right": "RIGHT",
 	"ui_up": "UP",
 	"ui_down": "DOWN",
-	"attack": "ATTACK",
+	"attack": "QUICK",
+	"attack_heavy": "HEAVY",
 	"attack_mana": "STORM",
 	"dash": "DASH",
 }
@@ -33,14 +34,14 @@ const LAYOUTS := ["azerty", "qwerty"]
 # Solo : flèches, Espace, Ctrl, Maj (touches d'origine du jeu)
 const PRESETS := {
 	"azerty": [
-		{"ui_left": KEY_Q, "ui_right": KEY_D, "ui_up": KEY_Z, "ui_down": KEY_S, "attack": KEY_F, "attack_mana": KEY_G, "dash": KEY_H},
-		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_L, "attack_mana": KEY_K, "dash": KEY_J},
-		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_SPACE, "attack_mana": KEY_CTRL, "dash": KEY_SHIFT},
+		{"ui_left": KEY_Q, "ui_right": KEY_D, "ui_up": KEY_Z, "ui_down": KEY_S, "attack": KEY_F, "attack_heavy": KEY_R, "attack_mana": KEY_G, "dash": KEY_H},
+		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_L, "attack_heavy": KEY_O, "attack_mana": KEY_K, "dash": KEY_J},
+		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_SPACE, "attack_heavy": KEY_X, "attack_mana": KEY_CTRL, "dash": KEY_SHIFT},
 	],
 	"qwerty": [
-		{"ui_left": KEY_A, "ui_right": KEY_D, "ui_up": KEY_W, "ui_down": KEY_S, "attack": KEY_F, "attack_mana": KEY_G, "dash": KEY_H},
-		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_L, "attack_mana": KEY_K, "dash": KEY_J},
-		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_SPACE, "attack_mana": KEY_CTRL, "dash": KEY_SHIFT},
+		{"ui_left": KEY_A, "ui_right": KEY_D, "ui_up": KEY_W, "ui_down": KEY_S, "attack": KEY_F, "attack_heavy": KEY_R, "attack_mana": KEY_G, "dash": KEY_H},
+		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_L, "attack_heavy": KEY_O, "attack_mana": KEY_K, "dash": KEY_J},
+		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_SPACE, "attack_heavy": KEY_X, "attack_mana": KEY_CTRL, "dash": KEY_SHIFT},
 	],
 }
 
@@ -50,6 +51,7 @@ const GAMEPAD_BUTTONS := {
 	"ui_up": JOY_BUTTON_DPAD_UP,
 	"ui_down": JOY_BUTTON_DPAD_DOWN,
 	"attack": JOY_BUTTON_A,
+	"attack_heavy": JOY_BUTTON_Y,
 	"attack_mana": JOY_BUTTON_B,
 	"dash": JOY_BUTTON_X,
 }
@@ -63,7 +65,7 @@ const GAMEPAD_MOVE_LABEL := "STICK / PAD"
 
 # Boutons d'action modifiables à la manette (le déplacement reste croix + stick gauche).
 # Valeur >= TRIGGER_BASE : gâchette analogique (TRIGGER_BASE + axe)
-const GAMEPAD_REMAPPABLE := ["attack", "attack_mana", "dash"]
+const GAMEPAD_REMAPPABLE := ["attack", "attack_heavy", "attack_mana", "dash"]
 const TRIGGER_BASE := 100
 const TRIGGER_THRESHOLD := 0.6
 # Réservés : déplacement (croix) et pause (Start, Select, Home)

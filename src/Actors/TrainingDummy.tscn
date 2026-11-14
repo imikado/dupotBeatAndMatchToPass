@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://src/Actors/SimpleEnemies/Ant.tscn" id="1"]
+[ext_resource type="Script" path="res://src/Actors/TrainingDummy.gd" id="2"]
+
+[node name="TrainingDummy" instance=ExtResource("1")]
+script = ExtResource("2")

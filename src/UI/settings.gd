@@ -73,7 +73,6 @@ func _on_contolsDisabled_pressed() -> void:
 	update_and_save_controlsEnabled_toggle(true)
 
 func record_keymap(action):
-	print('record:'+str(action))
 	recordingAction=action
 	recordingEnabled=true
 	open_modal()
@@ -117,3 +116,7 @@ func _on_manaAttack_pressed() -> void:
 
 func _on_dash_pressed() -> void:
 	record_keymap(PlayerAbstractState.INPUT_DASH)
+
+
+func _on_heavyAttack_pressed() -> void:
+	record_keymap("attack_heavy")

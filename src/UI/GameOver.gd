@@ -23,6 +23,10 @@ func _ready() -> void:
 	_menuButton.connect("released", Callable(self, "goto_menu"))
 	_scoreButton.connect("released", Callable(self, "goto_scores"))
 	
+	Fx.character_material($playerGameOver)
+	var shadow := Fx.shadow($playerGameOver, 16)
+	shadow.show_behind_parent = true
+	shadow.position = Vector2(-1, 31)
 	$playerGameOver.play("default")
 	
 	refresh_buttons()

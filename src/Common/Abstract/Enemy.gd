@@ -5,6 +5,8 @@ extends Actor
 var _player : CharacterBody2D
 # Coop : joueur qui a porté le dernier coup (recul, combo)
 var last_attacker : CharacterBody2D
+# dernier coup reçu venant de l'orage (gems divisées par deux)
+var last_hit_by_storm := false
 # Coop : on vise le joueur vivant le plus proche, réévalué régulièrement
 const RETARGET_INTERVAL_MS:=400
 # Changement de cible seulement si l'autre joueur est nettement plus près
@@ -182,7 +184,49 @@ static func marker_texture()->ImageTexture:
 func get_walk_speed():
 	if _dash_barrier:
 		return _walk_speed * BARRIER_DASH_SPEED_MULT
+	if _catchup_dashing:
+		return _walk_speed * CATCHUP_DASH_SPEED_MULT
 	return _walk_speed
+
+
+# Dash de rattrapage : trop loin de son poste, l'ennemi fonce par à-coups vers le joueur
+const CATCHUP_DASH_DISTANCE:=110.0
+const CATCHUP_DASH_STOP_DISTANCE:=40.0
+const CATCHUP_DASH_SPEED_MULT:=6.0
+const CATCHUP_DASH_DURATION_MS:=350
+const CATCHUP_DASH_COOLDOWN_MS:=1800
+var _catchup_dashing:=false
+var _catchup_end_ms:=0
+var _catchup_next_ms:=0
+var _catchup_frames:=0
+
+
+# Appelé à chaque image de l'état Walk
+func update_catchup_dash() -> void:
+	var now:=Time.get_ticks_msec()
+	var distance:=global_position.distance_to(get_target_offset_position())
+	if _catchup_dashing:
+		if now >= _catchup_end_ms or distance < CATCHUP_DASH_STOP_DISTANCE:
+			stop_catchup_dash()
+			return
+		_catchup_frames+=1
+		if _catchup_frames % BARRIER_DASH_GHOST_EVERY == 0:
+			_spawn_dash_ghost(Fx.enemy_color(_type))
+		return
+	if _dash_barrier or now < _catchup_next_ms or distance < CATCHUP_DASH_DISTANCE:
+		return
+	_catchup_dashing=true
+	_catchup_end_ms=now + CATCHUP_DASH_DURATION_MS
+	_catchup_frames=0
+	var direction:=signf(get_target_offset_position().x - global_position.x)
+	Fx.squash(_bodyPivot, Vector2(1.35, 0.75))
+	Fx.dust(get_parent(), global_position, direction if direction != 0.0 else look_direction.x)
+
+
+func stop_catchup_dash() -> void:
+	if _catchup_dashing:
+		_catchup_next_ms=Time.get_ticks_msec() + CATCHUP_DASH_COOLDOWN_MS
+	_catchup_dashing=false
 
 # Plus rapide et plus fort à chaque niveau après le niveau 3
 func apply_difficulty(difficulty:int):
@@ -263,6 +307,7 @@ func _ready() -> void:
 
 	Fx.shadow(self, _shadow_width).position = Vector2(0, -1)
 	_material=Fx.character_material(get_node("BodyPivot/AnimatedSprite2D"))
+	Fx.cast_shadow(self, get_node("BodyPivot/AnimatedSprite2D"))
 
 	style_life_bar(_enemy_progress_bar, Fx.enemy_color(_type))
 	Events.actor_struck_by_lightning.connect(_on_struck_by_lightning)
@@ -294,6 +339,7 @@ func _retarget() -> void:
 	if best and best != _player:
 		_player=best
 		_attack_side_frame=-1
+		_slot_frame=-1
 
 
 func get_attacker() -> CharacterBody2D:
@@ -305,7 +351,9 @@ func get_attacker() -> CharacterBody2D:
 # hauteur de la zone de marche, seule l'abscisse compte.
 func _check_barrier_crossing() -> void:
 	var dash_barrier:Node=null
-	for barrier in get_tree().get_nodes_in_group(Game.GROUP_BARRIER):
+	for barrier in cached_group(get_tree(), Game.GROUP_BARRIER):
+		if not is_instance_valid(barrier):
+			continue
 		var arc_x:float=barrier.get_arc_x()
 		if absf(global_position.x - arc_x) < BARRIER_DASH_ZONE and not barrier.is_open():
 			dash_barrier=barrier
@@ -387,15 +435,31 @@ func _update_depth_tint() -> void:
 
 
 func is_behind_someone() -> bool:
-	var others:Array=get_tree().get_nodes_in_group(Game.GROUP_ENEMY)
-	others.append_array(get_tree().get_nodes_in_group(Player.GROUP_PLAYER))
+	var tree:=get_tree()
+	return _has_overlap_in(cached_group(tree, Game.GROUP_ENEMY)) or _has_overlap_in(cached_group(tree, Player.GROUP_PLAYER))
+
+
+func _has_overlap_in(others: Array) -> bool:
 	for other in others:
-		if other == self:
+		if other == self or not is_instance_valid(other):
 			continue
 		var dy:float=other.global_position.y - global_position.y
 		if dy > SAME_LINE_Y and dy < OVERLAP_DISTANCE_Y and abs(other.global_position.x - global_position.x) < OVERLAP_DISTANCE_X:
 			return true
 	return false
+
+
+# Listes de groupe partagées par tous les ennemis, relues une fois par image
+# (au lieu d'un tableau alloué par ennemi et par image)
+static var _group_cache:={}
+
+static func cached_group(tree: SceneTree, group: StringName) -> Array:
+	var frame:=Engine.get_process_frames()
+	var entry=_group_cache.get(group)
+	if entry == null or entry[0] != frame:
+		entry=[frame, tree.get_nodes_in_group(group)]
+		_group_cache[group]=entry
+	return entry[1]
 	
 	
 func get_life():
@@ -508,8 +572,8 @@ func hit_feedback():
 	Fx.hit_spark(get_parent(), global_position + Vector2(-away * 5, -10))
 
 	var distance:=KNOCKBACK
-	if attacker.has_method("get_state") and attacker.get_state() == "Attack04":
-		distance=KNOCKBACK_FINISHER
+	if attacker.has_method("melee_knockback"):
+		distance=attacker.melee_knockback()
 
 	if _knockback_tween:
 		_knockback_tween.kill()
@@ -571,14 +635,21 @@ const RANGED_NEAR_DISTANCE:=100
 const SPOT_REACHED_DISTANCE:=1.5
 var _slot_index:=0
 var _slot_frame:=-1
+var _slot_side:=0.0
+# Places recalculées toutes les SLOT_REFRESH_FRAMES images physiques (requêtes physiques
+# coûteuses), ou tout de suite si le côté ou le joueur visé change
+const SLOT_REFRESH_FRAMES:=6
+var _slot_query:PhysicsPointQueryParameters2D
 
 
 # Rang stable (identifiant d'instance) parmi les ennemis du même côté et de même portée,
 # en sautant les places qui tombent dans un mur ou une barrière fermée
 func get_attack_slot_offset(side: float)->Vector2:
 	var frame:=Engine.get_physics_frames()
-	if frame != _slot_frame and Engine.is_in_physics_frame():
+	var stale:=_slot_frame < 0 or side != _slot_side or frame - _slot_frame >= SLOT_REFRESH_FRAMES
+	if stale and Engine.is_in_physics_frame():
 		_slot_frame=frame
+		_slot_side=side
 		var rank:=0
 		for other in get_tree().get_nodes_in_group(Game.GROUP_ENEMY):
 			if other == self or other._is_dying or other.is_ranged() != is_ranged() or other._player != _player:
@@ -591,8 +662,10 @@ func get_attack_slot_offset(side: float)->Vector2:
 
 func _free_slot(rank: int, side: float)->int:
 	var base:Vector2=_player.global_position + Vector2(_near_distance/2 * side, ATTACK_SPOT_RAY_HEIGHT)
-	var query:=PhysicsPointQueryParameters2D.new()
-	query.collision_mask=OBSTACLE_MASK
+	if _slot_query == null:
+		_slot_query=PhysicsPointQueryParameters2D.new()
+		_slot_query.collision_mask=OBSTACLE_MASK
+	var query:=_slot_query
 	query.exclude=[_player.get_rid()]
 	var space:=get_world_2d().direct_space_state
 	var free:=-1

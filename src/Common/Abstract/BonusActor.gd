@@ -151,6 +151,7 @@ func _ready() -> void:
 
 	Fx.shadow(self, 14).position = Vector2(0, -1)
 	Fx.character_material(get_node("BodyPivot/AnimatedSprite2D"))
+	Fx.cast_shadow(self, get_node("BodyPivot/AnimatedSprite2D"))
 	Enemy.style_life_bar(_enemy_progress_bar, Fx.enemy_color(_type))
 
 	

@@ -1,6 +1,9 @@
 extends Node2D
 
 const MIN_SPAWN_Y = 127
+# Mur bas de la zone de marche : WalkingLimits (y 105) + limit_walking_horiz2 (y 107),
+# forme de 20 px centrée => bord haut à y 202 ; marge de 6 px pour les pieds
+const MAX_SPAWN_Y = 196
 
 const LIFE_BOTTLE_HEAL = 30
 
@@ -25,6 +28,11 @@ const BARRIER_GROUP_Y = 115.0
 const BARRIER_SPACING_IN_GROUP = 20.0
 
 const ElectricalBarrierScene := preload("res://src/Common/Levels/ElectricalBarrier.tscn")
+const LimitWalkingVertScene := preload("res://src/Common/Levels/limit_wakling_vert.tscn")
+
+# Mur de fin de niveau : distance après la porte, et marge de caméra au-delà du mur
+const GATE_WALL_OFFSET = 20.0
+const GATE_CAMERA_MARGIN = 20.0
 
 # Délai entre deux vagues : lent à l'arrivée sur un groupe de barrières, puis de plus en plus rapide
 const SPAWN_DELAY_START = 8.0
@@ -241,6 +249,21 @@ func build_level():
 	_gate.global_position.x = BARRIER_GROUP_START_X + BARRIER_GROUP_SPACING * group_count
 
 	extend_level(BARRIER_GROUP_SPACING * (group_count - BARRIER_GROUP_MAX))
+
+	close_level_after_gate()
+
+
+# Mur invisible juste après la porte : sans lui, le joueur peut contourner la porte
+# (par le haut ou le bas) et sortir du sol texturé. La caméra s'arrête au même endroit.
+func close_level_after_gate() -> void:
+	var wall_x: float = _gate.global_position.x + GATE_WALL_OFFSET
+	var wall: StaticBody2D = LimitWalkingVertScene.instantiate()
+	get_node("WalkingLimits").add_child(wall)
+	# la forme (20 px de large) est centrée 12 px à gauche de l'origine : bord gauche du mur sur wall_x
+	wall.global_position.x = wall_x + 22.0
+
+	# le rectangle de caméra est à la racine du niveau : offset_right == limite droite globale
+	_cameraLimitRect.offset_right = minf(_cameraLimitRect.offset_right, wall_x + GATE_CAMERA_MARGIN)
 
 
 func get_barrier_group_count() -> int:
@@ -472,6 +495,7 @@ func _on_actor_healt_changed(actor: CharacterBody2D, previous_value: float, new_
 		# la tempête ne se recharge pas avec ses propres victimes ; la mana va au joueur qui a tué
 		increment_score(points, not is_anyone_storming(), mana_receiver(actor))
 		_hud.update_streak(GlobalPlayer.kill_streak, multiplier)
+		give_gems(actor)
 
 		var text_color = Color.WHITE if multiplier == 1 else Color("ffd34d")
 		Fx.floating_text(_specialEffects, "+" + str(points), kill_text_position(actor.global_position + Vector2(0, -24)), text_color)
@@ -491,6 +515,14 @@ func _on_actor_healt_changed(actor: CharacterBody2D, previous_value: float, new_
 			new_energy.global_position = actor.global_position
 			add_child(new_energy)
 			new_energy.set_target(barrier_target)
+
+
+# Gems du kill au joueur qui l'a tué, moitié pour un kill par l'orage
+func give_gems(actor) -> void:
+	var index := mana_receiver(actor)
+	var amount := GlobalPlayer.gems_for_enemy(actor.get_type(), actor.get("last_hit_by_storm") == true)
+	GlobalPlayer.add_gems(amount, index)
+	_hud.update_gems(GlobalPlayer.get_gems(index), index)
 
 
 # Deux ennemis qui meurent au même endroit : le « +10 » suivant monte au-dessus
@@ -585,14 +617,15 @@ func spawn_enemy_on_position(enemy_to_spawn, spawn_position, offset = Vector2.ZE
 		enemy_spawn.queue_free()
 		return
 
+	# le point d'apparition (enfant du joueur ou de la caméra) n'est pas modifié
+	var pos: Vector2 = spawn_position.global_position + offset
+	pos.y = clampf(pos.y, MIN_SPAWN_Y, MAX_SPAWN_Y)
+
 	enemy_spawn.add_to_group(Game.GROUP_ENEMY)
-	enemy_spawn.setPlayer(nearest_player(spawn_position.global_position + offset))
+	enemy_spawn.setPlayer(nearest_player(pos))
 	enemy_spawn.apply_difficulty(GlobalPlayer.get_difficulty())
 
-	if spawn_position.global_position.y < MIN_SPAWN_Y:
-		spawn_position.global_position.y = MIN_SPAWN_Y
-
-	enemy_spawn.set_global_position(spawn_position.global_position + offset)
+	enemy_spawn.set_global_position(pos)
 
 	_ysort.add_child(enemy_spawn)
 	enemy_spawn.set_wanted(true)
@@ -745,6 +778,9 @@ func update_mana_button():
 
 
 func _on_Gate_player_entered_gate() -> void:
+	if Transition.is_busy():
+		return
+	GlobalPlayer.grant_life_bonus()
 	GlobalPlayer.revive_downed()
 
 	Transition.goto("res://src/UI/LevelCompleted.tscn")

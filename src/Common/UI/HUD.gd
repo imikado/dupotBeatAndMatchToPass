@@ -59,6 +59,21 @@ var _banner:Label
 var _banner_sub:Label
 var _banner_tween:Tween
 
+# Compteur de gems sous le score (un par joueur en coop)
+# Les glyphes du score descendent jusqu'à y = 20 environ : la rangée passe dessous
+const GEM_ROW_Y=17
+# Le glyphe de la petite police est décalé vers le bas dans son Label
+const GEM_ICON_OFFSET_Y=8
+const GEM_ICON_HALF=3.0
+const GEM_ICON_GAP=2
+const GEM_CENTER_SOLO=160.0
+const GEM_CENTERS_COOP=[146.0, 174.0]
+var _gem_centers:=[GEM_CENTER_SOLO, GEM_CENTER_SOLO]
+var _gem_icons:=[null, null]
+var _gem_labels:=[null, null]
+var _gem_tweens:=[null, null]
+var _gem_colors:=[Color.WHITE, Color.WHITE]
+
 func _ready() -> void:
 	add_to_group("hud")
 	set_title("LEVEL "+("%02d" % GlobalPlayer.get_level()))
@@ -79,6 +94,8 @@ func _ready() -> void:
 
 	update_score_value(GlobalPlayer.get_score())
 
+	build_gem_counter(0, GEM_CENTER_SOLO)
+
 	_streak_label = build_label(5, HORIZONTAL_ALIGNMENT_RIGHT)
 	# Sous « LEVEL xx » (glyphes de la police Pixeled jusqu'à y = 20 environ)
 	_streak_label.position = Vector2(217, STREAK_Y)
@@ -96,6 +113,48 @@ func _ready() -> void:
 	_banner_sub.position = Vector2(0, BANNER_Y + 22)
 	_banner_sub.size = Vector2(320, 12)
 	_banner_sub.visible = false
+
+
+func build_gem_counter(index:int, center_x:float) -> void:
+	if _gem_labels[index] == null:
+		_gem_icons[index]=Fx.gem_icon(self, Vector2.ZERO, GEM_ICON_HALF)
+		_gem_labels[index]=build_label(5, HORIZONTAL_ALIGNMENT_LEFT)
+		_gem_labels[index].size=Vector2(30, 10)
+		_gem_labels[index].text=str(GlobalPlayer.get_gems(index))
+	_gem_centers[index]=center_x
+	layout_gem_counter(index)
+
+
+# Icône + nombre centrés ensemble sur center_x, au pixel entier
+func layout_gem_counter(index:int) -> void:
+	var label:Label=_gem_labels[index]
+	var font:Font=label.get_theme_font("font")
+	var text_width:=font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, label.get_theme_font_size("font_size")).x
+	var icon_width:=int(GEM_ICON_HALF) * 2 + 2
+	var left:=roundi(_gem_centers[index] - (icon_width + GEM_ICON_GAP + text_width) / 2.0)
+	_gem_icons[index].position=Vector2(left + int(GEM_ICON_HALF) + 1, GEM_ROW_Y + GEM_ICON_OFFSET_Y)
+	label.position=Vector2(left + icon_width + GEM_ICON_GAP, GEM_ROW_Y)
+
+
+func update_gems(value:int, index:=0) -> void:
+	var label:Label=_gem_labels[index]
+	if label == null or label.text == str(value):
+		return
+	var is_gain:=value > int(label.text)
+	label.text=str(value)
+	layout_gem_counter(index)
+	if not is_gain:
+		return
+	if _gem_tweens[index]:
+		_gem_tweens[index].kill()
+	label.pivot_offset=Vector2(0, label.size.y / 2)
+	label.scale=Vector2(1.4, 1.4)
+	label.add_theme_color_override("font_color", Fx.GEM_COLOR)
+	var tween:=create_tween()
+	tween.tween_property(label, "scale", Vector2.ONE, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_interval(0.15)
+	tween.tween_callback(func(): label.add_theme_color_override("font_color", _gem_colors[index]))
+	_gem_tweens[index]=tween
 
 
 func build_label(font_size:int, alignment) -> Label:
@@ -279,6 +338,12 @@ func enable_second_player() -> void:
 	p1_tag.add_theme_color_override("font_color", Player.COOP_COLORS[0])
 	p1_tag.position=Vector2(3, 22)
 	p1_tag.size=Vector2(14, 10)
+
+	build_gem_counter(0, GEM_CENTERS_COOP[0])
+	build_gem_counter(1, GEM_CENTERS_COOP[1])
+	for index in [0, 1]:
+		_gem_colors[index]=Player.COOP_COLORS[index]
+		_gem_labels[index].add_theme_color_override("font_color", _gem_colors[index])
 
 	_level.position.y+=P2_HUD_SHIFT_Y
 	_streak_label.position.y+=P2_HUD_SHIFT_Y

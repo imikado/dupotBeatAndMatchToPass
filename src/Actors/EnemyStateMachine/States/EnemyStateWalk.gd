@@ -13,6 +13,10 @@ func enter():
 	play_animation(ANIM_WALK_RIGHT)
 
 
+func exit():
+	owner.get_parent().stop_catchup_dash()
+
+
 func handle_input(event):
 	return super.handle_input(event)
 
@@ -26,9 +30,11 @@ func update(delta):
 	var input_direction = get_input_direction()
 	if not input_direction:
 		emit_signal("finished", STATE_IDLE)
-		
+		return
+
 	update_look_direction(input_direction)
 
+	owner.get_parent().update_catchup_dash()
 	speed = owner.get_parent().get_walk_speed()
 	var collision_info = move(speed, input_direction)
 	if not collision_info:

@@ -43,8 +43,6 @@ func _change_state(state_name):
 	"""
 	if not _active:
 		return
-	if state_name in [STATE_ATTACK01,STATE_DAMAGED]:
-		states_stack.push_front(states_map[state_name])
-	
+	# pas de push_front : aucun état ennemi ne revient à "previous" (la pile grossissait sans fin)
 	super._change_state(state_name)
 

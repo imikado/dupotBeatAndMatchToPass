@@ -8,6 +8,7 @@ static func count_up(owner: Node, label: Label, score: int, duration: float = 1.
 	label.text = "0"
 	var tween := owner.create_tween()
 	if score <= 0:
+		tween.tween_interval(0.0)
 		return tween
 	tween.tween_interval(0.3)
 	tween.tween_method(func(value: int):

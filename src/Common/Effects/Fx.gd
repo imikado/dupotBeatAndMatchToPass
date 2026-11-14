@@ -5,10 +5,31 @@ const FONT := preload("res://src/Common/UI/fonts/littleFont.tres")
 const CHARACTER_SHADER := preload("res://src/Common/Effects/character.gdshader")
 
 const ENEMY_COLORS = {
-	Game.ENEMY_TYPE_LIST.ANT: Color("c8553d"),
-	Game.ENEMY_TYPE_LIST.BEETLE: Color("6ab04c"),
-	Game.ENEMY_TYPE_LIST.SPIDER: Color("9b59b6"),
+	Game.ENEMY_TYPE_LIST.ANT: Color("6a85b0"),
+	Game.ENEMY_TYPE_LIST.BEETLE: Color("9476ad"),
+	Game.ENEMY_TYPE_LIST.SPIDER: Color("aa9c68"),
 }
+
+
+const GEM_COLOR := Color("5ee8e0")
+
+
+# Petit losange de gem (HUD, boutique, porte du shop)
+static func gem_icon(parent: Node, pos: Vector2, half := 3.0) -> Polygon2D:
+	var outline := Polygon2D.new()
+	outline.color = Color.BLACK
+	outline.polygon = PackedVector2Array([Vector2(0, -half - 1), Vector2(half + 1, 0), Vector2(0, half + 1), Vector2(-half - 1, 0)])
+	outline.position = pos
+	parent.add_child(outline)
+	var gem := Polygon2D.new()
+	gem.color = GEM_COLOR
+	gem.polygon = PackedVector2Array([Vector2(0, -half), Vector2(half, 0), Vector2(0, half), Vector2(-half, 0)])
+	outline.add_child(gem)
+	var shine := Polygon2D.new()
+	shine.color = Color(1, 1, 1, 0.8)
+	shine.polygon = PackedVector2Array([Vector2(0, -half), Vector2(half * 0.5, -half * 0.5), Vector2(0, 0), Vector2(-half * 0.5, -half * 0.5)])
+	outline.add_child(shine)
+	return outline
 
 
 static func floating_text(parent: Node, text: String, global_pos: Vector2, color: Color = Color.WHITE, font_size: int = 5) -> void:
@@ -21,8 +42,9 @@ static func floating_text(parent: Node, text: String, global_pos: Vector2, color
 	label.add_theme_constant_override("outline_size", 2)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.z_index = 100
-	label.size = Vector2(60, 12)
+	# Taille fixée après add_child : hors de l'arbre le Label se dimensionne avec la police par défaut
 	parent.add_child(label)
+	label.size = Vector2(60, 14)
 	label.global_position = global_pos - Vector2(30, 6)
 
 	var tween := label.create_tween()
@@ -74,8 +96,24 @@ static func squash(pivot: Node2D, amount: Vector2, duration: float = 0.12) -> vo
 static func character_material(sprite: CanvasItem) -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = CHARACTER_SHADER
+	if sprite is AnimatedSprite2D or sprite is Sprite2D:
+		material.set_shader_parameter("frame_height", frame_height(sprite))
 	sprite.material = material
 	return material
+
+
+static func frame_height(sprite: CanvasItem) -> float:
+	var texture: Texture2D = sprite.texture if sprite is Sprite2D else sprite.sprite_frames.get_frame_texture(sprite.animation, 0)
+	return float(texture.get_height()) if texture else 64.0
+
+
+# Ombre portée du personnage (silhouette aplatie qui suit l'animation), sous le reste
+static func cast_shadow(actor: Node2D, sprite: AnimatedSprite2D) -> CastShadow:
+	var shadow_sprite := CastShadow.new()
+	actor.add_child(shadow_sprite)
+	actor.move_child(shadow_sprite, 0)
+	shadow_sprite.setup(sprite)
+	return shadow_sprite
 
 
 static var _shadow_textures := {}
@@ -92,13 +130,17 @@ static func shadow(parent: Node2D, width: int) -> Sprite2D:
 			for x in range(width):
 				var dx := (x + 0.5 - rx) / rx
 				var dy := (y + 0.5 - ry) / ry
-				if dx * dx + dy * dy <= 1.0:
-					image.set_pixel(x, y, Color(0, 0, 0, 1))
+				var d := dx * dx + dy * dy
+				# coeur dense, bord plus clair : contact au sol plus doux
+				if d <= 0.45:
+					image.set_pixel(x, y, Color(0.02, 0.02, 0.06, 1))
+				elif d <= 1.0:
+					image.set_pixel(x, y, Color(0.02, 0.02, 0.06, 0.55))
 		_shadow_textures[width] = ImageTexture.create_from_image(image)
 
 	var sprite := Sprite2D.new()
 	sprite.texture = _shadow_textures[width]
-	sprite.modulate = Color(1, 1, 1, 0.55)
+	sprite.modulate = Color(1, 1, 1, 0.6)
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	parent.add_child(sprite)
 	parent.move_child(sprite, 0)

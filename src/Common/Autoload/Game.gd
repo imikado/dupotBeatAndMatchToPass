@@ -114,9 +114,16 @@ func is_debug():
 	return _is_debug
 
 
+# Fin du hit stop le plus tardif en cours : un arrêt court ne coupe pas un arrêt plus long
+var _hit_stop_end_ms := 0
+
+
 func hit_stop(duration: float, time_scale: float = 0.05) -> void:
-	Engine.time_scale = time_scale
-	await get_tree().create_timer(duration, true, false, true).timeout
+	_hit_stop_end_ms = maxi(_hit_stop_end_ms, Time.get_ticks_msec() + int(duration * 1000.0))
+	Engine.time_scale = minf(Engine.time_scale, time_scale)
+	while Time.get_ticks_msec() < _hit_stop_end_ms:
+		var remaining := maxf((_hit_stop_end_ms - Time.get_ticks_msec()) / 1000.0, 0.001)
+		await get_tree().create_timer(remaining, true, false, true).timeout
 	Engine.time_scale = 1.0
 
 

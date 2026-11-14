@@ -53,5 +53,5 @@ animations = [{
 }]
 
 [node name="playerGameOver" type="AnimatedSprite2D" unique_id=1872336598]
-position = Vector2(168, 7)
+position = Vector2(168, 10)
 sprite_frames = SubResource("8")

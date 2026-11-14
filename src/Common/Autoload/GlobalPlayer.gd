@@ -19,6 +19,30 @@ const COOP_MANA_GAIN_FACTOR = 0.5
 
 var two_players := false
 
+# Gems (par joueur) : gagnées en tuant des ennemis, dépensées dans la boutique du niveau bonus
+const GEMS_ANT = 3
+const GEMS_BEETLE = 5
+const GEMS_SPIDER = 6
+# fin de niveau : 1 gem tous les LIFE_PER_GEM points de vie restants
+const LIFE_PER_GEM = 5
+
+const SKILL_SPEED = "speed"
+const SKILL_ATTACK = "attack"
+const SKILL_RESISTANCE = "resistance"
+const SKILLS := [SKILL_SPEED, SKILL_ATTACK, SKILL_RESISTANCE]
+const SKILL_BONUS_PER_LEVEL = 0.05
+const SKILL_MAX_LEVEL = 10
+# gems versées dans la jauge à chaque achat ; la jauge pleine fait passer un niveau
+const GEMS_PER_INVEST = 5
+const SKILL_COST_BASE = 25
+const SKILL_COST_STEP = 15
+
+var gems := [0, 0]
+# gems de bonus de vie gagnées au dernier niveau terminé (écran LevelCompleted)
+var last_life_bonus := [0, 0]
+# par joueur : {skill: {"level": int, "progress": int}}
+var skills := [{}, {}]
+
 var _score = 0
 var life = START_LIFE
 var life2 = START_LIFE
@@ -52,6 +76,89 @@ func reset_game():
 	mana = START_MANA
 	mana2 = START_MANA
 	kill_streak = 0
+	gems = [0, 0]
+	last_life_bonus = [0, 0]
+	skills = [new_skills(), new_skills()]
+
+
+func _init():
+	skills = [new_skills(), new_skills()]
+
+
+func new_skills() -> Dictionary:
+	var result := {}
+	for skill in SKILLS:
+		result[skill] = {"level": 0, "progress": 0}
+	return result
+
+
+func get_gems(index := 0) -> int:
+	return gems[index]
+
+
+func add_gems(value: int, index := 0) -> void:
+	gems[index] = maxi(gems[index] + value, 0)
+
+
+# Gems pour un ennemi tué ; moitié s'il est tué par l'orage
+func gems_for_enemy(type, by_storm: bool) -> int:
+	var value := 1
+	match type:
+		Game.ENEMY_TYPE_LIST.ANT:
+			value = GEMS_ANT
+		Game.ENEMY_TYPE_LIST.BEETLE:
+			value = GEMS_BEETLE
+		Game.ENEMY_TYPE_LIST.SPIDER:
+			value = GEMS_SPIDER
+	return maxi(value / 2, 1) if by_storm else value
+
+
+func gems_for_life(life_value: float) -> int:
+	return int(maxf(life_value, 0.0) / LIFE_PER_GEM)
+
+
+# Fin de niveau : gems selon la vie restante de chaque joueur
+func grant_life_bonus() -> void:
+	last_life_bonus = [0, 0]
+	for index in ([0, 1] if two_players else [0]):
+		last_life_bonus[index] = gems_for_life(get_player_life(index))
+		add_gems(last_life_bonus[index], index)
+
+
+func skill_level(skill: String, index := 0) -> int:
+	return skills[index][skill]["level"]
+
+
+func skill_progress(skill: String, index := 0) -> int:
+	return skills[index][skill]["progress"]
+
+
+func skill_cost(skill: String, index := 0) -> int:
+	return SKILL_COST_BASE + SKILL_COST_STEP * skill_level(skill, index)
+
+
+func is_skill_maxed(skill: String, index := 0) -> bool:
+	return skill_level(skill, index) >= SKILL_MAX_LEVEL
+
+
+# +5 % par niveau
+func skill_factor(skill: String, index := 0) -> float:
+	return 1.0 + SKILL_BONUS_PER_LEVEL * skill_level(skill, index)
+
+
+# Verse des gems dans la jauge ; renvoie 0 si rien n'a été versé, 1 si versé, 2 si niveau gagné
+func invest_skill(skill: String, index := 0) -> int:
+	if is_skill_maxed(skill, index) or gems[index] <= 0:
+		return 0
+	var data: Dictionary = skills[index][skill]
+	var amount := mini(mini(GEMS_PER_INVEST, gems[index]), skill_cost(skill, index) - data["progress"])
+	gems[index] -= amount
+	data["progress"] += amount
+	if data["progress"] < skill_cost(skill, index):
+		return 1
+	data["level"] += 1
+	data["progress"] = 0
+	return 2
 
 
 func get_score():

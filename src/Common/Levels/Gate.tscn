@@ -2,15 +2,67 @@
 
 [ext_resource type="Texture2D" path="res://src/Common/Levels/Gate/gate.png" id="1"]
 [ext_resource type="Script" path="res://src/Common/Levels/Gate.gd" id="2"]
+[ext_resource type="Texture2D" path="res://src/Common/Levels/Gate/gate_glow.png" id="3"]
 
 [sub_resource type="RectangleShape2D" id="1"]
 size = Vector2(25, 42)
+
+[sub_resource type="CanvasItemMaterial" id="glow_mat"]
+blend_mode = 1
+
+[sub_resource type="Animation" id="anim_reset"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Glow:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0.25)]
+}
+
+[sub_resource type="Animation" id="anim_glow"]
+length = 2.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Glow:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(-2, -2, -2),
+"update": 0,
+"values": [Color(1, 1, 1, 0.15), Color(1, 1, 1, 0.65), Color(1, 1, 1, 0.15)]
+}
+
+[sub_resource type="AnimationLibrary" id="anim_lib"]
+_data = {
+&"RESET": SubResource("anim_reset"),
+&"glow": SubResource("anim_glow")
+}
 
 [node name="Gate" type="Node2D" unique_id=47373586]
 script = ExtResource("2")
 
 [node name="Gate" type="Sprite2D" parent="." unique_id=1248058202]
 texture = ExtResource("1")
+
+[node name="Glow" type="Sprite2D" parent="."]
+modulate = Color(1, 1, 1, 0.25)
+material = SubResource("glow_mat")
+texture = ExtResource("3")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("anim_lib")
+}
+autoplay = "glow"
 
 [node name="Area2D" type="Area2D" parent="." unique_id=1274567898]
 

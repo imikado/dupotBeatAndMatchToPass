@@ -4,6 +4,7 @@ const SELECTED_OFFSET_X = -6.0
 
 @onready var _playButton:=get_node("Control/playButton")
 @onready var _twoPlayersButton:=get_node("Control/twoPlayersButton")
+@onready var _trainingButton:=get_node("Control/trainingButton")
 @onready var _highScoresButton:=get_node("Control/hightScoresButton")
 @onready var _settingsButton:=get_node("Control/settingsButton")
 
@@ -19,6 +20,7 @@ var _music_label: Label
 @onready var _buttonList=[
 	_playButton,
 	_twoPlayersButton,
+	_trainingButton,
 	_highScoresButton,
 	_settingsButton
 ]
@@ -27,6 +29,7 @@ func _ready() -> void:
 	_playButton.connect("released", Callable(self, "goto_game"))
 	_twoPlayersButton.connect("released", Callable(self, "goto_two_players"))
 
+	_trainingButton.released.connect(goto_training)
 	_highScoresButton.connect("released", Callable(self, "goto_scores"))
 	_settingsButton.connect("released", Callable(self, "goto_settings"))
 
@@ -126,6 +129,9 @@ func goto_game():
 # Mode 2 joueurs : choix des manettes / touches avant de lancer la partie
 func goto_two_players():
 	leave("res://src/UI/coop_setup.tscn")
+
+func goto_training():
+	leave("res://src/UI/TrainingSelect.tscn")
 
 func goto_scores():
 	leave("res://src/UI/scores.tscn")

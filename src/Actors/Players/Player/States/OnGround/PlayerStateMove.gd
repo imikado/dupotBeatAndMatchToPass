@@ -31,7 +31,7 @@ func update(delta):
 	if input_direction.x != 0 and sign(input_direction.x) != sign(facing):
 		owner.dust()
 
-	speed = MAX_WALK_SPEED
+	speed = MAX_WALK_SPEED * owner.move_speed_factor()
 	var collision_info = move(speed, input_direction)
 	if not collision_info:
 		return

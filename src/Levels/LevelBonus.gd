@@ -107,6 +107,7 @@ func _ready() -> void:
 		_hud.enable_second_player()
 		_hud.update_player_life(GlobalPlayer.life2, 1)
 		_hud.update_player_mana(GlobalPlayer.mana2, 1)
+		_hud.update_gems(GlobalPlayer.get_gems(1), 1)
 		_controls.visible = false
 	else:
 		Events.connect("player_health_changed", Callable(self, "_on_player_healt_changed"))
@@ -131,7 +132,6 @@ func _ready() -> void:
 		var newSquirrel = Squirrel.instantiate()
 		newSquirrel.add_to_group(Game.GROUP_BONUSACTOR)
 		_ysort.add_child(newSquirrel)
-		print(startEndMoveLoop)
 		newSquirrel.set_global_position(startEndMoveLoop["start"].global_position)
 		newSquirrel.setTarget(startEndMoveLoop["end"], startEndMoveLoop["start"])
 
@@ -407,7 +407,7 @@ func _on_player_tookadvantage_of_lifebottle(player: Player) -> void:
 func _on_timeLeft_timeout() -> void:
 	_timeLeft -= 1
 	if _timeLeft < 0:
-		Transition.goto("res://src/Levels/LevelTemplate.tscn")
+		Transition.goto("res://src/Levels/LevelShop.tscn")
 
 	_timeLeftLabel.text = str(_timeLeft)
 
