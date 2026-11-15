@@ -35,8 +35,10 @@ const SWORD_BEAM_COLOR = Color(0.6, 0.85, 1.0)
 const SWORD_BEAM_SKY = 16.0
 const SWORD_BEAM_RISE = 0.08
 const SWORD_BEAM_FADE = 0.25
-# bolts used per salvo (out of the ManaFall nodes), picked at random
-const STORM_BOLTS_PER_SALVO = 8
+# éclairs par salve : GlobalPlayer.storm_bolts (8, puis plus aux niveaux de mana 4 et 5)
+# salves : GlobalPlayer.storm_salvos ; l'animation en prévoit 3, les suivantes sont sautées
+# et l'animation reprend juste après la dernière clé de salve
+const STORM_SKIP_TO = 1.85
 
 const INVINCIBILITY_DURATION = 0.8
 const INVINCIBILITY_BLINK = 0.08
@@ -50,9 +52,28 @@ const DASH_GHOST_COLOR = Color(0.55, 0.75, 1.0, 0.6)
 const ANIM_DASH_POWER = "dash_power"
 const DASH_ATTACK_WINDOW_MS = 130
 const POWER_DAMAGE = 40
-# Réduction globale des dégâts du joueur : sans achat d'attaque à la boutique,
-# chaque coup fait 70 % de sa valeur de base (100 %+ vers le niveau 6 d'attaque)
-const BASE_DAMAGE_FACTOR = 0.7
+# Dégâts : facteur du niveau d'attaque (GlobalPlayer.attack_level_factor, 45 % au
+# niveau 1) × bonus d'attaque de la boutique
+# Double hache : mêmes coups que l'épée, plus lents mais plus forts
+const AXE_SLOW = 1.7
+const AXE_DAMAGE = 1.6
+const AXE_KNOCKBACK = 1.3
+const AXE_CUT_COLOR = Color(1.0, 0.72, 0.45)
+const AXE_SWING_PITCH = 0.8
+# Bombe : jet (planches « mains vides »), la bombe est dans la main jusqu'au lâcher
+const ANIM_THROW = "throw_right"
+const THROW_DURATION = 0.5
+const THROW_RELEASE = 0.2
+const THROW_DISTANCE = 56.0
+const THROW_DISTANCE_HEAVY = 92.0
+# [planche, image, position de la main dans l'image 64x64] (tools/generate_weapon_sprites.py)
+const THROW_POSES := [
+	["mana_unarmed", 1, Vector2(31, 53)],
+	["mana_unarmed", 2, Vector2(32, 31)],
+	["cross_unarmed", 5, Vector2(42, 48)],
+	["followups_unarmed", 3, Vector2(39, 53)],
+]
+const THROW_TIMES := [0.0, 0.1, 0.2, 0.3]
 const POWER_KNOCKBACK = 28.0
 const POWER_RADIUS = Vector2(24, 12)
 const POWER_COLOR = Color(1.0, 0.85, 0.35)
@@ -103,6 +124,11 @@ var _lunge_tween: Tween
 var _storm_sky: StormSky
 var _storm_active := false
 var _salvo_discharges := 0
+var _salvo_index := 0
+# images par arme (la bombe garde celles de l'épée hors du jet)
+var _weapon_frames := {}
+var _held_bomb: Sprite2D
+var _throw_heavy := false
 
 # 0 : joueur 1, 1 : joueur 2 ; préfixe "solo_" en solo, "p1_" / "p2_" en coop
 var player_index := 0
@@ -112,6 +138,8 @@ var _is_coop := false
 
 func _ready() -> void:
 	build_melee_animations()
+	build_throw_animation()
+	build_weapon_frames()
 	add_to_group(GROUP_PLAYER)
 	# actions du joueur seul (setup_coop les remplace en mode 2 joueurs)
 	_input_prefix = PlayerInput.prefix(PlayerInput.SOLO)
@@ -131,6 +159,8 @@ func _ready() -> void:
 	Fx.shadow(self, 16).position = Vector2(-1, -1)
 	_sprite_material = Fx.character_material(get_node("BodyPivot/AnimatedSprite2D"))
 	Fx.cast_shadow(self, get_node("BodyPivot/AnimatedSprite2D"))
+	Events.weapon_select_requested.connect(_on_weapon_select_requested)
+	apply_weapon()
 
 
 # Nom de l'action pour ce joueur (« solo_attack » en solo, « p2_attack » pour le joueur 2)
@@ -171,6 +201,7 @@ func setup_coop(index: int, shared_camera: Camera2D) -> void:
 	add_child(tag)
 	tag.size = Vector2(20, 14)
 	tag.position = Vector2(-10, -46)
+	apply_weapon()
 
 
 # Coop : joueur tombé, les ennemis l'ignorent et les autres le traversent
@@ -252,8 +283,7 @@ func took_damage(damage: int):
 	if _is_invincible or _is_dashing or _life <= 0 or _state == STATE_ATTACK_MANA01:
 		return
 
-	var resistance := minf(GlobalPlayer.SKILL_BONUS_PER_LEVEL * GlobalPlayer.skill_level(GlobalPlayer.SKILL_RESISTANCE, player_index), 0.9)
-	updateLife(_life - damage * (1.0 - resistance))
+	updateLife(_life - damage)
 	if _life <= 0:
 		return
 
@@ -264,15 +294,23 @@ func took_damage(damage: int):
 	start_invincibility()
 
 
-# Dégâts de mêlée avec le bonus d'attaque acheté à la boutique
+# Dégâts de mêlée selon le niveau d'attaque
 func attack_damage(base: float) -> int:
-	# arrondi aléatoire : les coups font ~8 points, +5 % arrondi ne changerait rien
-	var value := base * BASE_DAMAGE_FACTOR * GlobalPlayer.skill_factor(GlobalPlayer.SKILL_ATTACK, player_index)
-	return int(floor(value)) + (1 if randf() < value - floor(value) else 0)
+	return random_round(base * GlobalPlayer.attack_level_factor(player_index))
+
+
+# Dégâts d'un éclair selon le niveau de mana
+func storm_damage(base: float) -> int:
+	return random_round(base * GlobalPlayer.mana_level_factor(player_index))
+
+
+# arrondi aléatoire : les coups font quelques points, un arrondi simple écraserait les bonus
+func random_round(value: float) -> int:
+	return maxi(int(floor(value)) + (1 if randf() < value - floor(value) else 0), 1)
 
 
 func move_speed_factor() -> float:
-	return GlobalPlayer.skill_factor(GlobalPlayer.SKILL_SPEED, player_index)
+	return 1.0
 
 
 func start_invincibility():
@@ -486,6 +524,7 @@ func _on_HitBox_body_entered(body: Node) -> void:
 
 
 func mana_cast_begin() -> void:
+	_salvo_index = 0
 	if not _storm_active:
 		_canvas_modulate.set_meta("storm_count", _canvas_modulate.get_meta("storm_count", 0) + 1)
 	_storm_active = true
@@ -581,6 +620,13 @@ func storm_impact() -> void:
 
 
 func mana_attack_start() -> void:
+	_salvo_index += 1
+	if _salvo_index > GlobalPlayer.storm_salvos(player_index):
+		# orage moins puissant : l'animation saute les salves restantes
+		var animator: AnimationPlayer = _bodyPivot.get_node("AnimationPlayer")
+		if animator.current_animation_position < STORM_SKIP_TO:
+			animator.seek.call_deferred(STORM_SKIP_TO)
+		return
 	_salvo_discharges = 0
 	sword_beam()
 	fall()
@@ -631,7 +677,7 @@ func fall() -> void:
 	_manaFalling.visible = true
 	var bolts := _manaFalling.get_children()
 	bolts.shuffle()
-	bolts = bolts.slice(0, STORM_BOLTS_PER_SALVO)
+	bolts = bolts.slice(0, GlobalPlayer.storm_bolts(player_index))
 	var view := get_viewport().get_canvas_transform().affine_inverse()
 	var screen := get_viewport_rect().size
 	var top_left: Vector2 = view * Vector2.ZERO
@@ -759,7 +805,7 @@ func heavy_mana_glow() -> void:
 
 func strike_impact(strike: Dictionary) -> void:
 	attack_lunge(strike.lunge, Vector2(1.25, 0.85) if strike.heavy else Vector2(1.12, 0.94))
-	Sound.play("swing", 0.03, 1.5 if strike.heavy else 0.0, 0.7 if strike.heavy else 1.15)
+	Sound.play("swing", 0.03, 1.5 if strike.heavy else 0.0, (0.7 if strike.heavy else 1.15) * swing_pitch())
 	if strike.heavy:
 		dust()
 
@@ -792,10 +838,12 @@ func combo_impact(strike: Dictionary, hit_index: int) -> void:
 		var cut := preload("res://src/Common/Effects/SwordCut.gd").new()
 		cut.kind = strike.cuts[hit_index]
 		cut.facing = direction
+		if strike.get("axe", false):
+			cut.modulate = AXE_CUT_COLOR
 		get_parent().add_child(cut)
 		cut.global_position = global_position.round()
 		attack_lunge(4.0 if final_hit else 2.0, Vector2(1.04, 0.98))
-		Sound.play("swing", 0.02, 1.5 if heavy_cut else 0.0, 0.75 if heavy_cut else 1.15 + hit_index * 0.05)
+		Sound.play("swing", 0.02, 1.5 if heavy_cut else 0.0, (0.75 if heavy_cut else 1.15 + hit_index * 0.05) * swing_pitch())
 		spawn_dash_ghost()
 	for enemy in get_tree().get_nodes_in_group(Game.GROUP_ENEMY):
 		if not is_instance_valid(enemy) or not enemy is Node2D:
@@ -910,8 +958,179 @@ func build_melee_animations() -> void:
 	], [0.0, 0.04, 0.08, 0.13, 0.22, 0.36], 0.55)
 
 
+# ---- Armes -------------------------------------------------------------
+
+func weapon() -> String:
+	return GlobalPlayer.get_weapon(player_index)
+
+
+func sprite_folder() -> String:
+	return "Player2" if scene_file_path.ends_with("Player2.tscn") else "Player"
+
+
+# Jet de bombe : poses des planches « mains vides », la bombe tenue suit la main
+func build_throw_animation() -> void:
+	var sprite: AnimatedSprite2D = get_node("BodyPivot/AnimatedSprite2D")
+	var frames := sprite.sprite_frames
+	var folder := sprite_folder()
+	var sheets := {
+		"mana_unarmed": "res://src/Actors/Players/%s/player-attacking-mana-01-unarmed.png" % folder,
+		"cross_unarmed": "res://src/Actors/Players/%s/combo/player-combo-cross-unarmed.png" % folder,
+		"followups_unarmed": "res://src/Actors/Players/%s/combo/player-combo-followups-unarmed.png" % folder,
+	}
+	frames.add_animation("throw")
+	frames.set_animation_loop("throw", false)
+	for pose in THROW_POSES:
+		var atlas := AtlasTexture.new()
+		atlas.atlas = load(sheets[pose[0]])
+		atlas.region = Rect2(pose[1] * 64, 0, 64, 64)
+		frames.add_frame("throw", atlas)
+	var animation := Animation.new()
+	animation.length = THROW_DURATION
+	for property in ["frame", "animation"]:
+		var track := animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(track, "BodyPivot/AnimatedSprite2D:" + property)
+		animation.value_track_set_update_mode(track, Animation.UPDATE_DISCRETE)
+		if property == "frame":
+			for i in range(THROW_TIMES.size()):
+				animation.track_insert_key(track, THROW_TIMES[i], i)
+		else:
+			animation.track_insert_key(track, 0.0, "throw")
+	var hit_track := animation.add_track(Animation.TYPE_VALUE)
+	animation.track_set_path(hit_track, "BodyPivot/HitBox/CollisionShape2D:disabled")
+	animation.track_insert_key(hit_track, 0.0, true)
+	var animator: AnimationPlayer = get_node("BodyPivot/AnimationPlayer")
+	animator.get_animation_library("").add_animation(ANIM_THROW, animation)
+
+	_held_bomb = Sprite2D.new()
+	_held_bomb.texture = Bomb.texture()
+	_held_bomb.visible = false
+	_held_bomb.z_index = 1
+	_bodyPivot.add_child(_held_bomb)
+	sprite.frame_changed.connect(_update_held_bomb)
+
+
+func _update_held_bomb() -> void:
+	var sprite: AnimatedSprite2D = get_node("BodyPivot/AnimatedSprite2D")
+	if sprite.animation != "throw" or not _held_bomb.visible:
+		return
+	_held_bomb.position = hand_position(sprite.frame)
+
+
+# Main dans le repère du BodyPivot (image 64x64 centrée sur SPRITE_POSITION)
+func hand_position(frame: int) -> Vector2:
+	return THROW_POSES[clampi(frame, 0, THROW_POSES.size() - 1)][2] - Vector2(32, 32) + SPRITE_POSITION
+
+
+# Images de la double hache : copie des images de l'épée, planches « -axe » à la place
+func build_weapon_frames() -> void:
+	var sprite: AnimatedSprite2D = get_node("BodyPivot/AnimatedSprite2D")
+	var sword: SpriteFrames = sprite.sprite_frames
+	var axe: SpriteFrames = sword.duplicate()
+	var sheets := {}
+	for animation in axe.get_animation_names():
+		for i in range(axe.get_frame_count(animation)):
+			var texture := axe.get_frame_texture(animation, i)
+			if not (texture is AtlasTexture) or texture.atlas == null:
+				continue
+			var path: String = texture.atlas.resource_path
+			if not sheets.has(path):
+				var axe_path := path.replace(".png", "-axe.png")
+				sheets[path] = load(axe_path) if not path.ends_with("-unarmed.png") and ResourceLoader.exists(axe_path) else null
+			if sheets[path] == null:
+				continue
+			var replaced := AtlasTexture.new()
+			replaced.atlas = sheets[path]
+			replaced.region = texture.region
+			axe.set_frame(animation, i, replaced, axe.get_frame_duration(animation, i))
+	_weapon_frames = {GlobalPlayer.WEAPON_SWORD: sword, GlobalPlayer.WEAPON_AXE: axe, GlobalPlayer.WEAPON_BOMB: sword}
+
+
+func apply_weapon() -> void:
+	var sprite: AnimatedSprite2D = get_node("BodyPivot/AnimatedSprite2D")
+	var frames: SpriteFrames = _weapon_frames.get(weapon(), _weapon_frames[GlobalPlayer.WEAPON_SWORD])
+	if sprite.sprite_frames == frames:
+		return
+	var animation := sprite.animation
+	var frame := sprite.frame
+	sprite.sprite_frames = frames
+	sprite.animation = animation
+	sprite.frame = frame
+
+
+func select_weapon(weapon_: String) -> void:
+	if weapon_ == weapon() or not GlobalPlayer.set_weapon(weapon_, player_index):
+		return
+	apply_weapon()
+	var color: Color = WeaponIcons.COLORS[weapon_]
+	Sound.play("menu_select", 0.0, -2.0, 1.2)
+	Fx.floating_text(get_parent(), GlobalPlayer.WEAPON_TITLES[weapon_], global_position + Vector2(0, -44), color)
+	Fx.ring(get_parent(), global_position, color, 14.0, 0.25)
+	Events.player_weapon_changed.emit(player_index)
+
+
+func cycle_weapon() -> void:
+	if GlobalPlayer.owned_weapons[player_index].size() > 1:
+		select_weapon(GlobalPlayer.next_weapon(player_index))
+
+
+func _on_weapon_select_requested(index: int, weapon_: String) -> void:
+	if index == player_index and is_alive():
+		select_weapon(weapon_)
+
+
+# Coup adapté à l'arme : la hache allonge tous les temps et frappe plus fort
+func weapon_strike(strike: Dictionary) -> Dictionary:
+	if weapon() != GlobalPlayer.WEAPON_AXE:
+		return strike
+	var result := strike.duplicate(true)
+	for key in ["duration", "impact", "cancel", "input_open"]:
+		result[key] = float(result[key]) * AXE_SLOW
+	if result.has("hits"):
+		result.hits = result.hits.map(func(time): return float(time) * AXE_SLOW)
+	result.damage = roundi(float(result.damage) * AXE_DAMAGE)
+	if result.has("hit_damage"):
+		result.hit_damage = result.hit_damage.map(func(value): return roundi(float(value) * AXE_DAMAGE))
+	result.knockback = float(result.knockback) * AXE_KNOCKBACK
+	result["axe"] = true
+	return result
+
+
+func swing_pitch() -> float:
+	return AXE_SWING_PITCH if weapon() == GlobalPlayer.WEAPON_AXE else 1.0
+
+
+func throw_begin(heavy: bool) -> void:
+	_throw_heavy = heavy
+	velocity = Vector2.ZERO
+	if heavy:
+		spend_heavy_mana()
+	_held_bomb.visible = true
+	_held_bomb.position = hand_position(0)
+
+
+func throw_release() -> void:
+	if not _held_bomb.visible:
+		return
+	_held_bomb.visible = false
+	var direction := -1.0 if _bodyPivot.scale.x < 0 else 1.0
+	var hand := global_position + hand_position(2) * Vector2(direction, 1)
+	var distance := THROW_DISTANCE_HEAVY if _throw_heavy else THROW_DISTANCE
+	var bomb := Bomb.new()
+	bomb.thrower = self
+	bomb.heavy = _throw_heavy
+	get_parent().add_child(bomb)
+	bomb.launch(hand, global_position + Vector2(direction * distance, randf_range(-3, 3)))
+	Sound.play("swing", 0.05, 0.0, 0.8)
+	attack_lunge(3.0, Vector2(1.1, 0.92))
+
+
+func throw_end() -> void:
+	_held_bomb.visible = false
+
+
 func add_combo_strip(frames: SpriteFrames, kind: String, count: int) -> void:
-	var folder := "Player2" if scene_file_path.ends_with("Player2.tscn") else "Player"
+	var folder := sprite_folder()
 	var sheet: Texture2D = load("res://src/Actors/Players/%s/combo/player-combo-%s.png" % [folder, kind])
 	frames.add_animation(kind + "_sheet")
 	frames.set_animation_loop(kind + "_sheet", false)

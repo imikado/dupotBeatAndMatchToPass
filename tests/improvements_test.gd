@@ -81,6 +81,9 @@ func run() -> void:
 	await get_tree().process_frame
 	Engine.time_scale = 1.0
 
+	var real_settings_path := Game.settings_path
+	var previous_touch: bool = Game.isControlsEnabled()
+	Game.settings_path = "user://test_settings.cfg"
 	Game.setControlsEnabled(true, true)
 	Game.setControlsEnabled(false)
 	Game.load_settings()
@@ -89,6 +92,9 @@ func run() -> void:
 	Game.setControlsEnabled(true)
 	Game.load_settings()
 	check(not Game.isControlsEnabled(), "Disabled touch preference did not survive reload")
+	DirAccess.remove_absolute(Game.settings_path)
+	Game.settings_path = real_settings_path
+	Game.setControlsEnabled(previous_touch)
 
 	PlayerInput.set_layout("qwerty")
 	for i in range(3):

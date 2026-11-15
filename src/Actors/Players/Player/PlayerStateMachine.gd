@@ -13,6 +13,7 @@ const STATE_GET_LIFE_BOTTLE = "GetLifeBottle"
 const STATE_GAMEOVER = "Gameover"
 const STATE_DASH = "Dash"
 const STATE_DASH_ATTACK = "DashAttack"
+const STATE_THROW = "Throw"
 
 var combo_sequence := ""
 # coup demandé par l'événement en cours ("R", "H" ou "") : uniquement au moment de l'appui
@@ -22,9 +23,10 @@ var _attack_held := {}
 const INPUT_ATTACK = "attack"
 const INPUT_ATTACK_MANA = "attack_mana"
 const INPUT_DASH = "dash"
+const INPUT_WEAPON = "weapon"
 
 # états depuis lesquels on peut esquiver (les coups d'épée peuvent être annulés par l'esquive)
-const DASH_FROM = [STATE_IDLE, STATE_WALK, STATE_ATTACK01, STATE_ATTACK02, STATE_ATTACK03, STATE_ATTACK04]
+const DASH_FROM = [STATE_IDLE, STATE_WALK, STATE_ATTACK01, STATE_ATTACK02, STATE_ATTACK03, STATE_ATTACK04, STATE_THROW]
 
 
 func set_damaged():
@@ -37,6 +39,11 @@ func gameover():
 	_change_state(STATE_GAMEOVER)
 
 func _ready():
+	# état créé par le code (absent des scènes Player / Player2)
+	var throw := PlayerStateThrow.new()
+	throw.name = STATE_THROW
+	add_child(throw)
+	throw.owner = owner
 	states_map = {
 		STATE_IDLE: get_node(STATE_IDLE),
 		STATE_WALK: get_node(STATE_WALK),
@@ -49,7 +56,8 @@ func _ready():
 		STATE_GET_LIFE_BOTTLE: get_node(STATE_GET_LIFE_BOTTLE),
 		STATE_GAMEOVER: get_node(STATE_GAMEOVER),
 		STATE_DASH: get_node(STATE_DASH),
-		STATE_DASH_ATTACK: get_node(STATE_DASH_ATTACK)
+		STATE_DASH_ATTACK: get_node(STATE_DASH_ATTACK),
+		STATE_THROW: throw,
 	}
 	super._ready()
 
@@ -106,6 +114,21 @@ func _handle_interrupt_input(event) -> bool:
 		if not current_state.name in DASH_FROM:
 			return false
 		_change_state(STATE_DASH)
+		return true
+
+	if event.is_action_pressed(owner.action(INPUT_WEAPON)):
+		if current_state.name in [STATE_IDLE, STATE_WALK, STATE_DASH]:
+			owner.cycle_weapon()
+		return true
+
+	if attack_press != "" and owner.weapon() == GlobalPlayer.WEAPON_BOMB:
+		if not current_state.name in [STATE_IDLE, STATE_WALK, STATE_DASH]:
+			return false
+		if attack_press == CombatChain.HEAVY and not GlobalPlayer.can_heavy_attack(owner.player_index):
+			owner.combo_feedback.emit("NOT ENOUGH MANA")
+			return true
+		get_node(STATE_THROW).heavy = attack_press == CombatChain.HEAVY
+		_change_state(STATE_THROW)
 		return true
 
 	if attack_press != "":

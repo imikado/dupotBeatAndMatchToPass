@@ -7,6 +7,9 @@ const GROUP_BONUSACTOR := "bonusactor"
 const GROUP_BARRIER := "electrical_barrier"
 
 const PATH_SETTINGS := "user://settings.cfg"
+# Les tests le redirigent : ils ne doivent jamais écrire dans les vrais réglages
+# (sinon touch=true reste enregistré et les contrôles tactiles s'affichent sur PC)
+var settings_path := PATH_SETTINGS
 
 const PATH_HIGHSCORE := "user://highscore.dat"
 
@@ -107,14 +110,14 @@ func setControlsEnabled(enabled: bool, persist := false) -> void:
 	if persist:
 		var config := ConfigFile.new()
 		config.set_value("controls", "touch", _is_controls_enabled)
-		config.save(PATH_SETTINGS)
+		config.save(settings_path)
 
 
 func load_settings() -> void:
 	# L'émulation souris peut signaler un écran tactile même sur ordinateur.
 	_is_controls_enabled = is_mobile()
 	var config := ConfigFile.new()
-	if config.load(PATH_SETTINGS) == OK:
+	if config.load(settings_path) == OK:
 		var enabled = config.get_value("controls", "touch", _is_controls_enabled)
 		if enabled is bool:
 			_is_controls_enabled = enabled

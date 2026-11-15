@@ -22,3 +22,10 @@ signal player_tookadvantage_of_lifebottle(player)
 signal player_gameover
 
 signal actor_struck_by_lightning(actor)
+
+# power-up d'attaque ou de mana ramassé sur le trajet (PowerUp.gd)
+signal player_took_power_up(power_up, player)
+
+# choix d'arme : demandé depuis le HUD (clic / toucher sur l'icône), puis appliqué par le joueur
+signal weapon_select_requested(player_index, weapon)
+signal player_weapon_changed(player_index)

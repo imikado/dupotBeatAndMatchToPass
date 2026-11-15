@@ -55,6 +55,15 @@
   <content_rating type="oars-1.1"/>
   <releases>
 
+    <release date="2026-11-15" version="1.15.0">
+      <description>
+        <p>Graphism improvment</p>
+        <p>Add new weapons</p>
+        <p>Add new xp behavior with power up</p>
+      </description>
+    </release>
+
+
     <release date="2026-11-14" version="1.14.1">
       <description>
         <p>Graphism improvment</p>

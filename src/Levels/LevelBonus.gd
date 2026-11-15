@@ -2,8 +2,16 @@ extends Node2D
 
 const MIN_SPAWN_Y = 127
 
-const LIFE_BOTTLE_HEAL = 30
+const LIFE_BOTTLE_HEAL = 15
 const BOTTLE_DROP_DISTANCE = 18
+
+# Fin du temps : deux portes au fond, la boutique est un choix (sinon niveau suivant)
+const SHOP_SCENE := "res://src/Levels/LevelShop.tscn"
+const NEXT_LEVEL_SCENE := "res://src/Levels/LevelTemplate.tscn"
+const SHOP_DOOR_POSITION := Vector2(110, 116)
+const EXIT_DOOR_POSITION := Vector2(210, 116)
+const EXIT_LABEL_COLOR := Color("ffd34d")
+const DOOR_ARM_DELAY := 0.6
 
 @onready var _ysort = get_node("Node2D")
 @onready var _player = get_node("Node2D/Player")
@@ -62,6 +70,8 @@ var _pause_menu: PauseMenu
 
 # Mode 2 joueurs : _player reste le joueur 1
 var _players: Array = []
+var _time_up := false
+var _leaving := false
 
 
 func debug():
@@ -411,9 +421,12 @@ func _on_player_tookadvantage_of_lifebottle(player: Player) -> void:
 
 
 func _on_timeLeft_timeout() -> void:
+	if _time_up:
+		return
 	_timeLeft -= 1
 	if _timeLeft < 0:
-		Transition.goto("res://src/Levels/LevelShop.tscn")
+		time_up()
+		return
 
 	_timeLeftLabel.text = str(_timeLeft)
 
@@ -424,3 +437,45 @@ func _on_timeLeft_timeout() -> void:
 		create_tween().tween_property(_timeLeftLabel, "scale", Vector2.ONE, 0.3)
 
 	pass  # Replace with function body.
+
+
+# Temps écoulé : les écureuils s'enfuient, les fioles restent à ramasser,
+# une porte vers la boutique et une vers le niveau suivant apparaissent
+func time_up() -> void:
+	_time_up = true
+	get_node("Timers/timeLeft").stop()
+	_timeLeftLabel.visible = false
+	for squirrel in get_tree().get_nodes_in_group(Game.GROUP_BONUSACTOR):
+		if is_instance_valid(squirrel) and squirrel.has_method("_flee"):
+			squirrel._flee(1.0 if squirrel.global_position.x >= _player.global_position.x else -1.0)
+
+	var shop := ShopDoor.new()
+	shop.arm_delay = DOOR_ARM_DELAY
+	add_door(shop, SHOP_DOOR_POSITION)
+	shop.player_entered.connect(leave_to.bind(SHOP_SCENE))
+
+	var exit := BonusDoor.new()
+	exit.arm_delay = DOOR_ARM_DELAY
+	add_door(exit, EXIT_DOOR_POSITION)
+	exit._label.text = "EXIT"
+	exit._label.add_theme_color_override("font_color", EXIT_LABEL_COLOR)
+	exit.player_entered.connect(leave_to.bind(NEXT_LEVEL_SCENE))
+
+	Sound.play("barrier_open", 0.0)
+	_hud.show_banner("TIME UP!", "VISIT THE SHOP OR TAKE THE EXIT", Color("7bed9f"), 2.4)
+
+
+func add_door(door: ShopDoor, at: Vector2) -> void:
+	_ysort.add_child(door)
+	door.global_position = at
+	Fx.burst(_specialEffects, at + Vector2(0, -14), Color("7bed9f"), 14)
+	door.scale = Vector2(0.2, 0.2)
+	door.create_tween().tween_property(door, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func leave_to(_player_: Player, scene: String) -> void:
+	if _leaving or Transition.is_busy():
+		return
+	_leaving = true
+	Sound.play("menu_select", 0.0)
+	Transition.goto(scene)

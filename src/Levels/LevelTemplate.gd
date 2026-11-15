@@ -5,7 +5,28 @@ const MIN_SPAWN_Y = 127
 # forme de 20 px centrée => bord haut à y 202 ; marge de 6 px pour les pieds
 const MAX_SPAWN_Y = 196
 
-const LIFE_BOTTLE_HEAL = 30
+const LIFE_BOTTLE_HEAL = 15
+
+# Power-ups (PowerUp.gd) : un avant chaque groupe de barrières, sur le trajet ;
+# un sur trois est un power-up de mana, les autres d'attaque
+const POWER_UP_OFFSET_X = -80.0
+const POWER_UP_MIN_Y = 140.0
+const POWER_UP_MAX_Y = 185.0
+const POWER_UP_MANA_EVERY = 3
+# Power-ups éphémères : apparaissent régulièrement devant le joueur et s'éteignent
+# s'ils ne sont pas ramassés à temps (battements de cœur de plus en plus faibles, voir PowerUp.gd)
+const EPHEMERAL_POWER_UP_DELAY_MIN = 10.0
+const EPHEMERAL_POWER_UP_DELAY_MAX = 16.0
+const EPHEMERAL_POWER_UP_LIFETIME = 4.0
+# power-ups du trajet : mêmes battements, déclenchés à leur entrée à l'écran
+const PATH_POWER_UP_LIFETIME = 4.0
+const EPHEMERAL_POWER_UP_MAX = 1
+const EPHEMERAL_POWER_UP_AHEAD_MIN = 30.0
+const EPHEMERAL_POWER_UP_AHEAD_MAX = 130.0
+const EPHEMERAL_POWER_UP_MANA_CHANCE = 0.35
+# écart minimal avec tout autre power-up (permanent ou éphémère) ; sinon pas d'apparition
+const POWER_UP_MIN_SPACING = 400.0
+const EPHEMERAL_POWER_UP_TRIES = 6
 
 const MAX_ENEMY = 5
 const MAX_ENEMY_LATE = 8
@@ -115,6 +136,8 @@ var _current_barrier_group: Node2D = null
 # Mode 2 joueurs : _player reste le joueur 1
 var _players: Array = []
 
+var _ephemeral_timer: Timer
+
 
 func debug():
 	#_player.global_position.x +=3500
@@ -173,10 +196,17 @@ func _ready() -> void:
 	Events.connect("player_took_lifebottle", Callable(self, "_on_player_took_lifebottle"))
 
 	Events.player_tookadvantage_of_lifebottle.connect(_on_player_tookadvantage_of_lifebottle)
+	Events.player_took_power_up.connect(_on_player_took_power_up)
 
 	Events.connect("player_gameover", Callable(self, "gameover"))
 
 	_manaTimer.start()
+
+	_ephemeral_timer = Timer.new()
+	_ephemeral_timer.one_shot = true
+	_ephemeral_timer.timeout.connect(_on_ephemeral_timer_timeout)
+	add_child(_ephemeral_timer)
+	restart_ephemeral_timer()
 
 
 func setup_coop() -> void:
@@ -244,6 +274,7 @@ func build_level():
 
 	for i in range(group_count):
 		var group := create_barrier_group(Vector2(BARRIER_GROUP_START_X + BARRIER_GROUP_SPACING * i, BARRIER_GROUP_Y), types, energy)
+		spawn_power_up(power_up_kind(i), Vector2(group.global_position.x + POWER_UP_OFFSET_X, randf_range(POWER_UP_MIN_Y, POWER_UP_MAX_Y)), PATH_POWER_UP_LIFETIME, true)
 
 		if GlobalPlayer.get_level() > 1:
 			var newLifeBottle = _lifeBottle.instantiate()
@@ -256,6 +287,84 @@ func build_level():
 	extend_level(BARRIER_GROUP_SPACING * (group_count - BARRIER_GROUP_MAX))
 
 	close_level_after_gate()
+
+
+func power_up_kind(group_index: int) -> String:
+	return PowerUp.KIND_MANA if group_index % POWER_UP_MANA_EVERY == 1 else PowerUp.KIND_ATTACK
+
+
+func spawn_power_up(kind: String, at: Vector2, lifetime := 0.0, wait_on_screen := false) -> PowerUp:
+	var power_up := PowerUp.create(kind, lifetime, wait_on_screen)
+	_ysort.add_child(power_up)
+	power_up.global_position = at.round()
+	return power_up
+
+
+func restart_ephemeral_timer() -> void:
+	_ephemeral_timer.start(randf_range(EPHEMERAL_POWER_UP_DELAY_MIN, EPHEMERAL_POWER_UP_DELAY_MAX))
+
+
+func ephemeral_power_up_count() -> int:
+	return _ysort.get_children().filter(func(node): return node is PowerUp and node.is_random_spawn() and not node.is_queued_for_deletion()).size()
+
+
+# Devant le joueur (à droite, sens du trajet), jamais au-delà de la porte
+func spawn_ephemeral_power_up() -> PowerUp:
+	var alive := _players.filter(func(p): return p.is_alive())
+	if alive.is_empty() or ephemeral_power_up_count() >= EPHEMERAL_POWER_UP_MAX:
+		return null
+	var player: Player = alive.pick_random()
+	for i in range(EPHEMERAL_POWER_UP_TRIES):
+		var x := minf(player.global_position.x + randf_range(EPHEMERAL_POWER_UP_AHEAD_MIN, EPHEMERAL_POWER_UP_AHEAD_MAX), _gate.global_position.x - 20.0)
+		var at := Vector2(x, randf_range(POWER_UP_MIN_Y, POWER_UP_MAX_Y))
+		if is_power_up_spot_free(at):
+			var kind := PowerUp.KIND_MANA if randf() < EPHEMERAL_POWER_UP_MANA_CHANCE else PowerUp.KIND_ATTACK
+			return spawn_power_up(kind, at, EPHEMERAL_POWER_UP_LIFETIME)
+	return null
+
+
+func is_power_up_spot_free(at: Vector2) -> bool:
+	for node in _ysort.get_children():
+		if node is PowerUp and not node.is_queued_for_deletion() and node.global_position.distance_to(at) < POWER_UP_MIN_SPACING:
+			return false
+	return true
+
+
+func _on_ephemeral_timer_timeout() -> void:
+	spawn_ephemeral_power_up()
+	restart_ephemeral_timer()
+
+
+func _on_player_took_power_up(power_up: PowerUp, player: Player) -> void:
+	Sound.play("bottle", 0.0, 0.0, 1.3)
+	var color: Color = PowerUp.COLORS[power_up.kind]
+	Fx.burst(_specialEffects, power_up.global_position, color, 14)
+	Fx.ring(_specialEffects, power_up.global_position, color, 16.0, 0.3)
+	# pas de texte « UP » si un niveau est gagné : grant_xp affiche déjà « LEVEL UP! »
+	if grant_xp(player.player_index, power_up.kind, GlobalPlayer.POWER_UP_XP) == 0:
+		var text := "ATTACK %d/%d" if power_up.kind == PowerUp.KIND_ATTACK else "MANA %d/%d"
+		text = text % [GlobalPlayer.progress_xp(power_up.kind, player.player_index), GlobalPlayer.POWER_UPS_PER_LEVEL]
+		Fx.floating_text(_specialEffects, text, player.global_position + Vector2(0, -36), color)
+
+
+# XP au joueur ; passage de niveau : effet sur le joueur et texte (dégâts ou orages en plus)
+func grant_xp(player_index: int, kind: String, amount: int) -> int:
+	var gained := GlobalPlayer.add_xp(kind, amount, player_index)
+	_hud.update_progress(player_index)
+	if gained <= 0:
+		return 0
+	var level := GlobalPlayer.progress_level(kind, player_index)
+	var color: Color = PowerUp.COLORS[kind]
+	var text := "ATTACK LV %d" % level
+	if kind == PowerUp.KIND_MANA:
+		text = "STORM x%d" % level if level <= GlobalPlayer.MAX_STORM_SALVOS else "STORM LV %d" % level
+	Sound.play("mana_ready" if kind == PowerUp.KIND_MANA else "combo", 0.0)
+	var player: Player = _players[player_index] if player_index < _players.size() else _player
+	Fx.ring(_specialEffects, player.global_position + Vector2(0, -10), color, 26.0, 0.45)
+	Fx.burst(_specialEffects, player.global_position + Vector2(0, -12), color.lightened(0.3), 18)
+	Fx.floating_text(_specialEffects, "LEVEL UP!", player.global_position + Vector2(0, -50), Color.WHITE)
+	Fx.floating_text(_specialEffects, text, player.global_position + Vector2(0, -42), color)
+	return gained
 
 
 # Mur invisible juste après la porte : sans lui, le joueur peut contourner la porte

@@ -47,6 +47,8 @@ func choose(index: int) -> void:
 		Transition.goto("res://src/UI/menu.tscn")
 		return
 	GlobalPlayer.reset_game()
+	# Mode debug : toutes les armes disponibles dès le départ
+	GlobalPlayer.owned_weapons = [GlobalPlayer.WEAPONS.duplicate(), GlobalPlayer.WEAPONS.duplicate()]
 	GlobalPlayer.two_players = false
 	GlobalPlayer.set_level(_level)
 	PlayerInput.apply()

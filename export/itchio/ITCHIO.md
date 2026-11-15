@@ -6,8 +6,8 @@ Généré par `generate_itchio.sh` : ne pas modifier à la main, régler les var
 
 | Champ | Valeur |
 |---|---|
-| **BG** | `#0e1725` |
-| **BG 2** | `#18283f` |
+| **BG** | `#1b240f` |
+| **BG 2** | `#2d3e19` |
 | **Text** | `#ececec` |
 | **Link** | `#ff6b3d` |
 | **Font** | Lato |
@@ -16,8 +16,8 @@ Généré par `generate_itchio.sh` : ne pas modifier à la main, régler les var
 | **Banner** | `banner.png` |
 | **Background** | aucune (couleur BG) |
 | **Embed BG** | `embed_bg.png` |
-| **Embed BG – Color 1** | `#0e1725` |
-| **Embed BG – Color 2** | `#18283f` |
+| **Embed BG – Color 1** | `#1b240f` |
+| **Embed BG – Color 2** | `#2d3e19` |
 | **Embed BG – Alpha** | 100 % (curseur à droite) |
 
 ## Images
@@ -38,14 +38,14 @@ Généré par `generate_itchio.sh` : ne pas modifier à la main, régler les var
 ```html
 <h1>⚔️ Beat And Match To Pass</h1>
 <p><strong>Beat them all… or not. Beat the <em>right</em> enemies to open the way!</strong></p>
-<p><img src="https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/main/docs/media/gameplay.gif?v=202611141939" alt="Sword combo, kills and the lightning storm in action"></p>
+<p><img src="https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/main/docs/media/gameplay.gif?v=202611142116" alt="Sword combo, kills and the lightning storm in action"></p>
 <p>Gordon's path through the forest is blocked by <strong>electric barriers</strong>. Each barrier shows an enemy: an ant, a beetle or a spider. Only defeating <strong>that kind of enemy</strong> charges it, and once it is full, the way is open.</p>
 <p>So you don't just mash buttons: pick your targets, mix quick and heavy strikes into deadly combos and save your lightning for the right moment! ⚡</p>
 <p>👥 <strong>Better with a friend: play the whole adventure in two-player co-op on the same screen!</strong></p>
 <hr>
 <h2>👥 Two-player co-op on one screen</h2>
 <p>Pick <strong>2 PLAYERS</strong> in the menu and fight side by side through every level, bonus stages included.</p>
-<p><img src="https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/main/docs/media/coop.gif?v=202611141939" alt="Two players menu, key setup and a fight with both heroes"></p>
+<p><img src="https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/main/docs/media/coop.gif?v=202611142116" alt="Two players menu, key setup and a fight with both heroes"></p>
 <ul>
   <li>🎮 <strong>Any setup</strong>: two players on <strong>one keyboard</strong>, a <strong>keyboard + a gamepad</strong>, or <strong>two gamepads</strong></li>
   <li>⌨️ <strong>Your keys, your way</strong>: AZERTY and QWERTY presets, every key and gamepad button can be remapped and tried out before the game starts</li>

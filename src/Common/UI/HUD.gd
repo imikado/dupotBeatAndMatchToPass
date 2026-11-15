@@ -26,7 +26,7 @@ const SCORE_COLOR=Color.WHITE
 const SCORE_COLOR_GAIN=Color("ffd34d")
 
 const STREAK_Y=18
-const BANNER_Y=42
+const BANNER_Y=46
 
 const MID_LIFE_THRESHOLD=50.0
 const LOW_LIFE_THRESHOLD=25.0
@@ -66,6 +66,26 @@ var _gem_labels:=[null, null]
 var _gem_tweens:=[null, null]
 var _gem_colors:=[Color.WHITE, Color.WHITE]
 
+# Ligne de progression sous le bloc joueur : niveau d'attaque et de mana, et un cran
+# par power-up ramassé (GlobalPlayer.POWER_UPS_PER_LEVEL crans pour le niveau suivant)
+const PROGRESS_ROW_Y=38
+const PROGRESS_BAR_WIDTH=36
+const PROGRESS_PIP_GAP=2
+const PROGRESS_PIP_HEIGHT=4
+const PROGRESS_LABEL_OFFSET_Y=-4
+const PROGRESS_ROW_HEIGHT=10
+static var _progress_icons:={}
+const PROGRESS_BG=Color("30253a")
+# [{"attack": {"label", "pips", "level", "count"}, "mana": {...}}, ...] par joueur
+var _progress_rows:=[null, null]
+
+# Sélecteur d'arme sous la ligne de progression : visible dès qu'une 2e arme est achetée,
+# clic / toucher sur une icône pour la choisir (ou l'action « weapon »)
+const WEAPON_ROW_Y=48
+const WEAPON_SLOT=15
+const WEAPON_SELECTED=Color("ffd34d")
+var _weapon_rows:=[null, null]
+
 
 func _ready() -> void:
 	add_to_group("hud")
@@ -89,6 +109,9 @@ func _ready() -> void:
 
 	build_player_panel(0)
 	build_gem_counter(0)
+	build_progress_row(0)
+	build_weapon_row(0)
+	Events.player_weapon_changed.connect(refresh_weapons)
 	_score.position=Vector2(129, 1)
 	_score.size=Vector2(62, 14)
 	_score.pivot_offset=Vector2(31, 7)
@@ -108,7 +131,7 @@ func _ready() -> void:
 	_banner.visible = false
 
 	_banner_sub = build_label(5, HORIZONTAL_ALIGNMENT_CENTER)
-	_banner_sub.position = Vector2(0, BANNER_Y + 22)
+	_banner_sub.position = Vector2(0, BANNER_Y + 19)
 	_banner_sub.size = Vector2(320, 12)
 	_banner_sub.visible = false
 
@@ -158,6 +181,203 @@ func build_gem_counter(index:int) -> void:
 	label.size=Vector2(58, 12)
 	label.text=str(GlobalPlayer.get_gems(index))
 	_gem_labels[index]=label
+
+
+func build_progress_row(index:int) -> void:
+	if _progress_rows[index] != null:
+		return
+	var left:=1.0 if index == 0 else 191.0
+	build_panel(Rect2(left, PROGRESS_ROW_Y, 128, PROGRESS_ROW_HEIGHT), Color("140f20d9"), Player.COOP_COLORS[index].darkened(0.45)).z_index=-2
+	var row:={}
+	var x:=left + 3
+	for kind in [GlobalPlayer.PROGRESS_ATTACK, GlobalPlayer.PROGRESS_MANA]:
+		var color:Color=PowerUp.COLORS[kind]
+		var icon:=TextureRect.new()
+		icon.texture=progress_icon(kind)
+		icon.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
+		icon.position=Vector2(x, PROGRESS_ROW_Y)
+		icon.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		add_child(icon)
+		var label:=build_label(5, HORIZONTAL_ALIGNMENT_LEFT)
+		# Les chiffres Pixeled sont dessinés ~6 px sous le haut du Label : sans ce décalage,
+		# ils débordent sur le liseré bas du panneau (y = PROGRESS_ROW_Y + PROGRESS_ROW_HEIGHT - 1)
+		label.position=Vector2(x + 10, PROGRESS_ROW_Y + PROGRESS_LABEL_OFFSET_Y)
+		label.size=Vector2(10, 12)
+		label.add_theme_color_override("font_color", color)
+		x+=21
+		var pips:=[]
+		var count:=GlobalPlayer.POWER_UPS_PER_LEVEL
+		var pip_width:=floorf((PROGRESS_BAR_WIDTH - PROGRESS_PIP_GAP * (count - 1)) / float(count))
+		for i in range(count):
+			var pip:=ColorRect.new()
+			pip.color=PROGRESS_BG
+			pip.position=Vector2(x + (pip_width + PROGRESS_PIP_GAP) * i, PROGRESS_ROW_Y + 3)
+			pip.size=Vector2(pip_width, PROGRESS_PIP_HEIGHT)
+			pip.pivot_offset=pip.size / 2
+			pip.mouse_filter=Control.MOUSE_FILTER_IGNORE
+			add_child(pip)
+			pips.append(pip)
+		x+=PROGRESS_BAR_WIDTH + 4
+		row[kind]={"label": label, "pips": pips, "level": GlobalPlayer.progress_level(kind, index), "count": filled_pips(kind, index)}
+	_progress_rows[index]=row
+	update_progress(index, false)
+
+
+# Icône 9x9 détourée de noir : épée (attaque) ou éclair (mana)
+static func progress_icon(kind:String) -> ImageTexture:
+	if _progress_icons.has(kind):
+		return _progress_icons[kind]
+	var glyph:Array
+	# lame claire, garde et poignée de la couleur du niveau
+	var blade:Array=[]
+	if kind == GlobalPlayer.PROGRESS_MANA:
+		glyph=[Vector2i(4, 0), Vector2i(3, 1), Vector2i(2, 2), Vector2i(2, 3), Vector2i(3, 3), Vector2i(4, 3),
+			Vector2i(4, 4), Vector2i(3, 5), Vector2i(2, 6)]
+	else:
+		blade=[Vector2i(6, 0), Vector2i(5, 1), Vector2i(4, 2), Vector2i(3, 3)]
+		glyph=blade + [Vector2i(1, 3), Vector2i(2, 4), Vector2i(3, 5), Vector2i(1, 5), Vector2i(0, 6)]
+	var image:=Image.create(9, 9, false, Image.FORMAT_RGBA8)
+	for point in glyph:
+		for offset in [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]:
+			image.set_pixelv(point + Vector2i.ONE + offset, Color.BLACK)
+	var color:Color=PowerUp.COLORS[kind]
+	for point in glyph:
+		image.set_pixelv(point + Vector2i.ONE, Color("e8eef5") if blade.has(point) else color.lightened(0.2))
+	_progress_icons[kind]=ImageTexture.create_from_image(image)
+	return _progress_icons[kind]
+
+
+func build_weapon_row(index:int) -> void:
+	if _weapon_rows[index] != null:
+		return
+	var row:=Control.new()
+	row.name="Weapons%d" % index
+	row.position=Vector2(1.0 if index == 0 else 191.0, WEAPON_ROW_Y)
+	row.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	add_child(row)
+	_weapon_rows[index]=row
+	refresh_weapons(index)
+
+
+func refresh_weapons(index:=0) -> void:
+	var row:Control=_weapon_rows[index]
+	if row == null:
+		return
+	for child in row.get_children():
+		child.queue_free()
+	var owned:Array=GlobalPlayer.WEAPONS.filter(func(weapon): return GlobalPlayer.has_weapon(weapon, index))
+	row.visible=owned.size() > 1
+	if not row.visible:
+		return
+	var width:=WEAPON_SLOT * owned.size() + 2
+	var background:=Panel.new()
+	background.size=Vector2(width, WEAPON_SLOT + 2)
+	background.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	var style:=StyleBoxFlat.new()
+	style.bg_color=Color("140f20d9")
+	style.border_color=Player.COOP_COLORS[index].darkened(0.45)
+	style.border_width_bottom=1
+	background.add_theme_stylebox_override("panel", style)
+	row.add_child(background)
+	for i in range(owned.size()):
+		var weapon:String=owned[i]
+		var selected:=GlobalPlayer.get_weapon(index) == weapon
+		var slot:=ColorRect.new()
+		slot.position=Vector2(1 + WEAPON_SLOT * i, 1)
+		slot.size=Vector2(WEAPON_SLOT, WEAPON_SLOT)
+		slot.color=WEAPON_SELECTED if selected else Color(0, 0, 0, 0)
+		slot.mouse_filter=Control.MOUSE_FILTER_STOP
+		slot.mouse_default_cursor_shape=Control.CURSOR_POINTING_HAND
+		slot.gui_input.connect(_on_weapon_slot_input.bind(index, weapon))
+		row.add_child(slot)
+		var inner:=ColorRect.new()
+		inner.position=Vector2(1, 1)
+		inner.size=Vector2(WEAPON_SLOT - 2, WEAPON_SLOT - 2)
+		inner.color=Color("30253a") if selected else Color(0, 0, 0, 0)
+		inner.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		slot.add_child(inner)
+		var icon:=TextureRect.new()
+		icon.texture=WeaponIcons.texture(weapon)
+		icon.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
+		icon.position=Vector2(1, 1)
+		icon.modulate=Color.WHITE if selected else Color(1, 1, 1, 0.45)
+		icon.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		slot.add_child(icon)
+	var hint:=Label.new()
+	hint.text=PlayerInput.action_label(index if GlobalPlayer.two_players else PlayerInput.SOLO, "weapon")
+	hint.add_theme_font_override("font", Fx.FONT)
+	hint.add_theme_font_size_override("font_size", 5)
+	hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))
+	hint.add_theme_color_override("font_outline_color", Color.BLACK)
+	hint.add_theme_constant_override("outline_size", 3)
+	hint.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
+	hint.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	row.add_child(hint)
+	hint.position=Vector2(width + 3, 1)
+	hint.size=Vector2(40, WEAPON_SLOT)
+
+
+func _on_weapon_slot_input(event:InputEvent, index:int, weapon:String) -> void:
+	if (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) or (event is InputEventScreenTouch and event.pressed):
+		Events.weapon_select_requested.emit(index, weapon)
+		get_viewport().set_input_as_handled()
+
+
+func progress_text(_kind:String, level:int) -> String:
+	return str(level)
+
+
+# crans allumés : power-ups ramassés vers le niveau suivant (tous au niveau max)
+func filled_pips(kind:String, index:=0) -> int:
+	if GlobalPlayer.is_progress_maxed(kind, index):
+		return GlobalPlayer.POWER_UPS_PER_LEVEL
+	return GlobalPlayer.progress_xp(kind, index)
+
+
+func paint_pips(pips:Array, count:int, color:Color) -> void:
+	for i in range(pips.size()):
+		pips[i].color=color if i < count else PROGRESS_BG
+
+
+# Niveaux et crans ; un cran gagné s'allume en blanc, un niveau gagné allume tous les crans
+# puis les vide et fait clignoter l'étiquette
+func update_progress(index:=0, animate:=true) -> void:
+	var row=_progress_rows[index]
+	if row == null:
+		return
+	for kind in row:
+		var entry:Dictionary=row[kind]
+		var level:=GlobalPlayer.progress_level(kind, index)
+		var count:=filled_pips(kind, index)
+		var color:Color=PowerUp.COLORS[kind]
+		var label:Label=entry["label"]
+		var pips:Array=entry["pips"]
+		label.text=progress_text(kind, level)
+		if not animate:
+			paint_pips(pips, count, color)
+		elif level > entry["level"]:
+			paint_pips(pips, pips.size(), Color.WHITE)
+			var flash:=create_tween()
+			flash.tween_interval(0.25)
+			flash.tween_callback(paint_pips.bind(pips, count, color))
+			label.pivot_offset=Vector2(0, label.size.y / 2)
+			label.scale=Vector2(1.3, 1.3)
+			label.add_theme_color_override("font_color", Color.WHITE)
+			var pop:=create_tween()
+			pop.tween_property(label, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			pop.tween_interval(0.2)
+			pop.tween_callback(func(): label.add_theme_color_override("font_color", PowerUp.COLORS[kind]))
+		else:
+			paint_pips(pips, count, color)
+			for i in range(entry["count"], count):
+				var pip:ColorRect=pips[i]
+				pip.color=Color.WHITE
+				pip.scale=Vector2(1.4, 1.6)
+				var tween:=create_tween()
+				tween.tween_property(pip, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+				tween.parallel().tween_property(pip, "color", color, 0.25)
+		entry["level"]=level
+		entry["count"]=count
 
 
 func update_gems(value:int, index:=0) -> void:
@@ -361,6 +581,8 @@ func enable_second_player() -> void:
 
 	build_player_panel(1)
 	build_gem_counter(1)
+	build_progress_row(1)
+	build_weapon_row(1)
 	for index in [0, 1]:
 		_gem_colors[index]=Player.COOP_COLORS[index]
 		_gem_labels[index].add_theme_color_override("font_color", _gem_colors[index])

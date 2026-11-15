@@ -1,7 +1,7 @@
 class_name BonusActorStateWalk
 extends EnemyAbstractStateMotion
 
-var MAX_WALK_SPEED = 15
+var MAX_WALK_SPEED = 25
 
 var speed = 0.0
 var velocity = Vector2()

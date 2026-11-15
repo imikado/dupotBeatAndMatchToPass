@@ -15,7 +15,7 @@ const SOLO := 2
 const COOP_INDICES := [0, 1]
 const SOLO_INDICES := [SOLO]
 
-const ACTIONS := ["ui_left", "ui_right", "ui_up", "ui_down", "attack", "attack_heavy", "attack_mana", "dash"]
+const ACTIONS := ["ui_left", "ui_right", "ui_up", "ui_down", "attack", "attack_heavy", "attack_mana", "dash", "weapon"]
 const ACTION_LABELS := {
 	"ui_left": "LEFT",
 	"ui_right": "RIGHT",
@@ -25,6 +25,7 @@ const ACTION_LABELS := {
 	"attack_heavy": "HEAVY",
 	"attack_mana": "STORM",
 	"dash": "DASH",
+	"weapon": "WEAPON",
 }
 
 const LAYOUTS := ["azerty", "qwerty"]
@@ -34,14 +35,14 @@ const LAYOUTS := ["azerty", "qwerty"]
 # Solo : flèches, Espace, Ctrl, Maj (touches d'origine du jeu)
 const PRESETS := {
 	"azerty": [
-		{"ui_left": KEY_Q, "ui_right": KEY_D, "ui_up": KEY_Z, "ui_down": KEY_S, "attack": KEY_F, "attack_heavy": KEY_R, "attack_mana": KEY_G, "dash": KEY_H},
-		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_L, "attack_heavy": KEY_O, "attack_mana": KEY_K, "dash": KEY_J},
-		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_SPACE, "attack_heavy": KEY_X, "attack_mana": KEY_CTRL, "dash": KEY_SHIFT},
+		{"ui_left": KEY_Q, "ui_right": KEY_D, "ui_up": KEY_Z, "ui_down": KEY_S, "attack": KEY_F, "attack_heavy": KEY_R, "attack_mana": KEY_G, "dash": KEY_H, "weapon": KEY_E},
+		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_L, "attack_heavy": KEY_O, "attack_mana": KEY_K, "dash": KEY_J, "weapon": KEY_I},
+		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_SPACE, "attack_heavy": KEY_X, "attack_mana": KEY_CTRL, "dash": KEY_SHIFT, "weapon": KEY_C},
 	],
 	"qwerty": [
-		{"ui_left": KEY_A, "ui_right": KEY_D, "ui_up": KEY_W, "ui_down": KEY_S, "attack": KEY_F, "attack_heavy": KEY_R, "attack_mana": KEY_G, "dash": KEY_H},
-		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_L, "attack_heavy": KEY_O, "attack_mana": KEY_K, "dash": KEY_J},
-		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_SPACE, "attack_heavy": KEY_X, "attack_mana": KEY_CTRL, "dash": KEY_SHIFT},
+		{"ui_left": KEY_A, "ui_right": KEY_D, "ui_up": KEY_W, "ui_down": KEY_S, "attack": KEY_F, "attack_heavy": KEY_R, "attack_mana": KEY_G, "dash": KEY_H, "weapon": KEY_E},
+		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_L, "attack_heavy": KEY_O, "attack_mana": KEY_K, "dash": KEY_J, "weapon": KEY_I},
+		{"ui_left": KEY_LEFT, "ui_right": KEY_RIGHT, "ui_up": KEY_UP, "ui_down": KEY_DOWN, "attack": KEY_SPACE, "attack_heavy": KEY_X, "attack_mana": KEY_CTRL, "dash": KEY_SHIFT, "weapon": KEY_C},
 	],
 }
 
@@ -54,6 +55,7 @@ const GAMEPAD_BUTTONS := {
 	"attack_heavy": JOY_BUTTON_Y,
 	"attack_mana": JOY_BUTTON_B,
 	"dash": JOY_BUTTON_X,
+	"weapon": JOY_BUTTON_RIGHT_SHOULDER,
 }
 const GAMEPAD_AXES := {
 	"ui_left": [JOY_AXIS_LEFT_X, -1.0],
@@ -65,7 +67,7 @@ const GAMEPAD_MOVE_LABEL := "STICK / PAD"
 
 # Boutons d'action modifiables à la manette (le déplacement reste croix + stick gauche).
 # Valeur >= TRIGGER_BASE : gâchette analogique (TRIGGER_BASE + axe)
-const GAMEPAD_REMAPPABLE := ["attack", "attack_heavy", "attack_mana", "dash"]
+const GAMEPAD_REMAPPABLE := ["attack", "attack_heavy", "attack_mana", "dash", "weapon"]
 const TRIGGER_BASE := 100
 const TRIGGER_THRESHOLD := 0.6
 # Réservés : déplacement (croix) et pause (Start, Select, Home)
@@ -281,7 +283,9 @@ func apply() -> void:
 # télécommande Fire TV) sauf les commandes redéfinies ou déjà prises par une autre action
 func add_solo_defaults() -> void:
 	for action in ACTIONS:
-		# Actions d'origine du projet, jamais touchées par apply().
+		# Actions d'origine du projet, jamais touchées par apply() (pas d'action « weapon » d'origine)
+		if not InputMap.has_action(action):
+			continue
 		for event in InputMap.action_get_events(action):
 			# Une redéfinition remplace aussi les raccourcis clavier d'origine.
 			if event is InputEventKey and players[SOLO]["keys"][action] != PRESETS[layout][SOLO][action]:

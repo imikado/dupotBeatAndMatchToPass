@@ -189,7 +189,7 @@ func _on_HitBox_body_entered(body: Node) -> void:
 		body.set("last_hit_by_storm", true)
 		if owner is Player:
 			body.last_attacker = owner
-		# même réduction / bonus de boutique que les coups d'épée
-		Events.emit_signal("actor_took_damage",body,owner.attack_damage(_damage) if owner is Player else _damage)
+		# niveau de mana du lanceur et bonus de boutique
+		Events.emit_signal("actor_took_damage",body,owner.storm_damage(_damage) if owner is Player else _damage)
 		Events.emit_signal("actor_struck_by_lightning",body)
 	pass # Replace with function body.

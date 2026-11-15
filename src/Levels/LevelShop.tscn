@@ -1,13 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Texture2D" path="res://src/Levels/LevelTemplate/ground.png" id="1"]
-[ext_resource type="PackedScene" path="res://src/Actors/Players/Player.tscn" id="2"]
 [ext_resource type="Script" path="res://src/Levels/LevelShop.gd" id="3"]
-[ext_resource type="PackedScene" path="res://src/Common/UI/HUD.tscn" id="5"]
-[ext_resource type="Script" path="res://src/Levels/Camera2D.gd" id="9"]
-[ext_resource type="PackedScene" path="res://src/Common/Levels/limit_walking_horiz.tscn" id="10"]
-[ext_resource type="PackedScene" path="res://src/Common/Levels/limit_wakling_vert.tscn" id="11"]
-[ext_resource type="PackedScene" path="res://src/Common/UI/Controls.tscn" id="12"]
 [ext_resource type="PackedScene" path="res://src/Levels/ForestBackground.tscn" id="13"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_1"]
@@ -44,54 +38,8 @@ layer_0/tile_data = PackedInt32Array(131071, 0, 0, 65536, 196608, 0, 65537, 0, 0
 [node name="ForestBackground" parent="." instance=ExtResource("13")]
 tint = Color(0.78, 0.74, 1, 1)
 
-[node name="WalkingLimits" type="Node2D" parent="."]
-position = Vector2(0, 105)
-
-[node name="limit_walking_horiz" parent="WalkingLimits" instance=ExtResource("10")]
-collision_mask = 3
-
-[node name="limit_walking_horiz2" parent="WalkingLimits" instance=ExtResource("10")]
-position = Vector2(0, 107)
-
-[node name="limit_wakling_vert" parent="WalkingLimits" instance=ExtResource("11")]
-
-[node name="CameraLimitRect" type="ReferenceRect" parent="."]
-offset_left = -18.0
-offset_top = 8.0
-offset_right = 340.0
-offset_bottom = 201.0
-
-[node name="HUD" parent="." instance=ExtResource("5")]
-
-[node name="Node2D" type="Node2D" parent="."]
-y_sort_enabled = true
-
-[node name="Player" parent="Node2D" groups=["player"] instance=ExtResource("2")]
-position = Vector2(40, 160)
-
-[node name="SpawnPosition2DLeft" type="Marker2D" parent="Node2D/Player"]
-position = Vector2(-191, -20)
-
-[node name="SpawnPosition2DLeft2" type="Marker2D" parent="Node2D/Player"]
-position = Vector2(-192, 20)
-
-[node name="SpawnPosition2DRight" type="Marker2D" parent="Node2D/Player"]
-position = Vector2(170, -20)
-
-[node name="SpawnPosition2DRight2" type="Marker2D" parent="Node2D/Player"]
-position = Vector2(170, 20)
-
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2(90, 156)
-position_smoothing_enabled = true
-position_smoothing_speed = 2.0
-script = ExtResource("9")
-
-[node name="Controls" parent="." instance=ExtResource("12")]
-layer = 128
+position = Vector2(160, 111)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("2")
-
-[node name="SpecialEffects" type="Node2D" parent="."]
-z_index = 1000

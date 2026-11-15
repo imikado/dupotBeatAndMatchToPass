@@ -13,9 +13,13 @@ const SIGN_COLOR := Color("241a2c")
 
 var _gem: Polygon2D
 var _label: Label
+# porte qui apparaît sous les pieds d'un joueur : entrée ignorée pendant ce délai
+var arm_delay := 0.0
+var _armed_at_ms := 0
 
 
 func _ready() -> void:
+	_armed_at_ms = Time.get_ticks_msec() + int(arm_delay * 1000.0)
 	var area := Area2D.new()
 	var shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
@@ -62,5 +66,5 @@ func _draw() -> void:
 
 
 func _on_body_entered(body: Node) -> void:
-	if body is Player:
+	if body is Player and Time.get_ticks_msec() >= _armed_at_ms:
 		player_entered.emit(body)

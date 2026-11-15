@@ -17,7 +17,7 @@ func enter():
 	_buffered_at = -1.0
 	_impacted = false
 	_next_hit = 0
-	_strike = CombatChain.strike(owner.get_node("StateMachine").combo_sequence)
+	_strike = owner.weapon_strike(CombatChain.strike(owner.get_node("StateMachine").combo_sequence))
 	owner.begin_strike(_strike)
 	if owner.get_node("StateMachine").combo_sequence.ends_with(CombatChain.HEAVY):
 		owner.spend_heavy_mana()

@@ -21,7 +21,7 @@ const COLOR_HIGHLIGHT := Color(1.0, 0.83, 0.3, 0.22)
 const ROW_LAYOUT := 0
 const ROW_DEVICE := 1
 const ROW_FIRST_KEY := 2
-const ROW_START := ROW_FIRST_KEY + 8
+const ROW_START := ROW_FIRST_KEY + 9
 const ROW_TEST := ROW_START + 1
 const ROW_BACK := ROW_TEST + 1
 const ROW_EDIT := ROW_BACK + 1
@@ -166,7 +166,7 @@ func build_ui() -> void:
 		var heading := build_label("JOUEUR %d" % (col + 1), 5, Vector2(x, 21), COLUMN_WIDTH, HORIZONTAL_ALIGNMENT_CENTER)
 		heading.add_theme_color_override("font_color", Player.COOP_COLORS[col])
 		var summary := build_label("", 4, Vector2(x + 5, 34), COLUMN_WIDTH - 10)
-		summary.size.y = 28
+		summary.size.y = 36
 		summary.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 		summary.add_theme_constant_override("line_spacing", 1)
 		_summaries.append(summary)
@@ -190,7 +190,7 @@ func build_ui() -> void:
 		for i in range(PlayerInput.ACTIONS.size()):
 			var row := ROW_FIRST_KEY + i
 			var y := Y_FIRST_KEY + ROW_HEIGHT * i
-			_names[col][row] = build_label({"ui_left": "GAUCHE", "ui_right": "DROITE", "ui_up": "HAUT", "ui_down": "BAS", "attack": "RAPIDE", "attack_heavy": "LOURDE", "attack_mana": "ORAGE", "dash": "DASH"}[PlayerInput.ACTIONS[i]], 5, Vector2(x + 4, y), 60)
+			_names[col][row] = build_label({"ui_left": "GAUCHE", "ui_right": "DROITE", "ui_up": "HAUT", "ui_down": "BAS", "attack": "RAPIDE", "attack_heavy": "LOURDE", "attack_mana": "ORAGE", "dash": "DASH", "weapon": "ARME"}[PlayerInput.ACTIONS[i]], 5, Vector2(x + 4, y), 60)
 			_values[col][row] = build_label("", 5, Vector2(x + 50, y), COLUMN_WIDTH - 54, HORIZONTAL_ALIGNMENT_RIGHT)
 			clickable(_values[col][row], row, col)
 			clickable(_names[col][row], row, col)
@@ -250,7 +250,7 @@ func refresh_actions(error_text: String) -> void:
 		var device := "CLAVIER " + movement_text if is_keyboard(col) else "MANETTE STICK / PAD"
 		if not is_keyboard(col) and PlayerInput.gamepad_for(idx(col)) < 0:
 			device = "MANETTE NON CONNECTEE"
-		_summaries[col].text = "%s\nRAPIDE %s / LOURDE %s\nORAGE %s / DASH %s" % [device, PlayerInput.action_label(idx(col), "attack"), PlayerInput.action_label(idx(col), "attack_heavy"), PlayerInput.action_label(idx(col), "attack_mana"), PlayerInput.action_label(idx(col), "dash")]
+		_summaries[col].text = "%s\nRAPIDE %s / LOURDE %s\nORAGE %s / DASH %s\nARME %s" % [device, PlayerInput.action_label(idx(col), "attack"), PlayerInput.action_label(idx(col), "attack_heavy"), PlayerInput.action_label(idx(col), "attack_mana"), PlayerInput.action_label(idx(col), "dash"), PlayerInput.action_label(idx(col), "weapon")]
 	var home_rects := [Rect2(13, 74, 145, 16), Rect2(162, 74, 145, 16), Rect2(13, 94, 145, 16), Rect2(162, 94, 145, 16)]
 	var edit_rects := [Rect2(12, 114, 66, 16), Rect2(82, 114, 66, 16), Rect2(152, 114, 76, 16), Rect2(232, 114, 76, 16)]
 	for i in range(ACTION_ROWS.size()):
@@ -273,7 +273,7 @@ func refresh_actions(error_text: String) -> void:
 		button.position = rect.position
 		button.size = rect.size
 		ButtonStyle.apply(button, text_, selected)
-	_message.position.y = 98.0 if _editing and not testing else 112.0
+	_message.position.y = 105.0 if _editing and not testing else 112.0
 
 
 # configuration PlayerInput de la colonne

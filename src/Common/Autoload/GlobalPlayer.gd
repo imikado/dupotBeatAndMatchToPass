@@ -30,22 +30,9 @@ const GEMS_SPIDER = 6
 # fin de niveau : 1 gem tous les LIFE_PER_GEM points de vie restants
 const LIFE_PER_GEM = 5
 
-const SKILL_SPEED = "speed"
-const SKILL_ATTACK = "attack"
-const SKILL_RESISTANCE = "resistance"
-const SKILLS := [SKILL_SPEED, SKILL_ATTACK, SKILL_RESISTANCE]
-const SKILL_BONUS_PER_LEVEL = 0.05
-const SKILL_MAX_LEVEL = 10
-# gems versées dans la jauge à chaque achat ; la jauge pleine fait passer un niveau
-const GEMS_PER_INVEST = 5
-const SKILL_COST_BASE = 25
-const SKILL_COST_STEP = 15
-
 var gems := [0, 0]
 # gems de bonus de vie gagnées au dernier niveau terminé (écran LevelCompleted)
 var last_life_bonus := [0, 0]
-# par joueur : {skill: {"level": int, "progress": int}}
-var skills := [{}, {}]
 
 var _score = 0
 var life = START_LIFE
@@ -60,6 +47,38 @@ const HEAVY_ATTACK_MANA = 5.0
 var heavy_attack_free := false
 
 var kill_streak = 0
+
+# Progression par joueur : niveau d'attaque (dégâts de l'épée) et niveau de mana (orage).
+# Seuls les power-ups ramassés sur le trajet font progresser : POWER_UPS_PER_LEVEL par niveau
+# (« xp » = nombre de power-ups ramassés vers le niveau suivant, affichés en crans dans le HUD).
+const PROGRESS_ATTACK = "attack"
+const PROGRESS_MANA = "mana"
+const ATTACK_MAX_LEVEL = 10
+const MANA_MAX_LEVEL = 5
+# niveau 1 : 45 % des dégâts de base, +10 % par niveau (135 % au niveau 10)
+const ATTACK_DAMAGE_START = 0.45
+const ATTACK_DAMAGE_STEP = 0.1
+# orage : 70 % au niveau 1, +12 % par niveau
+const MANA_DAMAGE_START = 0.7
+const MANA_DAMAGE_STEP = 0.12
+const POWER_UPS_PER_LEVEL = 4
+const POWER_UP_XP = 1
+# salves d'orage : une par niveau de mana jusqu'à 3, puis des éclairs en plus
+const MAX_STORM_SALVOS = 3
+const STORM_BOLTS_BASE = 8
+# par joueur : {"attack": {"level", "xp"}, "mana": {"level", "xp"}}
+var progress := [ {}, {}]
+
+# Armes : l'épée au départ, la double hache et les bombes s'achètent à la boutique.
+# L'arme utilisée se choisit en haut de l'écran (HUD) ou avec l'action « weapon ».
+const WEAPON_SWORD = "sword"
+const WEAPON_AXE = "axe"
+const WEAPON_BOMB = "bomb"
+const WEAPONS := [WEAPON_SWORD, WEAPON_AXE, WEAPON_BOMB]
+const WEAPON_PRICES := {WEAPON_AXE: 680, WEAPON_BOMB: 225}
+const WEAPON_TITLES := {WEAPON_SWORD: "SWORD", WEAPON_AXE: "DOUBLE AXE", WEAPON_BOMB: "BOMBS"}
+var owned_weapons := [[WEAPON_SWORD], [WEAPON_SWORD]]
+var current_weapon := [WEAPON_SWORD, WEAPON_SWORD]
 
 
 func set_level(level):
@@ -85,18 +104,107 @@ func reset_game():
 	kill_streak = 0
 	gems = [0, 0]
 	last_life_bonus = [0, 0]
-	skills = [new_skills(), new_skills()]
+	progress = [new_progress(), new_progress()]
+	owned_weapons = [[WEAPON_SWORD], [WEAPON_SWORD]]
+	current_weapon = [WEAPON_SWORD, WEAPON_SWORD]
 
 
 func _init():
-	skills = [new_skills(), new_skills()]
+	progress = [new_progress(), new_progress()]
 
 
-func new_skills() -> Dictionary:
-	var result := {}
-	for skill in SKILLS:
-		result[skill] = {"level": 0, "progress": 0}
-	return result
+func has_weapon(weapon: String, index := 0) -> bool:
+	return owned_weapons[index].has(weapon)
+
+
+func get_weapon(index := 0) -> String:
+	return current_weapon[index]
+
+
+func set_weapon(weapon: String, index := 0) -> bool:
+	if not has_weapon(weapon, index):
+		return false
+	current_weapon[index] = weapon
+	return true
+
+
+# Arme suivante parmi celles achetées (dans l'ordre de WEAPONS)
+func next_weapon(index := 0) -> String:
+	var owned: Array = WEAPONS.filter(func(weapon): return has_weapon(weapon, index))
+	return owned[(owned.find(get_weapon(index)) + 1) % owned.size()]
+
+
+# true si l'arme vient d'être achetée (et équipée)
+func buy_weapon(weapon: String, index := 0) -> bool:
+	if has_weapon(weapon, index) or gems[index] < WEAPON_PRICES[weapon]:
+		return false
+	gems[index] -= WEAPON_PRICES[weapon]
+	owned_weapons[index].append(weapon)
+	current_weapon[index] = weapon
+	return true
+
+
+func new_progress() -> Dictionary:
+	return {PROGRESS_ATTACK: {"level": 1, "xp": 0}, PROGRESS_MANA: {"level": 1, "xp": 0}}
+
+
+func progress_level(kind: String, index := 0) -> int:
+	return progress[index][kind]["level"]
+
+
+func progress_xp(kind: String, index := 0) -> int:
+	return progress[index][kind]["xp"]
+
+
+func progress_max_level(kind: String) -> int:
+	return MANA_MAX_LEVEL if kind == PROGRESS_MANA else ATTACK_MAX_LEVEL
+
+
+func is_progress_maxed(kind: String, index := 0) -> bool:
+	return progress_level(kind, index) >= progress_max_level(kind)
+
+
+func xp_to_next(_kind: String, _index := 0) -> int:
+	return POWER_UPS_PER_LEVEL
+
+
+# 0..1 vers le niveau suivant (1 au niveau max)
+func progress_ratio(kind: String, index := 0) -> float:
+	if is_progress_maxed(kind, index):
+		return 1.0
+	return float(progress_xp(kind, index)) / xp_to_next(kind, index)
+
+
+# Ajoute de l'XP ; renvoie le nombre de niveaux gagnés
+func add_xp(kind: String, amount: int, index := 0) -> int:
+	var data: Dictionary = progress[index][kind]
+	var gained := 0
+	data["xp"] += amount
+	while not is_progress_maxed(kind, index) and data["xp"] >= xp_to_next(kind, index):
+		data["xp"] -= xp_to_next(kind, index)
+		data["level"] += 1
+		gained += 1
+	if is_progress_maxed(kind, index):
+		data["xp"] = 0
+	return gained
+
+
+func attack_level_factor(index := 0) -> float:
+	return ATTACK_DAMAGE_START + ATTACK_DAMAGE_STEP * (progress_level(PROGRESS_ATTACK, index) - 1)
+
+
+func mana_level_factor(index := 0) -> float:
+	return MANA_DAMAGE_START + MANA_DAMAGE_STEP * (progress_level(PROGRESS_MANA, index) - 1)
+
+
+# 1 orage au niveau 1, 2 au niveau 2, 3 à partir du niveau 3
+func storm_salvos(index := 0) -> int:
+	return mini(progress_level(PROGRESS_MANA, index), MAX_STORM_SALVOS)
+
+
+# au-delà du niveau 3 : un éclair de plus par salve et par niveau
+func storm_bolts(index := 0) -> int:
+	return STORM_BOLTS_BASE + maxi(progress_level(PROGRESS_MANA, index) - MAX_STORM_SALVOS, 0)
 
 
 func get_gems(index := 0) -> int:
@@ -130,42 +238,6 @@ func grant_life_bonus() -> void:
 	for index in ([0, 1] if two_players else [0]):
 		last_life_bonus[index] = gems_for_life(get_player_life(index))
 		add_gems(last_life_bonus[index], index)
-
-
-func skill_level(skill: String, index := 0) -> int:
-	return skills[index][skill]["level"]
-
-
-func skill_progress(skill: String, index := 0) -> int:
-	return skills[index][skill]["progress"]
-
-
-func skill_cost(skill: String, index := 0) -> int:
-	return SKILL_COST_BASE + SKILL_COST_STEP * skill_level(skill, index)
-
-
-func is_skill_maxed(skill: String, index := 0) -> bool:
-	return skill_level(skill, index) >= SKILL_MAX_LEVEL
-
-
-# +5 % par niveau
-func skill_factor(skill: String, index := 0) -> float:
-	return 1.0 + SKILL_BONUS_PER_LEVEL * skill_level(skill, index)
-
-
-# Verse des gems dans la jauge ; renvoie 0 si rien n'a été versé, 1 si versé, 2 si niveau gagné
-func invest_skill(skill: String, index := 0) -> int:
-	if is_skill_maxed(skill, index) or gems[index] <= 0:
-		return 0
-	var data: Dictionary = skills[index][skill]
-	var amount := mini(mini(GEMS_PER_INVEST, gems[index]), skill_cost(skill, index) - data["progress"])
-	gems[index] -= amount
-	data["progress"] += amount
-	if data["progress"] < skill_cost(skill, index):
-		return 1
-	data["level"] += 1
-	data["progress"] = 0
-	return 2
 
 
 func get_score():
