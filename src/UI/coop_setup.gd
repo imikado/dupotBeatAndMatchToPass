@@ -6,6 +6,8 @@ extends Node2D
 @export var settings_only := false
 
 const SETTINGS_SCENE := "res://src/UI/settings.tscn"
+const SUMMARY_LINE_SPACING := -5
+
 var _original_players := []
 var _original_layout := ""
 
@@ -168,7 +170,9 @@ func build_ui() -> void:
 		var summary := build_label("", 4, Vector2(x + 5, 34), COLUMN_WIDTH - 10)
 		summary.size.y = 36
 		summary.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-		summary.add_theme_constant_override("line_spacing", 1)
+		# 4 lignes (entrée, attaques, orage/dash, arme) dans le cadre : Pixeled à 4 px a
+		# une ligne d'environ 12 px, interligne resserré à 7 px
+		summary.add_theme_constant_override("line_spacing", SUMMARY_LINE_SPACING)
 		_summaries.append(summary)
 	_editor = Control.new()
 	_editor.mouse_filter = Control.MOUSE_FILTER_IGNORE

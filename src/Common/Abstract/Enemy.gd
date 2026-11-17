@@ -36,6 +36,8 @@ var _shadow_width:=14
 # Recul quand l'épée touche : léger pour ne pas sortir l'ennemi du combo, fort sur le dernier coup
 const KNOCKBACK:=2.0
 const KNOCKBACK_FINISHER:=8.0
+# Ennemis lourds (mini boss) : recul réduit
+var _knockback_factor:=1.0
 
 # Assombri quand un autre personnage passe devant (plus bas à l'écran) en le chevauchant
 const DEPTH_SHADE:=0.7
@@ -151,6 +153,11 @@ func get_combo_count():
 
 func reset_combo_count():
 	_combo_count=0
+
+
+# Taille du corps par rapport à un ennemi simple : hauteur des effets (étincelles, arcs, textes)
+func get_body_scale() -> float:
+	return 1.0
 
 
 func get_type():
@@ -568,8 +575,8 @@ func _spawn_arc(angle: float) -> void:
 	bolt.jaggedness=0.35
 	get_parent().add_child(bolt)
 	bolt.global_position=global_position.round() + Vector2(0, 1)
-	var center:=Vector2(0, -13)
-	var from:=(center + Vector2.from_angle(angle) * Vector2(5, 6)).round()
+	var center:=Vector2(0, -13) * get_body_scale()
+	var from:=(center + Vector2.from_angle(angle) * Vector2(5, 6) * get_body_scale()).round()
 	var to:=(from + Vector2.from_angle(angle + randf_range(-0.6, 0.6)) * LIGHTNING_ARC_LENGTH).round()
 	bolt.set_ends(from, to)
 
@@ -607,11 +614,12 @@ func hit_feedback():
 	_hit_tween.tween_property(self,"modulate",Color.WHITE,0.2)
 
 	Fx.squash(_bodyPivot, Vector2(0.8, 1.2), 0.15)
-	Fx.hit_spark(get_parent(), global_position + Vector2(-away * 5, -10))
+	Fx.hit_spark(get_parent(), global_position + Vector2(-away * 5, -10 * get_body_scale()))
 
 	var distance:=KNOCKBACK
 	if attacker.has_method("melee_knockback"):
 		distance=attacker.melee_knockback()
+	distance*=_knockback_factor
 
 	if _knockback_tween:
 		_knockback_tween.kill()
@@ -646,7 +654,7 @@ func start_death():
 	var color:=ASH_COLOR if _charred else get_variant_color()
 	_material.set_shader_parameter("dissolve_color", color)
 	_material.set_shader_parameter("dissolve_energy", 1.0 if _charred else DISSOLVE_ENERGY)
-	Fx.burst(get_parent(), global_position + Vector2(0, -6), color, DEATH_BURST_AMOUNT)
+	Fx.burst(get_parent(), global_position + Vector2(0, -6 * get_body_scale()), color, DEATH_BURST_AMOUNT)
 
 	var tween := create_tween()
 	tween.tween_method(func(value: float):

@@ -35,6 +35,14 @@ So you don't just mash buttons: you pick your targets, keep your combo going and
 
 </div>
 
+Open the last barrier and a **mini boss** drops from the sky to guard the gate: watch for the red circle before it slams the ground, and beat it to open the way.
+
+<div align="center">
+
+<img src="docs/media/boss.gif" alt="The Mecha Mantis mini boss dropping in, slamming the ground and being defeated" width="640" />
+
+</div>
+
 ## 👥 Play together on one screen
 
 Grab a friend: pick **2 PLAYERS** in the menu and fight side by side through the whole adventure, bonus stages included.
@@ -89,6 +97,7 @@ A loading screen that really preloads the game, an animated title, a lively menu
 | ![Screenshot 1](export/linux/screenshots/Screenshot_01.png) | ![Screenshot 2](export/linux/screenshots/Screenshot_02.png) | ![Screenshot 3](export/linux/screenshots/Screenshot_03.png) |
 | ![Screenshot 4](export/linux/screenshots/Screenshot_04.png) | ![Screenshot 5](export/linux/screenshots/Screenshot_05.png) | ![Screenshot 6](export/linux/screenshots/Screenshot_06.png) |
 | ![Screenshot 7](export/linux/screenshots/Screenshot_07.png) | ![Screenshot 8](export/linux/screenshots/Screenshot_08.png) | ![Screenshot 9](export/linux/screenshots/Screenshot_09.png) |
+| ![Screenshot 10](export/linux/screenshots/Screenshot_10.png) | ![Screenshot 11](export/linux/screenshots/Screenshot_11.png) | ![Screenshot 12](export/linux/screenshots/Screenshot_12.png) |
 
 </div>
 

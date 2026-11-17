@@ -41,6 +41,10 @@ const SWORD_BEAM_FADE = 0.25
 const STORM_SKIP_TO = 1.85
 
 const INVINCIBILITY_DURATION = 0.8
+# Souffle d'une explosion (écrasement du mini boss) : projeté en cloche loin de l'impact
+const EJECT_DISTANCE = 36.0
+const EJECT_HEIGHT = 14.0
+const EJECT_DURATION = 0.4
 const INVINCIBILITY_BLINK = 0.08
 
 # esquive : délai entre deux esquives, images rémanentes
@@ -105,6 +109,8 @@ var _state: String = "idle"
 
 var _is_invincible := false
 var _is_dashing := false
+var _eject_tween: Tween
+var _hop_tween: Tween
 var _last_dash_ms := -100000
 
 # CanvasModulate partagé entre les joueurs en coop ; ses metas portent l'état commun :
@@ -292,6 +298,35 @@ func took_damage(damage: int):
 	Fx.squash(_bodyPivot, Vector2(1.25, 0.8), 0.2)
 	shake_camera(4.0, 0.25)
 	start_invincibility()
+
+
+# Éjecté par une explosion partie de « from » : glisse loin du point d'impact (murs et
+# limites du terrain respectés) pendant que le sprite décrit une cloche, poussière à
+# l'atterrissage. Un dash ou l'orage en cours esquivent le souffle, comme les dégâts.
+func eject(from: Vector2, distance: float = EJECT_DISTANCE, height: float = EJECT_HEIGHT) -> void:
+	if _is_dashing or _life <= 0 or _state == STATE_ATTACK_MANA01:
+		return
+	var away := signf(global_position.x - from.x)
+	if away == 0.0:
+		away = -signf(_bodyPivot.scale.x)
+	if _eject_tween:
+		_eject_tween.kill()
+	var moved := [0.0]
+	_eject_tween = create_tween()
+	_eject_tween.tween_method(func(done: float):
+		move_and_collide(Vector2(away * (done - moved[0]), 0))
+		moved[0] = done
+	, 0.0, distance, EJECT_DURATION).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+
+	if _hop_tween:
+		_hop_tween.kill()
+	_hop_tween = create_tween()
+	_hop_tween.tween_property(_bodyPivot, "position:y", -height, EJECT_DURATION * 0.45).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	_hop_tween.tween_property(_bodyPivot, "position:y", 0.0, EJECT_DURATION * 0.55).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	_hop_tween.tween_callback(func():
+		Fx.dust(get_parent(), global_position, -away)
+		Fx.squash(_bodyPivot, Vector2(1.25, 0.8), 0.15)
+	)
 
 
 # Dégâts de mêlée selon le niveau d'attaque

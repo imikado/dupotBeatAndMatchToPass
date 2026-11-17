@@ -5,11 +5,11 @@ extends Node2D
 
 signal player_entered(player)
 
-const FRAME_COLOR := Color("3b2a22")
-const DOOR_COLOR := Color("8a5a36")
-const PLANK_COLOR := Color("6b4428")
+# Sprites de tools/generate_doors.py (style de la Gate) : 32x48, pieds en bas au centre,
+# panneau du libellé sur Rect2(-15, -38, 30, 10)
+const DOOR_TEXTURE := preload("res://src/Common/Levels/Doors/shop_door.png")
+const DOOR_SIZE := Vector2(32, 48)
 const KNOB_COLOR := Color("ffd34d")
-const SIGN_COLOR := Color("241a2c")
 
 var _gem: Polygon2D
 var _label: Label
@@ -20,6 +20,11 @@ var _armed_at_ms := 0
 
 func _ready() -> void:
 	_armed_at_ms = Time.get_ticks_msec() + int(arm_delay * 1000.0)
+	var sprite := Sprite2D.new()
+	sprite.texture = get_door_texture()
+	sprite.centered = false
+	sprite.offset = Vector2(-DOOR_SIZE.x / 2.0, -DOOR_SIZE.y)
+	add_child(sprite)
 	var area := Area2D.new()
 	var shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
@@ -51,18 +56,12 @@ func _ready() -> void:
 	tween.tween_property(_gem, "position:y", -48.0, 0.6).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(_gem, "position:y", -45.0, 0.6).set_trans(Tween.TRANS_SINE)
 
-	Fx.shadow(self, 22)
+	# ombre au sol sous l'arche (largeur du socle)
+	move_child(Fx.shadow(self, 28), 0)
 
 
-func _draw() -> void:
-	draw_rect(Rect2(-10, -28, 20, 28), FRAME_COLOR)
-	draw_rect(Rect2(-8, -26, 16, 26), DOOR_COLOR)
-	for x in [-3, 2]:
-		draw_rect(Rect2(x, -26, 1, 26), PLANK_COLOR)
-	draw_rect(Rect2(-8, -26, 16, 2), DOOR_COLOR.lightened(0.2))
-	draw_rect(Rect2(4, -13, 2, 2), KNOB_COLOR)
-	draw_rect(Rect2(-15, -38, 30, 10), Color.BLACK)
-	draw_rect(Rect2(-14, -37, 28, 8), SIGN_COLOR)
+func get_door_texture() -> Texture2D:
+	return DOOR_TEXTURE
 
 
 func _on_body_entered(body: Node) -> void:

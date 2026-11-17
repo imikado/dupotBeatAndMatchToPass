@@ -81,6 +81,16 @@ const CHAMPION_CHANCE_START = 0.1
 const CHAMPION_CHANCE_STEP = 0.05
 const CHAMPION_CHANCE_MAX = 0.3
 
+# Mini boss (MechaMantis.gd) : tombe du ciel quand la dernière barrière s'ouvre,
+# la porte reste fermée tant qu'il est debout
+const BossScene := preload("res://src/Actors/Boss/MechaMantis.tscn")
+const BOSS_INTRO_DELAY = 1.6
+# Point de chute : devant le joueur le plus avancé, sans dépasser la porte
+const BOSS_SPAWN_AHEAD = 90.0
+const BOSS_GATE_MARGIN = 40.0
+const BOSS_LOCKED_GATE = Color(1.0, 0.45, 0.45)
+const BOSS_HINT_COOLDOWN_MS = 1500
+
 @onready var _ysort = get_node("Node2D")
 @onready var _player = get_node("Node2D/Player")
 @onready var _cameraLimitRect = get_node("CameraLimitRect")
@@ -138,6 +148,10 @@ var _players: Array = []
 
 var _ephemeral_timer: Timer
 
+var _boss: MechaMantis = null
+var _boss_defeated := false
+var _boss_hint_ms := -100000
+
 
 func debug():
 	#_player.global_position.x +=3500
@@ -156,6 +170,7 @@ func _ready() -> void:
 		_player.global_position.x += 450
 
 	build_level()
+	sort_gate_with_actors()
 
 	# La vie est conservée d'un niveau à l'autre (fioles du niveau bonus comprises)
 	_player.set_life(GlobalPlayer.life)
@@ -369,6 +384,18 @@ func grant_xp(player_index: int, kind: String, amount: int) -> int:
 
 # Mur invisible juste après la porte : sans lui, le joueur peut contourner la porte
 # (par le haut ou le bas) et sortir du sol texturé. La caméra s'arrête au même endroit.
+# La porte rejoint le tri en Y des acteurs, triée sur sa base (bas du sprite) :
+# hors du tri, elle passait sous tout le monde, et les pattes du mini boss la recouvraient
+func sort_gate_with_actors() -> void:
+	var sprite: Sprite2D = _gate.get_node("Gate")
+	var base_y: float = sprite.texture.get_height() / 2.0
+	var anchor := Node2D.new()
+	anchor.name = "GateAnchor"
+	_ysort.add_child(anchor)
+	anchor.global_position = _gate.global_position + Vector2(0, base_y)
+	_gate.reparent(anchor)
+
+
 func close_level_after_gate() -> void:
 	var wall_x: float = _gate.global_position.x + GATE_WALL_OFFSET
 	var wall: StaticBody2D = LimitWalkingVertScene.instantiate()
@@ -522,11 +549,59 @@ func _on_barrier_opened(barrier: Node2D) -> void:
 
 	if _opened_barrier_count >= _total_barrier_count:
 		_spawnTimer.stop()
-		_hud.show_banner("THE GATE IS OPEN!", "GO RIGHT >>>", Color("7fdbff"))
+		start_boss_fight()
 	elif is_group_open:
 		_hud.show_banner("WAY CLEAR!", "GO RIGHT >>>", Color("7fdbff"))
 	else:
 		_hud.show_banner("BARRIER OPEN!", "", Color("7fdbff"), 0.8)
+
+
+func start_boss_fight() -> void:
+	if _boss or _boss_defeated:
+		return
+	_gate.modulate = BOSS_LOCKED_GATE
+	_hud.show_banner("WARNING!", "A MINI BOSS GUARDS THE GATE", Color("ff4d4d"), 1.2)
+	Sound.play("mana_ready", 0.0, 0.0, 0.5)
+	get_tree().create_timer(BOSS_INTRO_DELAY, false).timeout.connect(spawn_boss)
+
+
+func spawn_boss() -> MechaMantis:
+	if _boss or _boss_defeated or not is_inside_tree():
+		return _boss
+	var front: Player = _player
+	for player in _players:
+		if player.is_alive() and (not front.is_alive() or player.global_position.x > front.global_position.x):
+			front = player
+	var x := minf(front.global_position.x + BOSS_SPAWN_AHEAD, _gate.global_position.x - BOSS_GATE_MARGIN)
+	var pos := Vector2(x, clampf(front.global_position.y, MIN_SPAWN_Y + 10, MAX_SPAWN_Y - 10)).round()
+
+	_boss = BossScene.instantiate()
+	_boss.setup(GlobalPlayer.get_level(), GlobalPlayer.get_difficulty(), GlobalPlayer.two_players)
+	_boss.add_to_group(Game.GROUP_ENEMY)
+	_boss.setPlayer(nearest_player(pos))
+	_boss.set_global_position(pos)
+	_ysort.add_child(_boss)
+	_boss.defeated.connect(_on_boss_defeated)
+	_boss.start_intro()
+	return _boss
+
+
+func _on_boss_defeated(_defeated_boss) -> void:
+	_boss_defeated = true
+	_gate.modulate = Color.WHITE
+	Fx.ring(_specialEffects, _gate.global_position, Color("7fdbff"), 30.0, 0.5)
+	_hud.show_banner("BOSS DEFEATED!", "THE GATE IS OPEN  >>>", Color("ffd34d"), 2.0)
+	Sound.play("barrier_open", 0.0)
+	# joueur déjà devant la porte : pas besoin d'en ressortir pour passer
+	var area: Area2D = _gate.get_node("Area2D")
+	for body in area.get_overlapping_bodies():
+		if body is Player:
+			_on_Gate_player_entered_gate.call_deferred()
+			return
+
+
+func is_gate_open() -> bool:
+	return _boss_defeated
 
 
 func _on_player_healt_changed(newLife: float):
@@ -615,9 +690,10 @@ func _on_actor_healt_changed(actor: CharacterBody2D, previous_value: float, new_
 		give_gems(actor)
 
 		var text_color = Color.WHITE if multiplier == 1 else Color("ffd34d")
-		Fx.floating_text(_specialEffects, "+" + str(points), kill_text_position(actor.global_position + Vector2(0, -24)), text_color)
+		var body_scale: float = actor.get_body_scale() if actor.has_method("get_body_scale") else 1.0
+		Fx.floating_text(_specialEffects, "+" + str(points), kill_text_position(actor.global_position + Vector2(0, -24 * body_scale)), text_color)
 		_kill_texts.append(_specialEffects.get_child(-1))
-		Fx.burst(_specialEffects, actor.global_position + Vector2(0, -6), actor.get_variant_color())
+		Fx.burst(_specialEffects, actor.global_position + Vector2(0, -6 * body_scale), actor.get_variant_color())
 		Sound.play("enemy_die")
 
 		Game.hit_stop(0.06)
@@ -935,6 +1011,13 @@ func update_mana_button():
 
 func _on_Gate_player_entered_gate() -> void:
 	if Transition.is_busy():
+		return
+	if not is_gate_open():
+		var now := Time.get_ticks_msec()
+		if now - _boss_hint_ms > BOSS_HINT_COOLDOWN_MS:
+			_boss_hint_ms = now
+			var text := "DEFEAT THE BOSS!" if _opened_barrier_count >= _total_barrier_count else "OPEN THE BARRIERS!"
+			Fx.floating_text(_specialEffects, text, _gate.global_position + Vector2(0, -30), Color("ff4d4d"))
 		return
 	GlobalPlayer.grant_life_bonus()
 	GlobalPlayer.revive_downed()

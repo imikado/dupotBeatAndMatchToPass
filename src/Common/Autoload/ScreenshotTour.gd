@@ -38,6 +38,13 @@ const MIN_LIFE := 40.0
 # écart max entre les deux joueurs pour la capture en mode 2 joueurs (sinon ils sont
 # aux bords de l'écran et les ennemis coupés)
 const COOP_MAX_GAP := 110.0
+# Mini boss : niveau assez avancé pour qu'il tienne jusqu'à l'écrasement
+const BOSS_LEVEL := 4
+const BOSS_LANDED_DELAY := 0.15
+const BOSS_SLAM_SHOT_RATIO := 0.6
+const BOSS_FLANK_X := 24.0
+const BOSS_CENTER_TOLERANCE := 30.0
+const BOSS_SLAM_ATTEMPTS := 6
 
 var _bot_group := ""
 # temps avant le prochain coup d'épée, par joueur piloté (deux en mode 2 joueurs)
@@ -57,6 +64,12 @@ func _ready() -> void:
 func run() -> void:
 	# Le boot mène tout seul à l'écran titre
 	await wait_scene(TITLE_SCENE)
+	# « --boss » : seulement les captures du mini boss (10 à 12)
+	if OS.get_cmdline_user_args().has("--boss"):
+		use_demo_controls()
+		await run_boss()
+		get_tree().quit()
+		return
 	await wait_until(func(): return get_tree().current_scene.get("_can_continue") == true)
 	await wait_until(func(): return get_tree().current_scene._press_label.modulate.a > 0.95)
 	shoot(6)
@@ -110,7 +123,71 @@ func run() -> void:
 	await wait(STORM_IMPACT_DELAY)
 	shoot(1)
 
+	await run_boss()
 	get_tree().quit()
+
+
+func run_boss() -> void:
+	# mini boss : chute avec son nom, puis écrasement (zone rouge)
+	var boss := await start_boss(BOSS_LEVEL)
+	await wait_until(func(): return not is_instance_valid(boss) or boss._bodyPivot.position.y >= 0.0)
+	await wait(BOSS_LANDED_DELAY)
+	shoot(10)
+	clear_minions()
+	await shoot_boss_slam(boss, 11)
+
+	# à deux : un joueur de chaque côté, la caméra (centrée entre eux) cadre le boss
+	boss = await start_boss(BOSS_LEVEL, true, true)
+	await wait_until(func(): return not is_instance_valid(boss) or not boss.is_intro())
+	var players := get_bot_players()
+	if is_instance_valid(boss) and players.size() == 2:
+		players[0].global_position = boss.global_position + Vector2(-BOSS_FLANK_X, 0)
+		players[1].global_position = boss.global_position + Vector2(BOSS_FLANK_X, 0)
+	await shoot_boss_slam(boss, 12, COOP_MAX_GAP)
+
+
+# Niveau lancé directement en combat de boss (comme après la dernière barrière)
+# alone : sans sbires, pour que les deux joueurs l'entourent
+func start_boss(level: int, two_players := false, alone := false) -> MechaMantis:
+	await start_level(level, two_players)
+	var scene := get_tree().current_scene
+	scene._spawnTimer.stop()
+	if alone:
+		clear_minions()
+	scene.start_boss_fight()
+	await wait_until(func(): return scene._boss != null)
+	return scene._boss
+
+
+func clear_minions() -> void:
+	for enemy in get_tree().get_nodes_in_group(Game.GROUP_ENEMY):
+		if not enemy is MechaMantis:
+			enemy.queue_free()
+
+
+# Capture pendant l'élan de l'écrasement (boss dressé, cercle rouge au sol)
+func shoot_boss_slam(boss: MechaMantis, number: int, max_gap := INF) -> void:
+	await wait_until(func(): return not is_instance_valid(boss) or not boss.is_intro())
+	if not is_instance_valid(boss):
+		shoot(number)
+		return
+	# écrasement commencé hors cadre : on attend le suivant (capture avant l'impact)
+	for attempt in range(BOSS_SLAM_ATTEMPTS):
+		boss._next_slam_ms = 0
+		await wait_until(func(): return not is_instance_valid(boss) or boss._slamming)
+		if not is_instance_valid(boss) or attempt == BOSS_SLAM_ATTEMPTS - 1 or (players_gap() <= max_gap and is_centered(boss)):
+			break
+		await wait_until(func(): return not is_instance_valid(boss) or not boss._slamming)
+	if not is_instance_valid(boss):
+		shoot(number)
+		return
+	# les coups des joueurs le feraient clignoter en blanc au lieu du rouge
+	var group := _bot_group
+	_bot_group = ""
+	release_all()
+	await wait((boss.SLAM_WINDUP_ENRAGED if boss.is_enraged() else boss.SLAM_WINDUP) * BOSS_SLAM_SHOT_RATIO)
+	shoot(number)
+	_bot_group = group
 
 
 # Configuration des touches identique à chaque capture / enregistrement, sans écraser
@@ -203,6 +280,12 @@ func wait_crowd_kill(min_enemies: int, max_gap := INF) -> void:
 	await wait_until(func(): return count_enemies_near(CROWD_DISTANCE) >= min_enemies + 1 and players_gap() <= max_gap)
 	_crowd_kill = false
 	await wait_until(func(): return _crowd_kill and count_enemies_near(CROWD_DISTANCE) >= min_enemies and players_gap() <= max_gap)
+
+
+# Assez près du centre de l'écran pour ne pas passer sous les panneaux du HUD
+func is_centered(node: Node2D) -> bool:
+	var camera := get_viewport().get_camera_2d()
+	return camera == null or absf(node.global_position.x - camera.get_screen_center_position().x) <= BOSS_CENTER_TOLERANCE
 
 
 func players_gap() -> float:
@@ -300,16 +383,17 @@ func get_bot_players() -> Array:
 # Bot : va se placer à côté de la cible la plus proche et enchaîne les coups d'épée,
 # avance vers la droite quand il n'y a personne ; à deux, chacun prend une cible différente
 func _physics_process(delta: float) -> void:
+	# Fenêtre qui perd le focus : le niveau se met en pause, on reprend (même bot suspendu)
+	var scene := get_tree().current_scene
+	var pause_menu = scene.get("_pause_menu") if scene else null
+	if pause_menu and pause_menu.is_open():
+		pause_menu.close()
+
 	if _bot_group == "" or Transition.is_busy():
 		return
 	var players := get_bot_players()
 	if players.is_empty():
 		return
-
-	# Fenêtre qui perd le focus : le niveau se met en pause, on reprend
-	var pause_menu = get_tree().current_scene.get("_pause_menu")
-	if pause_menu and pause_menu.is_open():
-		pause_menu.close()
 
 	var claimed := []
 	for player in players:
@@ -342,12 +426,14 @@ func bot_step(player: Player, delta: float, claimed: Array) -> void:
 			direction.x = 1
 	else:
 		var side := -1.0 if target.global_position.x < player.global_position.x else 1.0
-		var gap: Vector2 = target.global_position - Vector2(side * ATTACK_OFFSET_X, 0) - player.global_position
+		# cible plus grosse (mini boss) : on frappe de plus loin, son corps empêche d'approcher
+		var offset_x: float = ATTACK_OFFSET_X * (target.get_body_scale() if target.has_method("get_body_scale") else 1.0)
+		var gap: Vector2 = target.global_position - Vector2(side * offset_x, 0) - player.global_position
 		var facing: float = player.get_node("BodyPivot").scale.x
 		# déjà à portée d'épée (ex. joueur collé à une barrière, ennemi venu de l'autre
-		# côté) : inutile de reculer à ATTACK_OFFSET_X, on frappe sur place
+		# côté) : inutile de reculer à offset_x, on frappe sur place
 		var dx: float = absf(target.global_position.x - player.global_position.x)
-		var in_reach := dx >= MIN_REACH_X and dx <= ATTACK_OFFSET_X + ATTACK_TOLERANCE.x
+		var in_reach := dx >= MIN_REACH_X and dx <= offset_x + ATTACK_TOLERANCE.x
 		if abs(gap.x) > ATTACK_TOLERANCE.x and not in_reach:
 			direction.x = sign(gap.x)
 		if abs(gap.y) > ATTACK_TOLERANCE.y:

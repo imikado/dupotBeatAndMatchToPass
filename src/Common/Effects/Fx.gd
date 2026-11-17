@@ -8,6 +8,7 @@ const ENEMY_COLORS = {
 	Game.ENEMY_TYPE_LIST.ANT: Color("6a85b0"),
 	Game.ENEMY_TYPE_LIST.BEETLE: Color("9476ad"),
 	Game.ENEMY_TYPE_LIST.SPIDER: Color("aa9c68"),
+	Game.ENEMY_TYPE_LIST.BOSS: Color("4fae6a"),
 }
 
 

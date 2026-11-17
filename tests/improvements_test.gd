@@ -147,9 +147,16 @@ func run() -> void:
 	add_child(settings)
 	await get_tree().process_frame
 	check(get_viewport().gui_get_focus_owner() is Button, "Settings is not keyboard/gamepad navigable")
+	var settings_real_path := Game.settings_path
+	var settings_previous_touch: bool = Game.isControlsEnabled()
+	Game.settings_path = "user://test_settings.cfg"
+	Game.setControlsEnabled(false)
 	settings.toggle_touch()
 	Game.load_settings()
 	check(Game.isControlsEnabled(), "Settings toggle did not persist")
+	DirAccess.remove_absolute(Game.settings_path)
+	Game.settings_path = settings_real_path
+	Game.setControlsEnabled(settings_previous_touch)
 	settings.queue_free()
 	await get_tree().process_frame
 	print("IMPROVEMENTS TESTS: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)

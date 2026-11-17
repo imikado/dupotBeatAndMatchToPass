@@ -9,6 +9,8 @@ extends "res://src/Common/Autoload/ScreenshotTour.gd"
 #   coop     : menu « 2 PLAYERS », choix des touches, essai des deux héros (TEST),
 #              puis combat à deux et orage de chaque joueur, chacun avec sa mana
 #              (niveau 1)                                 -> docs/media/coop.gif
+#   boss     : alerte, chute du mini boss avec son nom, écrasement (zone rouge),
+#              orage puis combat jusqu'à sa défaite       -> docs/media/boss.gif
 #   video    : lancement, « 1 PLAYER » + essai du héros (TEST), niveau 1 + orage, bonus,
 #              niveau 3 + orage, puis mode 2 joueurs (menu, touches, essai, combat
 #              à deux + orages), avec le son
@@ -37,6 +39,18 @@ const VIDEO_END_DURATION := 3.0
 const MENU_STEP := 0.35
 const COOP_FIGHT_DURATION := 5.0
 
+# Démo du mini boss : niveau 1 (le moins de vie, le gif reste court), combat avant
+# l'alerte, durée max du combat jusqu'à sa défaite (temps de jeu), fin sur la bannière
+const BOSS_CLIP_LEVEL := 1
+const BOSS_LEAD_DURATION := 1.0
+# héros placé devant la porte (après la dernière barrière), le temps que la caméra suive
+const BOSS_GATE_DISTANCE := 120.0
+const BOSS_CAMERA_DELAY := 1.0
+const BOSS_KILL_MAX := 20.0
+const BOSS_CLIP_LIFE := 140.0
+const BOSS_CLIP_GROUP := "demo_boss"
+const BOSS_END_DURATION := 2.0
+
 var _clip := ""
 var _clip_start := 0
 
@@ -53,6 +67,8 @@ func run() -> void:
 			await run_gameplay()
 		"coop":
 			await run_coop()
+		"boss":
+			await run_boss_clip()
 		"video":
 			await run_video()
 		_:
@@ -91,6 +107,50 @@ func run_coop() -> void:
 	await wait_scene(MENU_SCENE)
 	clip_start()
 	await coop_sequence(COOP_FIGHT_DURATION)
+	clip_end()
+
+
+# Mini boss lancé comme après la dernière barrière : alerte, chute, un écrasement
+# (zone rouge), l'orage, puis le bot frappe jusqu'à sa défaite (porte rouverte)
+func run_boss_clip() -> void:
+	await wait_scene(TITLE_SCENE)
+	use_demo_controls()
+	await start_level(BOSS_CLIP_LEVEL)
+	var level := get_tree().current_scene
+	level._spawnTimer.stop()
+	clear_minions()
+	# toutes les barrières derrière lui, devant la porte : le boss tombe de son côté
+	get_player().global_position.x = level._gate.global_position.x - BOSS_GATE_DISTANCE
+	await wait(BOSS_CAMERA_DELAY)
+	# sbires arrivés entre-temps : le combat se passe devant la porte
+	clear_minions()
+	clip_start()
+	await wait(BOSS_LEAD_DURATION)
+	level.start_boss_fight()
+	await wait_until(func(): return level._boss != null)
+	var boss: MechaMantis = level._boss
+	# gif court : moins de vie (il passe quand même enragé), et le bot ne vise que lui
+	boss._max_life = BOSS_CLIP_LIFE
+	boss._life = BOSS_CLIP_LIFE
+	if boss._bar:
+		boss._bar.max_value = BOSS_CLIP_LIFE
+		boss._bar.set_value(BOSS_CLIP_LIFE, false)
+	boss.add_to_group(BOSS_CLIP_GROUP)
+	await wait_until(func(): return not is_instance_valid(boss) or not boss.is_intro())
+	level._spawnTimer.stop()
+	clear_minions()
+	_bot_group = BOSS_CLIP_GROUP
+	# premier écrasement tout de suite, dès que le bot est à portée
+	if is_instance_valid(boss):
+		boss._next_slam_ms = 0
+	await wait_at_most(func(): return not is_instance_valid(boss) or boss._slamming, STORM_WAIT_MAX)
+	await wait_at_most(func(): return not is_instance_valid(boss) or not boss._slamming, STORM_WAIT_MAX)
+	await wait(0.5)
+	await storm()
+	await wait_at_most(func(): return level._boss_defeated, BOSS_KILL_MAX)
+	if not level._boss_defeated:
+		push_warning("Démo : mini boss toujours debout, le gif s'arrête quand même")
+	await wait(BOSS_END_DURATION)
 	clip_end()
 
 

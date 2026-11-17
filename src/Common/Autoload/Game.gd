@@ -13,7 +13,7 @@ var settings_path := PATH_SETTINGS
 
 const PATH_HIGHSCORE := "user://highscore.dat"
 
-enum ENEMY_TYPE_LIST { ANT, SPIDER, BEETLE }
+enum ENEMY_TYPE_LIST { ANT, SPIDER, BEETLE, BOSS }
 
 var _is_debug := false
 
@@ -46,6 +46,9 @@ func _ready():
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	DirAccess.make_dir_recursive_absolute(_screenshot_dir)
 	DisplayServer.window_set_size(SCREENSHOT_SIZE)
+	if demo != "" or is_tour:
+		# images publiées : jamais de contrôles tactiles, quel que soit le réglage du PC (non enregistré)
+		setControlsEnabled(false)
 	if demo != "":
 		add_child(load("res://src/Common/Autoload/DemoTour.gd").new(demo))
 	elif is_tour:

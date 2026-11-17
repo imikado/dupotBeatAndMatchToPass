@@ -10,5 +10,6 @@ Généré par `generate_firetv.sh` : régler les variables du script plutôt que
 | Small icon (114x114) | `icon_114.png` |
 | Featured content logo (640x260, optionnel) | `featured_logo.png` |
 | Featured content background (1920x720, optionnel) | `featured_background.png` |
+| Promotional image (1024x500, paysage) | `promo_image.png` |
 
 APK : `./export_firetv.sh release` → `export/android/firetv/BeatAndMatchToPass-firetv.apk`
