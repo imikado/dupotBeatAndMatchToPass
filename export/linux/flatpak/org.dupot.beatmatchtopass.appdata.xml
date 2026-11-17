@@ -8,45 +8,68 @@
   <developer id="michael.bertocchi">
     <name>Michael Bertocchi</name>
   </developer>
-  <summary>Beat them all</summary>
+  <summary>Beat the right enemies to open the way</summary>
   <description>
     <p>
-  This game was made with Godot 4.7
+      Beat them all… or not. Gordon's path through the forest is blocked by electric barriers. Each barrier shows an enemy: an ant, a beetle or a spider. Only defeating that kind of enemy charges it, and once it is full, the way is open.
     </p>
     <p>
-       Gordon must kill enemies to open gates and finish levels
+      Pick your targets, mix quick and heavy strikes into deadly combos and save your lightning for the right moment. At the end of every level, a mini boss drops from the sky to guard the gate.
     </p>
+    <p>Features:</p>
+    <ul>
+      <li>Solo or two-player co-op on the same screen: one keyboard, keyboard + gamepad or two gamepads</li>
+      <li>Quick and heavy attacks, with nine combo chains to discover</li>
+      <li>Dash to dodge enemies and cancel any swing</li>
+      <li>Kill streaks raising your score multiplier up to x4</li>
+      <li>Lightning storm: spend your mana to strike everything around you</li>
+      <li>A mini boss at every gate: the Mecha Mantis, with ground slams, rage mode and super armor</li>
+      <li>Three enemy types: ants swarm you, beetles hit hard, spiders shoot from a distance</li>
+      <li>Bonus stage: 15 seconds to hit the squirrels and grab extra life bottles</li>
+      <li>Training mode with a practice dummy and the combo list on screen</li>
+      <li>Remappable keyboard and gamepad controls, AZERTY and QWERTY presets</li>
+      <li>Best scores, chiptune music, hit-stop, screen shake and particles</li>
+    </ul>
     <p>
-      Use your sword to kill number of enemies needed to open each gates. 
+      Made with Godot 4.7, free and open source.
     </p>
   </description>
   <screenshots>
     <screenshot type="default">
-      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/e8c33a898493f961c576db044ce7fba8ad702d97/export/linux/screenshots/Screenshot_01.png</image>
+      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/f6b0660e6600c30571fa46d3f03f6900ecc61910/export/linux/screenshots/Screenshot_01.png</image>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/e8c33a898493f961c576db044ce7fba8ad702d97/export/linux/screenshots/Screenshot_02.png</image>
+      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/f6b0660e6600c30571fa46d3f03f6900ecc61910/export/linux/screenshots/Screenshot_02.png</image>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/e8c33a898493f961c576db044ce7fba8ad702d97/export/linux/screenshots/Screenshot_03.png</image>
+      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/f6b0660e6600c30571fa46d3f03f6900ecc61910/export/linux/screenshots/Screenshot_03.png</image>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/e8c33a898493f961c576db044ce7fba8ad702d97/export/linux/screenshots/Screenshot_04.png</image>
+      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/f6b0660e6600c30571fa46d3f03f6900ecc61910/export/linux/screenshots/Screenshot_04.png</image>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/e8c33a898493f961c576db044ce7fba8ad702d97/export/linux/screenshots/Screenshot_05.png</image>
+      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/f6b0660e6600c30571fa46d3f03f6900ecc61910/export/linux/screenshots/Screenshot_05.png</image>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/e8c33a898493f961c576db044ce7fba8ad702d97/export/linux/screenshots/Screenshot_06.png</image>
+      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/f6b0660e6600c30571fa46d3f03f6900ecc61910/export/linux/screenshots/Screenshot_06.png</image>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/e8c33a898493f961c576db044ce7fba8ad702d97/export/linux/screenshots/Screenshot_07.png</image>
+      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/f6b0660e6600c30571fa46d3f03f6900ecc61910/export/linux/screenshots/Screenshot_07.png</image>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/e8c33a898493f961c576db044ce7fba8ad702d97/export/linux/screenshots/Screenshot_08.png</image>
+      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/f6b0660e6600c30571fa46d3f03f6900ecc61910/export/linux/screenshots/Screenshot_08.png</image>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/e8c33a898493f961c576db044ce7fba8ad702d97/export/linux/screenshots/Screenshot_09.png</image>
+      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/f6b0660e6600c30571fa46d3f03f6900ecc61910/export/linux/screenshots/Screenshot_09.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/f6b0660e6600c30571fa46d3f03f6900ecc61910/export/linux/screenshots/Screenshot_10.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/f6b0660e6600c30571fa46d3f03f6900ecc61910/export/linux/screenshots/Screenshot_11.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/f6b0660e6600c30571fa46d3f03f6900ecc61910/export/linux/screenshots/Screenshot_12.png</image>
     </screenshot>
   </screenshots>
   <url type="homepage">https://www.dupot.org/games.html</url>
