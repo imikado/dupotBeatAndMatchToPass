@@ -38,19 +38,32 @@ Généré par `generate_itchio.sh` : ne pas modifier à la main, régler les var
 ```html
 <h1>⚔️ Beat And Match To Pass</h1>
 <p><strong>Beat them all… or not. Beat the <em>right</em> enemies to open the way!</strong></p>
-<p><img src="https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/main/docs/media/gameplay.gif?v=202611172307" alt="Sword combo, kills and the lightning storm in action"></p>
+<p><img src="https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/main/docs/media/gameplay.gif?v=202611172318" alt="Sword combo, kills and the lightning storm in action"></p>
 <p>Gordon's path through the forest is blocked by <strong>electric barriers</strong>. Each barrier shows an enemy: an ant, a beetle or a spider. Only defeating <strong>that kind of enemy</strong> charges it, and once it is full, the way is open.</p>
 <p>So you don't just mash buttons: pick your targets, mix quick and heavy strikes into deadly combos and save your lightning for the right moment! ⚡</p>
+<p>🦗 <strong>And at the end of every level, a mini boss drops from the sky to guard the gate!</strong></p>
 <p>👥 <strong>Better with a friend: play the whole adventure in two-player co-op on the same screen!</strong></p>
+<hr>
+<h2>🦗 A mini boss at every gate</h2>
+<p>Open the last barrier and the ground shakes: <strong>WARNING! A MINI BOSS GUARDS THE GATE</strong>. The <strong>Mecha Mantis</strong>, a robotic praying mantis twice the size of the other enemies, drops from the sky and locks the gate until it falls.</p>
+<p><img src="https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/main/docs/media/boss.gif?v=202611172318" alt="The Mecha Mantis mini boss dropping in, slamming the ground and being defeated"></p>
+<ul>
+  <li>🗡️ <strong>Scythe strikes</strong> with a readable wind-up: step out of reach or dash through</li>
+  <li>🔴 <strong>Ground slam</strong>: a red circle warns you before it crashes down and sends a shockwave around it</li>
+  <li>💢 <strong>Enraged below half life</strong>: faster, and slamming more often</li>
+  <li>🛡️ <strong>Super armor</strong>: it barely flinches and only staggers every few hits, so pick your moment</li>
+  <li>📈 <strong>Tougher every level</strong>, and sturdier when two heroes take it on</li>
+  <li>🏆 <strong>Big score bonus</strong> when it falls, and the gate opens</li>
+</ul>
 <hr>
 <h2>👥 Two-player co-op on one screen</h2>
 <p>Pick <strong>2 PLAYERS</strong> in the menu and fight side by side through every level, bonus stages included.</p>
-<p><img src="https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/main/docs/media/coop.gif?v=202611172307" alt="Two players menu, key setup and a fight with both heroes"></p>
+<p><img src="https://raw.githubusercontent.com/imikado/dupotBeatAndMatchToPass/main/docs/media/coop.gif?v=202611172318" alt="Two players menu, key setup and a fight with both heroes"></p>
 <ul>
   <li>🎮 <strong>Any setup</strong>: two players on <strong>one keyboard</strong>, a <strong>keyboard + a gamepad</strong>, or <strong>two gamepads</strong></li>
   <li>⌨️ <strong>Your keys, your way</strong>: AZERTY and QWERTY presets, every key and gamepad button can be remapped and tried out before the game starts</li>
   <li>⚡ <strong>A lightning storm each</strong>: every hero has their own life and mana bars, so time your storms together</li>
-  <li>🔥 <strong>A tougher challenge</strong>: more barriers to open and enemies arriving faster, made for two</li>
+  <li>🔥 <strong>A tougher challenge</strong>: more barriers to open, enemies arriving faster and a sturdier mini boss, made for two</li>
   <li>🤝 <strong>Team play</strong>: shared score and kill streak, and enemies go after the closest hero, so split the crowd or bait them for your partner</li>
   <li>💫 <strong>Never out for long</strong>: a fallen partner gets back up at the next level, it's game over only when both heroes are down</li>
 </ul>
@@ -63,6 +76,7 @@ Généré par `generate_itchio.sh` : ne pas modifier à la main, régler les var
   <li>💨 <strong>Dash</strong>: a quick dodge that makes you untouchable for an instant and cancels any swing</li>
   <li>🔥 <strong>Kill streaks</strong>: every 5 kills in a row raise your score multiplier, up to <strong>x4</strong></li>
   <li>⚡ <strong>Lightning storm</strong>: spend your mana to call down three volleys of lightning on everything around you</li>
+  <li>🦗 <strong>A mini boss at every gate</strong>: the Mecha Mantis, with ground slams, rage mode and super armor</li>
   <li>🐜 <strong>Three enemy types</strong>: ants swarm you, beetles hit hard, spiders shoot from a distance</li>
   <li>🐿️ <strong>Bonus stage</strong>: 15 seconds to hit the squirrels and grab extra life bottles</li>
   <li>🎯 <strong>Training mode</strong>: a harmless practice dummy that respawns endlessly, with the combo list on screen, solo or for two</li>
@@ -97,6 +111,7 @@ Généré par `generate_itchio.sh` : ne pas modifier à la main, régler les var
   <li>🛡️ <strong>Protect your streak</strong>: backing off for a second is often worth more than trading hits</li>
   <li>🪨 <strong>Ground slams for crowds</strong>: they hit every enemy around you on the same lane</li>
   <li>🌩️ <strong>Keep the storm for crowds</strong>: you're untouchable while casting</li>
+  <li>🔴 <strong>Against the mini boss</strong>, watch for the red circle: dash out before the slam, then punish it while it recovers</li>
 </ul>
 <hr>
 <h2>🐧 Also on Linux</h2>

@@ -6,7 +6,7 @@
 
 **Beat them all… or not. Beat the *right* enemies to open the way!**
 
-A fast pixel-art beat 'em up where every swing counts, **solo or with a friend on the same screen**.
+A fast pixel-art beat 'em up where every swing counts, **solo or with a friend on the same screen**, with a **mini boss guarding the gate of every level**.
 Free · 1–2 players · Linux · Web · Made with Godot 4
 
 [![Flathub](https://img.shields.io/flathub/v/org.dupot.beatmatchtopass?logo=flathub&logoColor=white&label=Flathub&color=4a90d9)](https://flathub.org/apps/org.dupot.beatmatchtopass)
@@ -27,7 +27,7 @@ Free · 1–2 players · Linux · Web · Made with Godot 4
 
 Gordon's path through the forest is blocked by **electric barriers**. Each barrier shows an enemy: an ant, a beetle or a spider. Only defeating **that kind of enemy** charges it, and once it is full, it shuts down and the way is open.
 
-So you don't just mash buttons: you pick your targets, keep your combo going and save your lightning for the right moment. Clear every barrier, reach the gate, and move on to the next level.
+So you don't just mash buttons: you pick your targets, keep your combo going and save your lightning for the right moment. Clear every barrier, defeat the mini boss that guards the gate, and move on to the next level.
 
 <div align="center">
 
@@ -35,13 +35,22 @@ So you don't just mash buttons: you pick your targets, keep your combo going and
 
 </div>
 
-Open the last barrier and a **mini boss** drops from the sky to guard the gate: watch for the red circle before it slams the ground, and beat it to open the way.
+## 🦗 A mini boss at every gate
+
+Open the last barrier and the ground shakes: *WARNING! A MINI BOSS GUARDS THE GATE*. The **Mecha Mantis**, a robotic praying mantis twice the size of the other enemies, drops from the sky and locks the gate until it falls.
 
 <div align="center">
 
 <img src="docs/media/boss.gif" alt="The Mecha Mantis mini boss dropping in, slamming the ground and being defeated" width="640" />
 
 </div>
+
+- 🗡️ **Scythe strikes** with a readable wind-up: step out of reach or dash through.
+- 🔴 **Ground slam**: a red circle warns you before it crashes down and sends a shockwave around it. Get out of the circle, or leave its lane.
+- 💢 **Enraged below half life**: it moves faster and slams more often.
+- 🛡️ **Super armor**: it barely flinches and only staggers every few hits, so pick your moment instead of mashing.
+- 📈 **Tougher every level**, with its own health bar and name at the bottom of the screen, and more life when two heroes take it on.
+- 🏆 **Big reward**: beat it for a score bonus, *BOSS DEFEATED!*, and the gate opens.
 
 ## 👥 Play together on one screen
 
@@ -58,7 +67,7 @@ Grab a friend: pick **2 PLAYERS** in the menu and fight side by side through the
 - 🎥 **One shared camera** keeps both heroes in view: nobody gets left off-screen.
 - 🐜 **Smart enemies** go after the closest hero, so you can split the crowd or bait them for your partner.
 - 🤝 **Team play**: score and kill streak are shared, each hero has their own life and mana bars (a lightning storm each), and any life bottle heals whoever grabs it.
-- 🔥 **Made for two**: more barriers to open and enemies arriving faster than in solo.
+- 🔥 **Made for two**: more barriers to open, enemies arriving faster than in solo, and a sturdier mini boss at the gate.
 - 💫 **Never out for long**: a fallen partner gets back up at the next level with half their life. It's game over only when both heroes are down.
 - 🐺 **Two heroes**: player 2 is Gordon's blue-grey twin, with *P1* / *P2* tags above their heads.
 
@@ -70,6 +79,7 @@ Grab a friend: pick **2 PLAYERS** in the menu and fight side by side through the
 - 💨 **Dash**: a quick dodge in any direction that makes you untouchable for an instant, and cancels a sword swing.
 - 🔥 **Kill streaks**: every 5 kills in a row raise your score multiplier, up to **x4**. Get hit and the streak is gone.
 - ⚡ **Lightning storm**: spend your mana to darken the sky and call down three volleys of lightning on everything around you. You can't be hurt while casting, so it also works as a panic button.
+- 🦗 **A mini boss at every gate**: the Mecha Mantis drops in once the last barrier is open, with ground slams, rage mode and super armor. See [A mini boss at every gate](#-a-mini-boss-at-every-gate).
 - 🐜 **Three enemy types**: ants swarm you, beetles hit hard, and spiders shoot from a distance. Beetles join in at level 2 and spiders at level 3, and every level adds more barriers to open.
 - 🧪 **Life bottles**: they show up from level 2 on to heal you mid-fight.
 - 🐿️ **Bonus stage**: between levels you get 15 seconds to hit the squirrels and grab extra life bottles.
@@ -170,6 +180,7 @@ Use **COMBOS** in the arena (keyboard `C` / gamepad `LB`) to show or hide the av
 - **Playing as two?** Split up to take enemies from both sides, and coordinate your storms: each player has a separate mana bar.
 - **Ground slams for crowds**: they hit every enemy around you on the same lane.
 - **Keep the storm for crowds**, or for when a spider has you in its sights: you're untouchable while casting.
+- **Against the mini boss**, watch for the red circle: dash out before the slam, then punish it while it recovers. Keep some mana for when it gets enraged.
 
 ## 📦 Install
 
