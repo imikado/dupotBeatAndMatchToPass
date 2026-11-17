@@ -33,14 +33,16 @@ const ACTION_ROWS := [ROW_START, ROW_TEST, ROW_EDIT, ROW_BACK]
 const COLUMN_X := [20.0, 166.0]
 const COLUMN_X_SOLO := 93.0
 const COLUMN_WIDTH := 134.0
-const ROW_HEIGHT := 8.0
+const ROW_HEIGHT := 7.0
 const HIGHLIGHT_OFFSET_Y := 7.5
 const Y_TITLE := -5.0
 const Y_LAYOUT := 9.0
 const Y_HEADER := 17.0
 const Y_DEVICE := 25.0
-const Y_FIRST_KEY := 33.0
+const Y_FIRST_KEY := 32.0
 const Y_MESSAGE := 104.0
+# boutons au même corps de texte que le reste de l'écran (police 5)
+const BUTTON_FONT_SIZE := 5
 const PANEL_RECT := Rect2(10, 2, 300, 130)
 
 const ButtonStyle = preload("res://src/Common/UI/MenuButtonStyle.gd")
@@ -167,7 +169,7 @@ func build_ui() -> void:
 		_overview.add_child(card)
 		var heading := build_label("JOUEUR %d" % (col + 1), 5, Vector2(x, 21), COLUMN_WIDTH, HORIZONTAL_ALIGNMENT_CENTER)
 		heading.add_theme_color_override("font_color", Player.COOP_COLORS[col])
-		var summary := build_label("", 4, Vector2(x + 5, 34), COLUMN_WIDTH - 10)
+		var summary := build_label("", 4, Vector2(x + 4, 34), COLUMN_WIDTH - 8)
 		summary.size.y = 36
 		summary.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 		# 4 lignes (entrée, attaques, orage/dash, arme) dans le cadre : Pixeled à 4 px a
@@ -255,8 +257,8 @@ func refresh_actions(error_text: String) -> void:
 		if not is_keyboard(col) and PlayerInput.gamepad_for(idx(col)) < 0:
 			device = "MANETTE NON CONNECTEE"
 		_summaries[col].text = "%s\nRAPIDE %s / LOURDE %s\nORAGE %s / DASH %s\nARME %s" % [device, PlayerInput.action_label(idx(col), "attack"), PlayerInput.action_label(idx(col), "attack_heavy"), PlayerInput.action_label(idx(col), "attack_mana"), PlayerInput.action_label(idx(col), "dash"), PlayerInput.action_label(idx(col), "weapon")]
-	var home_rects := [Rect2(13, 74, 145, 16), Rect2(162, 74, 145, 16), Rect2(13, 94, 145, 16), Rect2(162, 94, 145, 16)]
-	var edit_rects := [Rect2(12, 114, 66, 16), Rect2(82, 114, 66, 16), Rect2(152, 114, 76, 16), Rect2(232, 114, 76, 16)]
+	var home_rects := [Rect2(40, 78, 116, 12), Rect2(164, 78, 116, 12), Rect2(40, 94, 116, 12), Rect2(164, 94, 116, 12)]
+	var edit_rects := [Rect2(20, 116, 66, 12), Rect2(90, 116, 66, 12), Rect2(164, 116, 66, 12), Rect2(234, 116, 66, 12)]
 	for i in range(ACTION_ROWS.size()):
 		var row: int = ACTION_ROWS[i]
 		var button: Button = _buttons[row]
@@ -272,12 +274,12 @@ func refresh_actions(error_text: String) -> void:
 				text_ = "RETOUR"
 		if testing:
 			text_ = "TERMINER LE TEST"
-		var rect: Rect2 = Rect2(80, 80, 160, 16) if testing else (edit_rects[i] if _editing else home_rects[i])
+		var rect: Rect2 = Rect2(100, 80, 120, 12) if testing else (edit_rects[i] if _editing else home_rects[i])
 		var selected := _row == row or testing
 		button.position = rect.position
 		button.size = rect.size
-		ButtonStyle.apply(button, text_, selected)
-	_message.position.y = 105.0 if _editing and not testing else 112.0
+		ButtonStyle.apply(button, text_, selected, BUTTON_FONT_SIZE)
+	_message.position.y = 97.0 if _editing and not testing else 110.0
 
 
 # configuration PlayerInput de la colonne

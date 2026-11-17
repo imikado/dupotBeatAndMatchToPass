@@ -122,14 +122,14 @@ position = Vector2(160, 90)
 [node name="ElectricalBarrier" parent="." unique_id=41108737 instance=ExtResource("8")]
 position = Vector2(22, 106)
 
-[node name="player" type="AnimatedSprite2D" parent="." unique_id=1992257358]
-position = Vector2(28, 16)
+[node name="player" type="AnimatedSprite2D" parent="Title" unique_id=1992257358]
+position = Vector2(-80, -58)
 sprite_frames = SubResource("10")
 autoplay = "default"
 frame = 1
 
-[node name="ant" type="AnimatedSprite2D" parent="." unique_id=1870282500]
-position = Vector2(174, 10)
+[node name="ant" type="AnimatedSprite2D" parent="Title" unique_id=1870282500]
+position = Vector2(66, -56)
 sprite_frames = SubResource("6")
 autoplay = "default"
 frame = 2

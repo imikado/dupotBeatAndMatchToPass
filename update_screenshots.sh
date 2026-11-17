@@ -4,7 +4,9 @@
 #
 # Usage :
 #   ./update_screenshots.sh capture   # lance le jeu en mode visite : il joue tout seul et
-#                                     # remplace Screenshot_01..09.png (aucune action requise)
+#                                     # remplace Screenshot_01..12.png (aucune action requise)
+#   ./update_screenshots.sh boss      # visite limitée au mini boss (≈30 s) : ne remplace
+#                                     # que Screenshot_10..12.png
 #   ./update_screenshots.sh manual    # lance le jeu : F12 = capture, quitter le jeu pour finir,
 #                                     # puis choix des captures qui remplacent Screenshot_NN.png
 #   ./update_screenshots.sh appdata   # après commit + push des captures : pointe les URLs de
@@ -46,8 +48,8 @@ install_screenshots() {
 
 	echo
 	echo "${#files[@]} captures écrites dans $SCREENSHOT_DIR"
-	if [ "${#files[@]}" -ne 9 ]; then
-		echo "Attention : le tableau du README.md affiche 9 captures, l'adapter"
+	if [ "${#files[@]}" -ne 12 ]; then
+		echo "Attention : le tableau du README.md affiche 12 captures, l'adapter"
 	fi
 	echo "Ensuite : commit + push, puis ./update_screenshots.sh appdata"
 }
@@ -63,7 +65,7 @@ capture() {
 	timeout "$TOUR_TIMEOUT" "$GODOT" --path . -- --screenshots="$staging" --tour \
 		| grep --line-buffered "^Capture" || true
 
-	local expected=9
+	local expected=12
 	local shots=("$staging"/Screenshot_*.png)
 	if [ ! -f "${shots[0]}" ] || [ "${#shots[@]}" -ne "$expected" ]; then
 		echo "Visite incomplète : ${#shots[@]}/$expected captures, rien n'est remplacé" >&2
@@ -71,6 +73,35 @@ capture() {
 	fi
 
 	install_screenshots "${shots[@]}"
+}
+
+# Visite limitée au mini boss : remplace seulement Screenshot_10..12.png
+boss() {
+	check_godot
+
+	local staging
+	staging="$(mktemp -d)"
+	trap 'rm -rf "$staging"' EXIT
+
+	echo "Visite du mini boss en cours (ne pas toucher à la fenêtre du jeu)…"
+	timeout "$TOUR_TIMEOUT" "$GODOT" --path . -- --screenshots="$staging" --tour --boss \
+		| grep --line-buffered "^Capture" || true
+
+	local n
+	for n in 10 11 12; do
+		if [ ! -f "$staging/Screenshot_$n.png" ]; then
+			echo "Visite incomplète : Screenshot_$n.png manquante, rien n'est remplacé" >&2
+			exit 1
+		fi
+	done
+	for n in 10 11 12; do
+		cp "$staging/Screenshot_$n.png" "$SCREENSHOT_DIR/"
+		if command -v optipng >/dev/null; then
+			optipng -quiet -o2 "$SCREENSHOT_DIR/Screenshot_$n.png"
+		fi
+	done
+	echo "Screenshot_10..12.png remplacées dans $SCREENSHOT_DIR"
+	echo "Ensuite : commit + push, puis ./update_screenshots.sh appdata"
 }
 
 manual() {
@@ -161,10 +192,11 @@ appdata() {
 
 case "$1" in
 	capture) capture ;;
+	boss) boss ;;
 	manual) manual ;;
 	appdata) appdata ;;
 	*)
-		sed -n '2,11p' "$0" | sed 's/^# \{0,1\}//'
+		sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'
 		exit 1
 		;;
 esac

@@ -256,8 +256,14 @@ if ap and os.path.exists(ap):
 custom = os.path.join(OUT, "description.html")
 if os.path.exists(custom):
     summ = texts.get("EN", ("", ""))[0]
+    import re, time
     with open(custom) as f:
-        texts["EN"] = (summ, f.read().strip())
+        html = f.read()
+    stamp = time.strftime("%Y%m%d%H%M")
+    html = re.sub(r'(src="[^"]+\.(?:gif|png|jpe?g|webp))(?:\?v=\d+)?"', rf'\1?v={stamp}"', html)
+    with open(custom, "w") as f:
+        f.write(html)
+    texts["EN"] = (summ, html.strip())
 md = [f"# {title} — page itch.io", "",
       "Généré par `generate_itchio.sh` : ne pas modifier à la main, régler les variables du script.", "",
       "## Thème (Edit theme)", "",

@@ -6,11 +6,12 @@
 #   coop.gif      : mode 2 joueurs (menu, choix des touches, essai des héros en bas
 #                   de l'écran des contrôles, combat à deux, orage de chaque joueur
 #                   avec sa propre jauge de mana)
+#   boss.gif      : mini boss (alerte, chute, écrasement, orage, défaite)
 #   lightning.png : capture de l'orage
 #
 # Usage :
 #   ./update_demo.sh                 # tous les clips
-#   ./update_demo.sh launch          # un seul clip (launch, gameplay ou coop)
+#   ./update_demo.sh launch          # un seul clip (launch, gameplay, coop ou boss)
 set -e
 
 cd "$(dirname "$0")"
@@ -87,13 +88,13 @@ record() {
 
 clips=("$@")
 if [ ${#clips[@]} -eq 0 ]; then
-	clips=(launch gameplay coop)
+	clips=(launch gameplay coop boss)
 fi
 for clip in "${clips[@]}"; do
 	case "$clip" in
-		launch|gameplay|coop) record "$clip" ;;
+		launch|gameplay|coop|boss) record "$clip" ;;
 		*)
-			sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'
+			sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'
 			exit 1
 			;;
 	esac
